@@ -46,7 +46,7 @@ class FindingContract extends Contract {
 
         const findingBytes = await ctx.stub.getState(assetID);
         if (!findingBytes || findingBytes.length === 0) {
-            throw new Error(`The finding for assetID ${assetID} does not exist`);
+            throw new Error(`FINDING_NOT_FOUND: ${assetID}`);
         }
         return findingBytes.toString();
     }
@@ -71,7 +71,7 @@ class FindingContract extends Contract {
         }
         const findingBytes = await ctx.stub.getState(assetID);
         if (!findingBytes || findingBytes.length === 0) {
-            throw new Error(`The finding for assetID ${assetID} does not exist`);
+            throw new Error(`FINDING_NOT_FOUND: ${assetID}`);
         }
 
         const finding = JSON.parse(findingBytes.toString());

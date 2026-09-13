@@ -1,0 +1,14 @@
+{
+  "name": "sentinel-fabric-bridge",
+  "version": "1.0.0",
+  "description": "Express Bridge Service for SentinelVision Hyperledger Fabric Network",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.14.0",
+    "@hyperledger/fabric-gateway": "^1.10.0",
+    "express": "^4.21.2"
+  }
+}
