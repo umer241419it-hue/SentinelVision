@@ -1,0 +1,197 @@
+[
+  {
+    "model_id": "id-00000905",
+    "per_class_anomaly_index": [
+      0.0,
+      0.0,
+      8.7561,
+      0.0,
+      0.6745
+    ],
+    "max_anomaly_index": 8.7561,
+    "flagged_class": 2,
+    "flagged": true
+  },
+  {
+    "model_id": "id-00000664",
+    "per_class_anomaly_index": [
+      0.0,
+      0.0,
+      0.6745,
+      7.9919,
+      0.0
+    ],
+    "max_anomaly_index": 7.9919,
+    "flagged_class": 3,
+    "flagged": true
+  },
+  {
+    "model_id": "id-00000431",
+    "per_class_anomaly_index": [
+      0.0,
+      0.0,
+      0.0,
+      4.8449,
+      1.7904
+    ],
+    "max_anomaly_index": 4.8449,
+    "flagged_class": 3,
+    "flagged": true
+  },
+  {
+    "model_id": "id-00000449",
+    "per_class_anomaly_index": [
+      0.0,
+      4.0445,
+      0.0,
+      0.7084,
+      0.0
+    ],
+    "max_anomaly_index": 4.0445,
+    "flagged_class": 1,
+    "flagged": true
+  },
+  {
+    "model_id": "id-00000658",
+    "per_class_anomaly_index": [
+      0.0,
+      4.0134,
+      0.0,
+      0.0,
+      0.2492
+    ],
+    "max_anomaly_index": 4.0134,
+    "flagged_class": 1,
+    "flagged": true
+  },
+  {
+    "model_id": "id-00000728",
+    "per_class_anomaly_index": [
+      0.0,
+      0.0,
+      3.7187,
+      0.0,
+      0.6815
+    ],
+    "max_anomaly_index": 3.7187,
+    "flagged_class": 2,
+    "flagged": true
+  },
+  {
+    "model_id": "id-00000112",
+    "per_class_anomaly_index": [
+      0.8093,
+      0.0,
+      3.1299,
+      0.0,
+      0.0
+    ],
+    "max_anomaly_index": 3.1299,
+    "flagged_class": 2,
+    "flagged": true
+  },
+  {
+    "model_id": "id-00000912",
+    "per_class_anomaly_index": [
+      0.6745,
+      0.0,
+      0.0,
+      2.4258,
+      0.0
+    ],
+    "max_anomaly_index": 2.4258,
+    "flagged_class": 3,
+    "flagged": true
+  },
+  {
+    "model_id": "id-00000637",
+    "per_class_anomaly_index": [
+      0.0,
+      2.2541,
+      0.0,
+      1.1027,
+      0.0
+    ],
+    "max_anomaly_index": 2.2541,
+    "flagged_class": 1,
+    "flagged": true
+  },
+  {
+    "model_id": "id-00000621",
+    "per_class_anomaly_index": [
+      2.1923,
+      0.0,
+      0.6745,
+      0.0,
+      0.0
+    ],
+    "max_anomaly_index": 2.1923,
+    "flagged_class": 0,
+    "flagged": true
+  },
+  {
+    "model_id": "id-00000173",
+    "per_class_anomaly_index": [
+      0.6745,
+      0.0,
+      1.9676,
+      0.0,
+      0.0
+    ],
+    "max_anomaly_index": 1.9676,
+    "flagged_class": 2,
+    "flagged": false
+  },
+  {
+    "model_id": "id-00000278",
+    "per_class_anomaly_index": [
+      0.0,
+      0.0,
+      0.0,
+      0.5897,
+      1.893
+    ],
+    "max_anomaly_index": 1.893,
+    "flagged_class": 4,
+    "flagged": false
+  },
+  {
+    "model_id": "id-00000838",
+    "per_class_anomaly_index": [
+      1.8392,
+      0.0,
+      0.0,
+      0.0,
+      0.233
+    ],
+    "max_anomaly_index": 1.8392,
+    "flagged_class": 0,
+    "flagged": false
+  },
+  {
+    "model_id": "id-00000594",
+    "per_class_anomaly_index": [
+      0.0,
+      0.0,
+      0.7749,
+      0.6745,
+      0.0
+    ],
+    "max_anomaly_index": 0.7749,
+    "flagged_class": 2,
+    "flagged": false
+  },
+  {
+    "model_id": "id-00000028",
+    "per_class_anomaly_index": [
+      0.0,
+      0.0,
+      0.0,
+      0.7588,
+      0.1366
+    ],
+    "max_anomaly_index": 0.7588,
+    "flagged_class": 3,
+    "flagged": false
+  }
+]

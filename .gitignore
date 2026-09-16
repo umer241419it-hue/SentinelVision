@@ -1,3 +1,10 @@
 node_modules/
 *.tar.gz
 log.txt
+chaincode/finding/node_modules/
+bridge/node_modules/
+fabric-samples/bin/
+fabric-samples/config/
+model-integrity/data/
+__pycache__/
+*.pyc
