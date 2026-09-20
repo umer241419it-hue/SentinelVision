@@ -1,0 +1,152 @@
+[
+  {
+    "assetID": "model-id-00000028",
+    "moduleName": "ModelIntegrity-NeuralCleanse-MAD-STRIP",
+    "reason": "No anomalous class detected by Neural Cleanse + MAD (max anomaly index 0.76, below threshold).",
+    "evidenceHash": "8940e54c11228b71006be17eeede70a636a0380fe147fd3aee6f2430a9cfdb5b",
+    "confidence": "0.38",
+    "severity": "LOW",
+    "disposition": "ACCEPT",
+    "timestamp": "2026-09-20T12:48:04Z"
+  },
+  {
+    "assetID": "model-id-00000112",
+    "moduleName": "ModelIntegrity-NeuralCleanse-MAD-STRIP",
+    "reason": "Class 2 flagged by Neural Cleanse + MAD (anomaly index 3.13) and independently corroborated by STRIP's entropy-suppression signal on the same class \u2014 QUARANTINE recommended pending human review.",
+    "evidenceHash": "ebc9937b69204858ac0ba24c40141a773307694d18db2a89a5cbd93df240d75f",
+    "confidence": "0.85",
+    "severity": "CRITICAL",
+    "disposition": "QUARANTINE",
+    "timestamp": "2026-09-20T12:48:04Z"
+  },
+  {
+    "assetID": "model-id-00000173",
+    "moduleName": "ModelIntegrity-NeuralCleanse-MAD-STRIP",
+    "reason": "No anomalous class detected by Neural Cleanse + MAD (max anomaly index 1.97, below threshold).",
+    "evidenceHash": "8caf4e7d391073ac06a5650e57e44ffa8bd310847633c0d82e780d655c4f1568",
+    "confidence": "0.50",
+    "severity": "LOW",
+    "disposition": "ACCEPT",
+    "timestamp": "2026-09-20T12:48:04Z"
+  },
+  {
+    "assetID": "model-id-00000278",
+    "moduleName": "ModelIntegrity-NeuralCleanse-MAD-STRIP",
+    "reason": "No anomalous class detected by Neural Cleanse + MAD (max anomaly index 1.89, below threshold).",
+    "evidenceHash": "4c243253248b71119d9903b0a8df2f1afbd3201b26c1f4650ef5a3d237448fca",
+    "confidence": "0.50",
+    "severity": "LOW",
+    "disposition": "ACCEPT",
+    "timestamp": "2026-09-20T12:48:04Z"
+  },
+  {
+    "assetID": "model-id-00000431",
+    "moduleName": "ModelIntegrity-NeuralCleanse-MAD-STRIP",
+    "reason": "Class 3 flagged by Neural Cleanse + MAD (anomaly index 4.84), but STRIP's independent signal points to a different class (class 4) \u2014 flagged for human review rather than automatic quarantine given the conflicting signals.",
+    "evidenceHash": "c915027d9eeafbdff91ee77d686ff3b4c4084bc54844e02fbfb21a5185dd6552",
+    "confidence": "0.58",
+    "severity": "MEDIUM",
+    "disposition": "REVIEW",
+    "timestamp": "2026-09-20T12:48:04Z"
+  },
+  {
+    "assetID": "model-id-00000449",
+    "moduleName": "ModelIntegrity-NeuralCleanse-MAD-STRIP",
+    "reason": "Class 1 flagged by Neural Cleanse + MAD (anomaly index 4.04) and independently corroborated by STRIP's entropy-suppression signal on the same class \u2014 QUARANTINE recommended pending human review.",
+    "evidenceHash": "dad920d760ec5fc2d9d3522f3fee4ba8473cc260b4f7ef1e476c2908d47d410a",
+    "confidence": "0.85",
+    "severity": "CRITICAL",
+    "disposition": "QUARANTINE",
+    "timestamp": "2026-09-20T12:48:04Z"
+  },
+  {
+    "assetID": "model-id-00000594",
+    "moduleName": "ModelIntegrity-NeuralCleanse-MAD-STRIP",
+    "reason": "No anomalous class detected by Neural Cleanse + MAD (max anomaly index 0.77, below threshold).",
+    "evidenceHash": "a5032807b0eb11df784195dcb13bf46d2d57788f0d8106c11ef0bc41c25b1902",
+    "confidence": "0.39",
+    "severity": "LOW",
+    "disposition": "ACCEPT",
+    "timestamp": "2026-09-20T12:48:04Z"
+  },
+  {
+    "assetID": "model-id-00000621",
+    "moduleName": "ModelIntegrity-NeuralCleanse-MAD-STRIP",
+    "reason": "Class 0 flagged by Neural Cleanse + MAD (anomaly index 2.19), but STRIP's independent signal points to a different class (class 2) \u2014 flagged for human review rather than automatic quarantine given the conflicting signals.",
+    "evidenceHash": "5f2d95a5b5d54fe56f3978206cd0796294551b68e8fb3c531627a5892932e014",
+    "confidence": "0.26",
+    "severity": "MEDIUM",
+    "disposition": "REVIEW",
+    "timestamp": "2026-09-20T12:48:04Z"
+  },
+  {
+    "assetID": "model-id-00000637",
+    "moduleName": "ModelIntegrity-NeuralCleanse-MAD-STRIP",
+    "reason": "Class 1 flagged by Neural Cleanse + MAD (anomaly index 2.25), but STRIP's independent signal points to a different class (class 0) \u2014 flagged for human review rather than automatic quarantine given the conflicting signals.",
+    "evidenceHash": "f8f06e51267cbaa1bcf8b4a86a847e74935f93e65f3f2adde137651a14002195",
+    "confidence": "0.27",
+    "severity": "MEDIUM",
+    "disposition": "REVIEW",
+    "timestamp": "2026-09-20T12:48:04Z"
+  },
+  {
+    "assetID": "model-id-00000658",
+    "moduleName": "ModelIntegrity-NeuralCleanse-MAD-STRIP",
+    "reason": "Class 1 flagged by Neural Cleanse + MAD (anomaly index 4.01) and independently corroborated by STRIP's entropy-suppression signal on the same class \u2014 QUARANTINE recommended pending human review.",
+    "evidenceHash": "48219f967d65b16cf0ba8543313d5a2ee49a119e522353d09b8f3973d8f4205f",
+    "confidence": "0.85",
+    "severity": "CRITICAL",
+    "disposition": "QUARANTINE",
+    "timestamp": "2026-09-20T12:48:04Z"
+  },
+  {
+    "assetID": "model-id-00000664",
+    "moduleName": "ModelIntegrity-NeuralCleanse-MAD-STRIP",
+    "reason": "Class 3 flagged by Neural Cleanse + MAD (anomaly index 7.99), but STRIP's independent signal points to a different class (class 2) \u2014 flagged for human review rather than automatic quarantine given the conflicting signals.",
+    "evidenceHash": "b914fbe6dc22d815c35e27ee2c5a3e2ec3bc4bb0c251481ca0dd86cba85e956a",
+    "confidence": "0.60",
+    "severity": "MEDIUM",
+    "disposition": "REVIEW",
+    "timestamp": "2026-09-20T12:48:04Z"
+  },
+  {
+    "assetID": "model-id-00000728",
+    "moduleName": "ModelIntegrity-NeuralCleanse-MAD-STRIP",
+    "reason": "Class 2 flagged by Neural Cleanse + MAD (anomaly index 3.72), but STRIP's independent signal points to a different class (class 3) \u2014 flagged for human review rather than automatic quarantine given the conflicting signals.",
+    "evidenceHash": "a12ea6d41130b15b20e25083f5dab9297871d94e33beead49e5c02ea3d7f13f9",
+    "confidence": "0.45",
+    "severity": "MEDIUM",
+    "disposition": "REVIEW",
+    "timestamp": "2026-09-20T12:48:04Z"
+  },
+  {
+    "assetID": "model-id-00000838",
+    "moduleName": "ModelIntegrity-NeuralCleanse-MAD-STRIP",
+    "reason": "No anomalous class detected by Neural Cleanse + MAD (max anomaly index 1.84, below threshold).",
+    "evidenceHash": "e4e4f36dae8fefa8aea29b0305ff110df0162aade10aa1b02545988946572309",
+    "confidence": "0.50",
+    "severity": "LOW",
+    "disposition": "ACCEPT",
+    "timestamp": "2026-09-20T12:48:04Z"
+  },
+  {
+    "assetID": "model-id-00000905",
+    "moduleName": "ModelIntegrity-NeuralCleanse-MAD-STRIP",
+    "reason": "Class 2 flagged by Neural Cleanse + MAD (anomaly index 8.76), but STRIP's independent signal points to a different class (class 0) \u2014 flagged for human review rather than automatic quarantine given the conflicting signals.",
+    "evidenceHash": "7b254c84d6a2b0f576b05afdedd27c1cbb1280044ac1bb93da922b91619ac929",
+    "confidence": "0.60",
+    "severity": "MEDIUM",
+    "disposition": "REVIEW",
+    "timestamp": "2026-09-20T12:48:04Z"
+  },
+  {
+    "assetID": "model-id-00000912",
+    "moduleName": "ModelIntegrity-NeuralCleanse-MAD-STRIP",
+    "reason": "Class 3 flagged by Neural Cleanse + MAD (anomaly index 2.43), but STRIP's independent signal points to a different class (class 4) \u2014 flagged for human review rather than automatic quarantine given the conflicting signals.",
+    "evidenceHash": "b7b5fc8dcf934ff6b29aa55c6f865e6733f0d90529cfc8e26d82bedfefe9149c",
+    "confidence": "0.29",
+    "severity": "MEDIUM",
+    "disposition": "REVIEW",
+    "timestamp": "2026-09-20T12:48:04Z"
+  }
+]

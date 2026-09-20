@@ -8,3 +8,4 @@ fabric-samples/config/
 model-integrity/data/
 __pycache__/
 *.pyc
+model-integrity/triggers/

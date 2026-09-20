@@ -1,0 +1,527 @@
+[
+  {
+    "model_id": "id-00000028",
+    "class": 0,
+    "mean_entropy_real_trigger": 1.2947,
+    "mean_entropy_random_control": 1.2248,
+    "entropy_deficit": -0.0699
+  },
+  {
+    "model_id": "id-00000028",
+    "class": 1,
+    "mean_entropy_real_trigger": 1.2077,
+    "mean_entropy_random_control": 1.0347,
+    "entropy_deficit": -0.173
+  },
+  {
+    "model_id": "id-00000028",
+    "class": 2,
+    "mean_entropy_real_trigger": 1.263,
+    "mean_entropy_random_control": 1.1517,
+    "entropy_deficit": -0.1113
+  },
+  {
+    "model_id": "id-00000028",
+    "class": 3,
+    "mean_entropy_real_trigger": 1.3622,
+    "mean_entropy_random_control": 1.33,
+    "entropy_deficit": -0.0322
+  },
+  {
+    "model_id": "id-00000028",
+    "class": 4,
+    "mean_entropy_real_trigger": 1.2669,
+    "mean_entropy_random_control": 1.2087,
+    "entropy_deficit": -0.0583
+  },
+  {
+    "model_id": "id-00000112",
+    "class": 0,
+    "mean_entropy_real_trigger": 0.8922,
+    "mean_entropy_random_control": 1.0409,
+    "entropy_deficit": 0.1487
+  },
+  {
+    "model_id": "id-00000112",
+    "class": 1,
+    "mean_entropy_real_trigger": 1.2022,
+    "mean_entropy_random_control": 1.1882,
+    "entropy_deficit": -0.014
+  },
+  {
+    "model_id": "id-00000112",
+    "class": 2,
+    "mean_entropy_real_trigger": 1.0086,
+    "mean_entropy_random_control": 0.9749,
+    "entropy_deficit": -0.0337
+  },
+  {
+    "model_id": "id-00000112",
+    "class": 3,
+    "mean_entropy_real_trigger": 1.0823,
+    "mean_entropy_random_control": 1.0856,
+    "entropy_deficit": 0.0033
+  },
+  {
+    "model_id": "id-00000112",
+    "class": 4,
+    "mean_entropy_real_trigger": 1.0291,
+    "mean_entropy_random_control": 1.0021,
+    "entropy_deficit": -0.027
+  },
+  {
+    "model_id": "id-00000173",
+    "class": 0,
+    "mean_entropy_real_trigger": 0.9901,
+    "mean_entropy_random_control": 0.9703,
+    "entropy_deficit": -0.0198
+  },
+  {
+    "model_id": "id-00000173",
+    "class": 1,
+    "mean_entropy_real_trigger": 0.8671,
+    "mean_entropy_random_control": 0.9672,
+    "entropy_deficit": 0.1002
+  },
+  {
+    "model_id": "id-00000173",
+    "class": 2,
+    "mean_entropy_real_trigger": 0.9791,
+    "mean_entropy_random_control": 0.958,
+    "entropy_deficit": -0.0211
+  },
+  {
+    "model_id": "id-00000173",
+    "class": 3,
+    "mean_entropy_real_trigger": 0.795,
+    "mean_entropy_random_control": 1.0091,
+    "entropy_deficit": 0.2141
+  },
+  {
+    "model_id": "id-00000173",
+    "class": 4,
+    "mean_entropy_real_trigger": 0.9164,
+    "mean_entropy_random_control": 0.9897,
+    "entropy_deficit": 0.0733
+  },
+  {
+    "model_id": "id-00000278",
+    "class": 0,
+    "mean_entropy_real_trigger": 1.2227,
+    "mean_entropy_random_control": 1.0135,
+    "entropy_deficit": -0.2093
+  },
+  {
+    "model_id": "id-00000278",
+    "class": 1,
+    "mean_entropy_real_trigger": 1.274,
+    "mean_entropy_random_control": 0.9751,
+    "entropy_deficit": -0.2989
+  },
+  {
+    "model_id": "id-00000278",
+    "class": 2,
+    "mean_entropy_real_trigger": 1.1977,
+    "mean_entropy_random_control": 0.9432,
+    "entropy_deficit": -0.2545
+  },
+  {
+    "model_id": "id-00000278",
+    "class": 3,
+    "mean_entropy_real_trigger": 1.2223,
+    "mean_entropy_random_control": 0.9732,
+    "entropy_deficit": -0.2491
+  },
+  {
+    "model_id": "id-00000278",
+    "class": 4,
+    "mean_entropy_real_trigger": 1.3035,
+    "mean_entropy_random_control": 1.1329,
+    "entropy_deficit": -0.1706
+  },
+  {
+    "model_id": "id-00000431",
+    "class": 0,
+    "mean_entropy_real_trigger": 1.2703,
+    "mean_entropy_random_control": 1.3344,
+    "entropy_deficit": 0.0641
+  },
+  {
+    "model_id": "id-00000431",
+    "class": 1,
+    "mean_entropy_real_trigger": 1.1852,
+    "mean_entropy_random_control": 1.2166,
+    "entropy_deficit": 0.0314
+  },
+  {
+    "model_id": "id-00000431",
+    "class": 2,
+    "mean_entropy_real_trigger": 1.2602,
+    "mean_entropy_random_control": 1.194,
+    "entropy_deficit": -0.0662
+  },
+  {
+    "model_id": "id-00000431",
+    "class": 3,
+    "mean_entropy_real_trigger": 1.3573,
+    "mean_entropy_random_control": 1.2922,
+    "entropy_deficit": -0.065
+  },
+  {
+    "model_id": "id-00000431",
+    "class": 4,
+    "mean_entropy_real_trigger": 1.0257,
+    "mean_entropy_random_control": 1.3415,
+    "entropy_deficit": 0.3158
+  },
+  {
+    "model_id": "id-00000449",
+    "class": 0,
+    "mean_entropy_real_trigger": 1.2664,
+    "mean_entropy_random_control": 1.2391,
+    "entropy_deficit": -0.0272
+  },
+  {
+    "model_id": "id-00000449",
+    "class": 1,
+    "mean_entropy_real_trigger": 1.1656,
+    "mean_entropy_random_control": 1.0295,
+    "entropy_deficit": -0.136
+  },
+  {
+    "model_id": "id-00000449",
+    "class": 2,
+    "mean_entropy_real_trigger": 1.2037,
+    "mean_entropy_random_control": 1.0285,
+    "entropy_deficit": -0.1752
+  },
+  {
+    "model_id": "id-00000449",
+    "class": 3,
+    "mean_entropy_real_trigger": 1.3103,
+    "mean_entropy_random_control": 1.0996,
+    "entropy_deficit": -0.2107
+  },
+  {
+    "model_id": "id-00000449",
+    "class": 4,
+    "mean_entropy_real_trigger": 1.2411,
+    "mean_entropy_random_control": 1.208,
+    "entropy_deficit": -0.033
+  },
+  {
+    "model_id": "id-00000594",
+    "class": 0,
+    "mean_entropy_real_trigger": 1.1347,
+    "mean_entropy_random_control": 1.004,
+    "entropy_deficit": -0.1307
+  },
+  {
+    "model_id": "id-00000594",
+    "class": 1,
+    "mean_entropy_real_trigger": 1.1472,
+    "mean_entropy_random_control": 0.9135,
+    "entropy_deficit": -0.2337
+  },
+  {
+    "model_id": "id-00000594",
+    "class": 2,
+    "mean_entropy_real_trigger": 1.1736,
+    "mean_entropy_random_control": 1.0196,
+    "entropy_deficit": -0.154
+  },
+  {
+    "model_id": "id-00000594",
+    "class": 3,
+    "mean_entropy_real_trigger": 1.0238,
+    "mean_entropy_random_control": 1.0869,
+    "entropy_deficit": 0.0632
+  },
+  {
+    "model_id": "id-00000594",
+    "class": 4,
+    "mean_entropy_real_trigger": 1.0953,
+    "mean_entropy_random_control": 1.0295,
+    "entropy_deficit": -0.0658
+  },
+  {
+    "model_id": "id-00000621",
+    "class": 0,
+    "mean_entropy_real_trigger": 1.0979,
+    "mean_entropy_random_control": 1.064,
+    "entropy_deficit": -0.0339
+  },
+  {
+    "model_id": "id-00000621",
+    "class": 1,
+    "mean_entropy_real_trigger": 0.9296,
+    "mean_entropy_random_control": 0.8875,
+    "entropy_deficit": -0.042
+  },
+  {
+    "model_id": "id-00000621",
+    "class": 2,
+    "mean_entropy_real_trigger": 0.8799,
+    "mean_entropy_random_control": 0.8604,
+    "entropy_deficit": -0.0195
+  },
+  {
+    "model_id": "id-00000621",
+    "class": 3,
+    "mean_entropy_real_trigger": 0.9896,
+    "mean_entropy_random_control": 0.8202,
+    "entropy_deficit": -0.1694
+  },
+  {
+    "model_id": "id-00000621",
+    "class": 4,
+    "mean_entropy_real_trigger": 0.9455,
+    "mean_entropy_random_control": 0.8917,
+    "entropy_deficit": -0.0538
+  },
+  {
+    "model_id": "id-00000637",
+    "class": 0,
+    "mean_entropy_real_trigger": 1.3083,
+    "mean_entropy_random_control": 1.1226,
+    "entropy_deficit": -0.1857
+  },
+  {
+    "model_id": "id-00000637",
+    "class": 1,
+    "mean_entropy_real_trigger": 0.9529,
+    "mean_entropy_random_control": 0.7595,
+    "entropy_deficit": -0.1934
+  },
+  {
+    "model_id": "id-00000637",
+    "class": 2,
+    "mean_entropy_real_trigger": 1.2655,
+    "mean_entropy_random_control": 0.8784,
+    "entropy_deficit": -0.387
+  },
+  {
+    "model_id": "id-00000637",
+    "class": 3,
+    "mean_entropy_real_trigger": 1.3948,
+    "mean_entropy_random_control": 1.282,
+    "entropy_deficit": -0.1128
+  },
+  {
+    "model_id": "id-00000637",
+    "class": 4,
+    "mean_entropy_real_trigger": 1.1134,
+    "mean_entropy_random_control": 1.0608,
+    "entropy_deficit": -0.0526
+  },
+  {
+    "model_id": "id-00000658",
+    "class": 0,
+    "mean_entropy_real_trigger": 1.1473,
+    "mean_entropy_random_control": 1.0443,
+    "entropy_deficit": -0.103
+  },
+  {
+    "model_id": "id-00000658",
+    "class": 1,
+    "mean_entropy_real_trigger": 1.0203,
+    "mean_entropy_random_control": 1.0831,
+    "entropy_deficit": 0.0629
+  },
+  {
+    "model_id": "id-00000658",
+    "class": 2,
+    "mean_entropy_real_trigger": 1.0244,
+    "mean_entropy_random_control": 0.8513,
+    "entropy_deficit": -0.1731
+  },
+  {
+    "model_id": "id-00000658",
+    "class": 3,
+    "mean_entropy_real_trigger": 1.0097,
+    "mean_entropy_random_control": 0.9967,
+    "entropy_deficit": -0.013
+  },
+  {
+    "model_id": "id-00000658",
+    "class": 4,
+    "mean_entropy_real_trigger": 1.1628,
+    "mean_entropy_random_control": 1.1437,
+    "entropy_deficit": -0.0191
+  },
+  {
+    "model_id": "id-00000664",
+    "class": 0,
+    "mean_entropy_real_trigger": 1.137,
+    "mean_entropy_random_control": 1.0233,
+    "entropy_deficit": -0.1137
+  },
+  {
+    "model_id": "id-00000664",
+    "class": 1,
+    "mean_entropy_real_trigger": 1.0872,
+    "mean_entropy_random_control": 1.0167,
+    "entropy_deficit": -0.0705
+  },
+  {
+    "model_id": "id-00000664",
+    "class": 2,
+    "mean_entropy_real_trigger": 1.063,
+    "mean_entropy_random_control": 1.0035,
+    "entropy_deficit": -0.0595
+  },
+  {
+    "model_id": "id-00000664",
+    "class": 3,
+    "mean_entropy_real_trigger": 1.074,
+    "mean_entropy_random_control": 0.9986,
+    "entropy_deficit": -0.0754
+  },
+  {
+    "model_id": "id-00000664",
+    "class": 4,
+    "mean_entropy_real_trigger": 1.1467,
+    "mean_entropy_random_control": 1.1133,
+    "entropy_deficit": -0.0334
+  },
+  {
+    "model_id": "id-00000728",
+    "class": 0,
+    "mean_entropy_real_trigger": 1.035,
+    "mean_entropy_random_control": 0.9496,
+    "entropy_deficit": -0.0854
+  },
+  {
+    "model_id": "id-00000728",
+    "class": 1,
+    "mean_entropy_real_trigger": 1.0798,
+    "mean_entropy_random_control": 1.002,
+    "entropy_deficit": -0.0778
+  },
+  {
+    "model_id": "id-00000728",
+    "class": 2,
+    "mean_entropy_real_trigger": 1.2282,
+    "mean_entropy_random_control": 1.0462,
+    "entropy_deficit": -0.1819
+  },
+  {
+    "model_id": "id-00000728",
+    "class": 3,
+    "mean_entropy_real_trigger": 1.1303,
+    "mean_entropy_random_control": 1.1463,
+    "entropy_deficit": 0.016
+  },
+  {
+    "model_id": "id-00000728",
+    "class": 4,
+    "mean_entropy_real_trigger": 1.1066,
+    "mean_entropy_random_control": 1.1692,
+    "entropy_deficit": 0.0626
+  },
+  {
+    "model_id": "id-00000838",
+    "class": 0,
+    "mean_entropy_real_trigger": 1.3226,
+    "mean_entropy_random_control": 1.0496,
+    "entropy_deficit": -0.273
+  },
+  {
+    "model_id": "id-00000838",
+    "class": 1,
+    "mean_entropy_real_trigger": 1.0686,
+    "mean_entropy_random_control": 1.0729,
+    "entropy_deficit": 0.0044
+  },
+  {
+    "model_id": "id-00000838",
+    "class": 2,
+    "mean_entropy_real_trigger": 1.0003,
+    "mean_entropy_random_control": 0.9335,
+    "entropy_deficit": -0.0668
+  },
+  {
+    "model_id": "id-00000838",
+    "class": 3,
+    "mean_entropy_real_trigger": 1.0697,
+    "mean_entropy_random_control": 0.9408,
+    "entropy_deficit": -0.129
+  },
+  {
+    "model_id": "id-00000838",
+    "class": 4,
+    "mean_entropy_real_trigger": 0.9595,
+    "mean_entropy_random_control": 1.02,
+    "entropy_deficit": 0.0605
+  },
+  {
+    "model_id": "id-00000905",
+    "class": 0,
+    "mean_entropy_real_trigger": 1.0093,
+    "mean_entropy_random_control": 1.0429,
+    "entropy_deficit": 0.0336
+  },
+  {
+    "model_id": "id-00000905",
+    "class": 1,
+    "mean_entropy_real_trigger": 1.0263,
+    "mean_entropy_random_control": 1.0485,
+    "entropy_deficit": 0.0222
+  },
+  {
+    "model_id": "id-00000905",
+    "class": 2,
+    "mean_entropy_real_trigger": 1.1334,
+    "mean_entropy_random_control": 1.113,
+    "entropy_deficit": -0.0204
+  },
+  {
+    "model_id": "id-00000905",
+    "class": 3,
+    "mean_entropy_real_trigger": 1.0798,
+    "mean_entropy_random_control": 0.9156,
+    "entropy_deficit": -0.1643
+  },
+  {
+    "model_id": "id-00000905",
+    "class": 4,
+    "mean_entropy_real_trigger": 0.9826,
+    "mean_entropy_random_control": 0.9935,
+    "entropy_deficit": 0.011
+  },
+  {
+    "model_id": "id-00000912",
+    "class": 0,
+    "mean_entropy_real_trigger": 0.9242,
+    "mean_entropy_random_control": 1.0513,
+    "entropy_deficit": 0.127
+  },
+  {
+    "model_id": "id-00000912",
+    "class": 1,
+    "mean_entropy_real_trigger": 1.1878,
+    "mean_entropy_random_control": 1.1596,
+    "entropy_deficit": -0.0282
+  },
+  {
+    "model_id": "id-00000912",
+    "class": 2,
+    "mean_entropy_real_trigger": 1.1635,
+    "mean_entropy_random_control": 1.17,
+    "entropy_deficit": 0.0065
+  },
+  {
+    "model_id": "id-00000912",
+    "class": 3,
+    "mean_entropy_real_trigger": 1.0285,
+    "mean_entropy_random_control": 1.0414,
+    "entropy_deficit": 0.0129
+  },
+  {
+    "model_id": "id-00000912",
+    "class": 4,
+    "mean_entropy_real_trigger": 1.1915,
+    "mean_entropy_random_control": 1.1988,
+    "entropy_deficit": 0.0073
+  }
+]
