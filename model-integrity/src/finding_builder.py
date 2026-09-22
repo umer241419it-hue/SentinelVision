@@ -3,7 +3,7 @@
 SentinelVision - Stage 4 Step 7: Finding Schema + Evidence Store
 Constructs full evidence JSON, computes cryptographic SHA-256 evidenceHash,
 persists evidence to evidence_store/<evidenceHash>.json, and builds the
-canonical 8-field finding JSON matching Stage 2 chaincode schema.
+canonical finding JSON with Ed25519 signature from crypto-utils/sign.py.
 
 Following Section 10 file structure: model-integrity/src/finding_builder.py
 """
@@ -17,6 +17,13 @@ from typing import Dict, List, Any
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
+PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, ".."))
+
+CRYPTO_UTILS_DIR = os.path.join(PROJECT_ROOT, "crypto-utils")
+if CRYPTO_UTILS_DIR not in sys.path:
+    sys.path.insert(0, CRYPTO_UTILS_DIR)
+
+from sign import sign_fields
 
 COVERAGE_STATEMENT = (
     "Detection path: white-box (Neural Cleanse + MAD), corroborated by STRIP "
@@ -97,10 +104,57 @@ def build_finding(
         "disposition": scoring_entry["disposition"],
         "timestamp": timestamp,
     }
+    # Sign exactly the 8 original finding fields with module name 'ModelIntegrity'
+    signature = sign_fields("ModelIntegrity", finding)
+    finding["signature"] = signature
     return finding
 
 
+def submit_to_bridge(finding: Dict[str, Any], bridge_url: str = "http://localhost:3000") -> Dict[str, Any]:
+    import urllib.request
+    import urllib.error
+
+    post_url = f"{bridge_url}/findings"
+    post_data = json.dumps(finding).encode("utf-8")
+    post_req = urllib.request.Request(
+        post_url,
+        data=post_data,
+        headers={"Content-Type": "application/json"},
+        method="POST"
+    )
+    try:
+        with urllib.request.urlopen(post_req) as resp:
+            post_code = resp.status
+            post_body = resp.read().decode("utf-8")
+    except urllib.error.HTTPError as e:
+        post_code = e.code
+        post_body = e.read().decode("utf-8")
+
+    get_url = f"{bridge_url}/findings/{finding['assetID']}"
+    get_req = urllib.request.Request(get_url, method="GET")
+    try:
+        with urllib.request.urlopen(get_req) as resp:
+            get_code = resp.status
+            get_body = resp.read().decode("utf-8")
+    except urllib.error.HTTPError as e:
+        get_code = e.code
+        get_body = e.read().decode("utf-8")
+
+    return {
+        "post_status": post_code,
+        "post_body": post_body,
+        "get_status": get_code,
+        "get_body": get_body,
+    }
+
+
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Build and sign model integrity findings.")
+    parser.add_argument("--submit", type=str, default=None, help="Model ID to submit to bridge (e.g. id-00000028)")
+    parser.add_argument("--bridge-url", type=str, default="http://localhost:3000", help="Bridge URL")
+    args = parser.parse_args()
+
     calibration_path = os.path.join(BASE_DIR, "calibration_manifest.json")
     mad_path = os.path.join(BASE_DIR, "mad_results.json")
     strip_path = os.path.join(BASE_DIR, "strip_results.json")
@@ -160,6 +214,20 @@ def main():
     print(f"Successfully processed {len(model_ids)} models.")
     print(f"Evidence files written: {len(written_evidence_files)} to {evidence_store_dir}")
     print(f"Findings written: {findings_path}")
+
+    if args.submit:
+        target_model = args.submit
+        matched = [f for f in all_findings if f["assetID"] == f"model-{target_model}" or f["assetID"] == target_model]
+        if not matched:
+            print(f"ERROR: Model {target_model} not found in generated findings.")
+            sys.exit(1)
+        target_finding = matched[0]
+        print(f"\nSubmitting finding for {target_finding['assetID']} to {args.bridge_url}...")
+        res = submit_to_bridge(target_finding, args.bridge_url)
+        print(f"POST Status: {res['post_status']}")
+        print(f"POST Response: {res['post_body']}")
+        print(f"GET Status: {res['get_status']}")
+        print(f"GET Response: {res['get_body']}")
 
 
 if __name__ == "__main__":

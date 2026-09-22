@@ -9,3 +9,8 @@ model-integrity/data/
 __pycache__/
 *.pyc
 model-integrity/triggers/
+
+# Ed25519 cryptographic private keys (OUTSIDE version control)
+crypto-utils/keys/
+*.key
+*.priv

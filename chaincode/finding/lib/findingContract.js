@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 const { Contract } = require('fabric-contract-api');
 const stringify = require('json-stringify-deterministic');
@@ -12,11 +12,15 @@ class FindingContract extends Contract {
 
     /**
      * submitFinding
-     * Writes the 8 specified fields as JSON to the ledger under key = assetID.
+     * Writes the 9 specified fields as JSON to the ledger under key = assetID.
+     * Enforces presence of signature (non-empty string).
      */
-    async submitFinding(ctx, assetID, moduleName, reason, evidenceHash, confidence, severity, disposition, timestamp) {
+    async submitFinding(ctx, assetID, moduleName, reason, evidenceHash, confidence, severity, disposition, timestamp, signature) {
         if (!assetID) {
             throw new Error('assetID must be specified');
+        }
+        if (!signature || typeof signature !== 'string' || signature.trim() === '') {
+            throw new Error('signature must be specified and non-empty');
         }
 
         const finding = {
@@ -27,7 +31,8 @@ class FindingContract extends Contract {
             confidence: confidence,
             severity: severity,
             disposition: disposition,
-            timestamp: timestamp
+            timestamp: timestamp,
+            signature: signature
         };
 
         const findingBuffer = Buffer.from(stringify(sortKeysRecursive(finding)));
@@ -38,6 +43,7 @@ class FindingContract extends Contract {
     /**
      * queryFinding
      * Reads back the finding JSON from the ledger for the given assetID.
+     * Does NOT fail on older 8-field findings (reads stored JSON as-is).
      */
     async queryFinding(ctx, assetID) {
         if (!assetID) {

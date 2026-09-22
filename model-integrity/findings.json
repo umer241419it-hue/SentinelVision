@@ -7,7 +7,8 @@
     "confidence": "0.38",
     "severity": "LOW",
     "disposition": "ACCEPT",
-    "timestamp": "2026-09-20T12:48:04Z"
+    "timestamp": "2026-09-22T11:37:01Z",
+    "signature": "26dd7187d230ffc93c215dfd2773240d5d7048e8c6024246b90f34443b38925367d8e228946558559afe5ac5e88ebd2cc39e07d6692dc9c26a9b979f3ceef90d"
   },
   {
     "assetID": "model-id-00000112",
@@ -17,7 +18,8 @@
     "confidence": "0.85",
     "severity": "CRITICAL",
     "disposition": "QUARANTINE",
-    "timestamp": "2026-09-20T12:48:04Z"
+    "timestamp": "2026-09-22T11:37:01Z",
+    "signature": "0e7c4d5f632d20c42f73c850fcf1cc8774b8355a81865fe08a70e6074a33e7d57403b4f67311a64a84ee8f8eea2dfe18f04fc95ebec59f64a6e52d3c50cfef00"
   },
   {
     "assetID": "model-id-00000173",
@@ -27,7 +29,8 @@
     "confidence": "0.50",
     "severity": "LOW",
     "disposition": "ACCEPT",
-    "timestamp": "2026-09-20T12:48:04Z"
+    "timestamp": "2026-09-22T11:37:01Z",
+    "signature": "f0cbe603db7ec01d8ba3c53967ca24a86028b7079108ef4e1cc1fde8a8f5ea9b8082af56b1f9933f3b4771f247f0273d168c7af121df03c81e724c4483c30d0a"
   },
   {
     "assetID": "model-id-00000278",
@@ -37,7 +40,8 @@
     "confidence": "0.50",
     "severity": "LOW",
     "disposition": "ACCEPT",
-    "timestamp": "2026-09-20T12:48:04Z"
+    "timestamp": "2026-09-22T11:37:01Z",
+    "signature": "22007d8b04ae0482091b96d0accd03cd0f51cb656ed794223f0d70b28a9a26a6f70f43896b792d1d8de5ed0e3d74c855c8725e3580680aff6f40a55b6298800d"
   },
   {
     "assetID": "model-id-00000431",
@@ -47,7 +51,8 @@
     "confidence": "0.58",
     "severity": "MEDIUM",
     "disposition": "REVIEW",
-    "timestamp": "2026-09-20T12:48:04Z"
+    "timestamp": "2026-09-22T11:37:01Z",
+    "signature": "02609d92971518745e87bb87546549e9ca7b56654846023b9cca33e09fbc088b1b247c60c7cb5b0b5f225a8c273a3d8e9ad3920367865855b4603d485af42609"
   },
   {
     "assetID": "model-id-00000449",
@@ -57,7 +62,8 @@
     "confidence": "0.85",
     "severity": "CRITICAL",
     "disposition": "QUARANTINE",
-    "timestamp": "2026-09-20T12:48:04Z"
+    "timestamp": "2026-09-22T11:37:01Z",
+    "signature": "6f44e370f05d59b4639e0aa51eaf2827cc27debdef8c207f929bf145b845f4bc704ea48af5cb11dc6c1a4cd9124745b8979a5403be0e700b981387e6f2d2b806"
   },
   {
     "assetID": "model-id-00000594",
@@ -67,7 +73,8 @@
     "confidence": "0.39",
     "severity": "LOW",
     "disposition": "ACCEPT",
-    "timestamp": "2026-09-20T12:48:04Z"
+    "timestamp": "2026-09-22T11:37:01Z",
+    "signature": "ca9c70bb84bf71c037ef1186f5175cece1908ec57a6d2d17b228090825afcfac9d3426e64dcadc511840754ab3e015331edf71ef7ebac4663fd6a0e8e725d408"
   },
   {
     "assetID": "model-id-00000621",
@@ -77,7 +84,8 @@
     "confidence": "0.26",
     "severity": "MEDIUM",
     "disposition": "REVIEW",
-    "timestamp": "2026-09-20T12:48:04Z"
+    "timestamp": "2026-09-22T11:37:01Z",
+    "signature": "61b59bda7d3a1bb64ff599fd8897eaf3fcadcfa81d19a8a553d9bed3f3ee1d578c860eee1dc8fb8782ca2a698aa91f93e5009b50812187177f7971c67e55bd07"
   },
   {
     "assetID": "model-id-00000637",
@@ -87,7 +95,8 @@
     "confidence": "0.27",
     "severity": "MEDIUM",
     "disposition": "REVIEW",
-    "timestamp": "2026-09-20T12:48:04Z"
+    "timestamp": "2026-09-22T11:37:01Z",
+    "signature": "faf83a9a58fc7f995167168885c842eb4d30517f7418493d313cfea6250a8e131053909248bbfc21e4f8a50d2ab94b435e6243e30adb0c015690f99411c8eb04"
   },
   {
     "assetID": "model-id-00000658",
@@ -97,7 +106,8 @@
     "confidence": "0.85",
     "severity": "CRITICAL",
     "disposition": "QUARANTINE",
-    "timestamp": "2026-09-20T12:48:04Z"
+    "timestamp": "2026-09-22T11:37:01Z",
+    "signature": "4b5c16eef3dfa2513a8dbecf6f8f4e508fbc650d30ccf7db52b62da1ca489e787a13800afaa170b598fdd0edb9c82c1a6bd45036305eaa4dc1f11ee328eeb90f"
   },
   {
     "assetID": "model-id-00000664",
@@ -107,7 +117,8 @@
     "confidence": "0.60",
     "severity": "MEDIUM",
     "disposition": "REVIEW",
-    "timestamp": "2026-09-20T12:48:04Z"
+    "timestamp": "2026-09-22T11:37:01Z",
+    "signature": "6d19c82f14c288b9d4fe3b7e3767120de3360fa03adc230e6de8e9a0f50f177e9553204fcfdbc898b63abd293e28908c695140438b7717d3e3f3b1ae5bf32805"
   },
   {
     "assetID": "model-id-00000728",
@@ -117,7 +128,8 @@
     "confidence": "0.45",
     "severity": "MEDIUM",
     "disposition": "REVIEW",
-    "timestamp": "2026-09-20T12:48:04Z"
+    "timestamp": "2026-09-22T11:37:01Z",
+    "signature": "fb653242d04ff44c62a4c486687a629762331eda11595f060fe483de205be284a07d495946be009b777d6d8b2ba4a78a71e6b8ed96337e577582319d40f3dd0f"
   },
   {
     "assetID": "model-id-00000838",
@@ -127,7 +139,8 @@
     "confidence": "0.50",
     "severity": "LOW",
     "disposition": "ACCEPT",
-    "timestamp": "2026-09-20T12:48:04Z"
+    "timestamp": "2026-09-22T11:37:01Z",
+    "signature": "bc119607cd136161f6b496b2e2170ddd7c59cad8fe3df66e7c9984f352745d7ac41bdf61339e82416468928a9071ac6c4cbb21678fd0850a478c48b0b30bf604"
   },
   {
     "assetID": "model-id-00000905",
@@ -137,7 +150,8 @@
     "confidence": "0.60",
     "severity": "MEDIUM",
     "disposition": "REVIEW",
-    "timestamp": "2026-09-20T12:48:04Z"
+    "timestamp": "2026-09-22T11:37:01Z",
+    "signature": "71290f1dd9e9167413139d5b701468783ca373a3c2e64271ece70f0574aaa3f7b9bd4e7016dc2bff9449965121c3a7f35b4d9b996c3d0e39a189f4a58bb7ed0d"
   },
   {
     "assetID": "model-id-00000912",
@@ -147,6 +161,7 @@
     "confidence": "0.29",
     "severity": "MEDIUM",
     "disposition": "REVIEW",
-    "timestamp": "2026-09-20T12:48:04Z"
+    "timestamp": "2026-09-22T11:37:01Z",
+    "signature": "3316e62cf2a3a305371cff7356685b297ccd1dcb8f7e1561a9e072d9bb5ad155682f81aeab7f37e1fcbb9b5542b2e92d669b509be30993bf60892ca35d7f6802"
   }
 ]

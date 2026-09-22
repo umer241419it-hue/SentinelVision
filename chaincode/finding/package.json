@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "sentinel-finding",
   "version": "1.0.0",
   "description": "SentinelVision Finding contract implemented in JavaScript",
@@ -12,6 +12,7 @@
   "author": "SentinelVision",
   "license": "Apache-2.0",
   "dependencies": {
+    "@noble/ed25519": "^3.2.0",
     "fabric-contract-api": "~2.5",
     "fabric-shim": "~2.5",
     "json-stringify-deterministic": "^1.0.0",
