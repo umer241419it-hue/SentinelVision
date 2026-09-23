@@ -1,0 +1,527 @@
+[
+  {
+    "model_id": "id-00000028",
+    "class": 0,
+    "mask_l1_norm": 319.782,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000028",
+    "class": 1,
+    "mask_l1_norm": 376.2007,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000028",
+    "class": 2,
+    "mask_l1_norm": 359.6295,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000028",
+    "class": 3,
+    "mask_l1_norm": 274.9553,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000028",
+    "class": 4,
+    "mask_l1_norm": 311.7119,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000112",
+    "class": 0,
+    "mask_l1_norm": 451.0112,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000112",
+    "class": 1,
+    "mask_l1_norm": 510.8073,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000112",
+    "class": 2,
+    "mask_l1_norm": 279.5526,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000112",
+    "class": 3,
+    "mask_l1_norm": 554.0626,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000112",
+    "class": 4,
+    "mask_l1_norm": 560.6418,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000173",
+    "class": 0,
+    "mask_l1_norm": 745.8208,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000173",
+    "class": 1,
+    "mask_l1_norm": 1119.6895,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000173",
+    "class": 2,
+    "mask_l1_norm": 656.5962,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000173",
+    "class": 3,
+    "mask_l1_norm": 814.7693,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000173",
+    "class": 4,
+    "mask_l1_norm": 792.3622,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000278",
+    "class": 0,
+    "mask_l1_norm": 799.5789,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000278",
+    "class": 1,
+    "mask_l1_norm": 915.0542,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000278",
+    "class": 2,
+    "mask_l1_norm": 837.8712,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000278",
+    "class": 3,
+    "mask_l1_norm": 766.1027,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000278",
+    "class": 4,
+    "mask_l1_norm": 692.1087,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000431",
+    "class": 0,
+    "mask_l1_norm": 701.8118,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000431",
+    "class": 1,
+    "mask_l1_norm": 700.9795,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000431",
+    "class": 2,
+    "mask_l1_norm": 673.8621,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000431",
+    "class": 3,
+    "mask_l1_norm": 473.0978,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000431",
+    "class": 4,
+    "mask_l1_norm": 599.6718,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000449",
+    "class": 0,
+    "mask_l1_norm": 621.3497,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000449",
+    "class": 1,
+    "mask_l1_norm": 190.3983,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000449",
+    "class": 2,
+    "mask_l1_norm": 676.6946,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000449",
+    "class": 3,
+    "mask_l1_norm": 534.1843,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000449",
+    "class": 4,
+    "mask_l1_norm": 607.1879,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000594",
+    "class": 0,
+    "mask_l1_norm": 479.6392,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000594",
+    "class": 1,
+    "mask_l1_norm": 440.9211,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000594",
+    "class": 2,
+    "mask_l1_norm": 370.2961,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000594",
+    "class": 3,
+    "mask_l1_norm": 379.4465,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000594",
+    "class": 4,
+    "mask_l1_norm": 502.4578,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000621",
+    "class": 0,
+    "mask_l1_norm": 284.062,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000621",
+    "class": 1,
+    "mask_l1_norm": 398.8284,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000621",
+    "class": 2,
+    "mask_l1_norm": 363.5187,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000621",
+    "class": 3,
+    "mask_l1_norm": 476.5172,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000621",
+    "class": 4,
+    "mask_l1_norm": 411.8189,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000637",
+    "class": 0,
+    "mask_l1_norm": 376.8969,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000637",
+    "class": 1,
+    "mask_l1_norm": 207.5247,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000637",
+    "class": 2,
+    "mask_l1_norm": 347.252,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000637",
+    "class": 3,
+    "mask_l1_norm": 274.1127,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000637",
+    "class": 4,
+    "mask_l1_norm": 337.8886,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000658",
+    "class": 0,
+    "mask_l1_norm": 439.5049,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000658",
+    "class": 1,
+    "mask_l1_norm": 227.072,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000658",
+    "class": 2,
+    "mask_l1_norm": 530.3812,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000658",
+    "class": 3,
+    "mask_l1_norm": 475.2061,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000658",
+    "class": 4,
+    "mask_l1_norm": 426.3149,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000664",
+    "class": 0,
+    "mask_l1_norm": 325.6961,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000664",
+    "class": 1,
+    "mask_l1_norm": 495.0316,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000664",
+    "class": 2,
+    "mask_l1_norm": 309.6595,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000664",
+    "class": 3,
+    "mask_l1_norm": 153.4135,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000664",
+    "class": 4,
+    "mask_l1_norm": 324.0616,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000728",
+    "class": 0,
+    "mask_l1_norm": 427.1932,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000728",
+    "class": 1,
+    "mask_l1_norm": 447.131,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000728",
+    "class": 2,
+    "mask_l1_norm": 235.6957,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000728",
+    "class": 3,
+    "mask_l1_norm": 461.9262,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000728",
+    "class": 4,
+    "mask_l1_norm": 392.0999,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000838",
+    "class": 0,
+    "mask_l1_norm": 323.3072,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000838",
+    "class": 1,
+    "mask_l1_norm": 419.6699,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000838",
+    "class": 2,
+    "mask_l1_norm": 455.0084,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000838",
+    "class": 3,
+    "mask_l1_norm": 516.7134,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000838",
+    "class": 4,
+    "mask_l1_norm": 407.4603,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000905",
+    "class": 0,
+    "mask_l1_norm": 894.7739,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000905",
+    "class": 1,
+    "mask_l1_norm": 1023.517,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000905",
+    "class": 2,
+    "mask_l1_norm": 621.2195,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000905",
+    "class": 3,
+    "mask_l1_norm": 890.6656,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000905",
+    "class": 4,
+    "mask_l1_norm": 869.9099,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000912",
+    "class": 0,
+    "mask_l1_norm": 858.4456,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000912",
+    "class": 1,
+    "mask_l1_norm": 963.1683,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000912",
+    "class": 2,
+    "mask_l1_norm": 913.6858,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000912",
+    "class": 3,
+    "mask_l1_norm": 715.0114,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  },
+  {
+    "model_id": "id-00000912",
+    "class": 4,
+    "mask_l1_norm": 1075.0067,
+    "channel_order_used": "BGR",
+    "num_classes_detected": 5
+  }
+]

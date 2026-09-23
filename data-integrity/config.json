@@ -1,0 +1,36 @@
+{
+  "mode": "offline",
+  "embedding": {
+    "backbone": "pixelstat",
+    "weights_path": null,
+    "device": "auto",
+    "batch_size": 32
+  },
+  "duplicate": {
+    "similarity_threshold": 0.99
+  },
+  "ood": {
+    "trim_fraction": 0.10,
+    "quantile": 0.99,
+    "calibration_splits": 8,
+    "seed": 42
+  },
+  "label_flip": {
+    "enabled": true,
+    "classifier": "knn",
+    "n_neighbors": 5,
+    "n_splits": 5,
+    "seed": 42
+  },
+  "policy": {
+    "duplicate": { "severity": "MEDIUM", "disposition": "REVIEW" },
+    "ood": { "severity": "HIGH", "disposition": "REVIEW" },
+    "label_flip": { "severity": "MEDIUM", "disposition": "REVIEW" },
+    "multiple_checks": { "severity": "HIGH", "disposition": "REVIEW" }
+  },
+  "output": {
+    "evidence_store": "evidence_store",
+    "results": "results/integrity_results.json",
+    "embedding_cache": "cache/embeddings.npz"
+  }
+}

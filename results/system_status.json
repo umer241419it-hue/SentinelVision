@@ -1,0 +1,92 @@
+{
+  "generated_at": "2026-09-23T04:30:15Z",
+  "overall": "HEALTHY",
+  "total_seconds": 264.9,
+  "steps": [
+    {
+      "step": "environment: python deps",
+      "status": "PASS",
+      "detail": "numpy=OK PIL=OK sklearn=OK scipy=OK cleanlab=OK",
+      "seconds": 0.0
+    },
+    {
+      "step": "datasets: drift demo data",
+      "status": "PASS",
+      "detail": "",
+      "seconds": 1.29
+    },
+    {
+      "step": "datasets: integrity poisoned set",
+      "status": "PASS",
+      "detail": "",
+      "seconds": 0.41
+    },
+    {
+      "step": "drift: reference battery build",
+      "status": "PASS",
+      "detail": "reference battery built: 120 images, backbone=pixelstat, dim=734",
+      "seconds": 5.33
+    },
+    {
+      "step": "drift: threshold calibration",
+      "status": "PASS",
+      "detail": "calibration written: C:\\Users\\maria\\OneDrive\\Desktop\\SentinelVision-Malad\\SentinelVision-Malad\\drift-monitor\\calibration\\threshold_manifest.json (id=threshold-1aff0a55ed0f, threshold=0.028903)",
+      "seconds": 3.52
+    },
+    {
+      "step": "drift: 5 demo scenarios",
+      "status": "PASS",
+      "detail": "5 scenarios, assessments correct",
+      "seconds": 27.55
+    },
+    {
+      "step": "integrity: full run on poisoned set",
+      "status": "PASS",
+      "detail": "120 images, 41 flagged",
+      "seconds": 16.96
+    },
+    {
+      "step": "validation: detection rates + MMD dual-direction proof",
+      "status": "PASS",
+      "detail": "dual-direction OK",
+      "seconds": 23.03
+    },
+    {
+      "step": "tests: drift-monitor suite",
+      "status": "PASS",
+      "detail": "",
+      "seconds": 13.41
+    },
+    {
+      "step": "tests: data-integrity suite",
+      "status": "PASS",
+      "detail": "",
+      "seconds": 70.07
+    },
+    {
+      "step": "bridge: drift finding submit",
+      "status": "PASS",
+      "detail": "",
+      "seconds": 8.86
+    },
+    {
+      "step": "bridge: integrity findings submit",
+      "status": "PASS",
+      "detail": "",
+      "seconds": 86.6
+    },
+    {
+      "step": "bridge: offline round-trip (both modules)",
+      "status": "PASS",
+      "detail": "GET drift: assetID match=True; GET integrity: assetID match=True",
+      "seconds": 0.0
+    }
+  ],
+  "artifacts": {
+    "drift_results": "drift-monitor/results/drift_results.json",
+    "integrity_results": "data-integrity/results/integrity_results.json",
+    "validation_report": "data-integrity/results/validation_report.json",
+    "reference_manifest": "drift-monitor/reference/reference_manifest.json",
+    "threshold_manifest": "drift-monitor/calibration/threshold_manifest.json"
+  }
+}

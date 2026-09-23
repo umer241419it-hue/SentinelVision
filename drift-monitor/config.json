@@ -1,0 +1,43 @@
+{
+  "mode": "offline",
+  "embedding": {
+    "backbone": "pixelstat",
+    "weights_path": null,
+    "device": "auto",
+    "batch_size": 32
+  },
+  "reference": {
+    "reference_id": "reference-v1",
+    "input_dir": "../data/reference-battery"
+  },
+  "window": {
+    "size": 100,
+    "step": 25,
+    "minimum_samples": 100
+  },
+  "mmd": {
+    "kernel": "rbf",
+    "bandwidth": "auto",
+    "permutation_test": true,
+    "permutations": 200,
+    "seed": 42,
+    "minimum_live_samples": 2
+  },
+  "calibration": {
+    "method": "reference_null",
+    "quantile": 0.99,
+    "seed": 42,
+    "sample_count": 200,
+    "split_size": 0
+  },
+  "diagnostics": {
+    "enabled": true
+  },
+  "policy": {
+    "insufficient_severity": "LOW"
+  },
+  "output": {
+    "evidence_store": "evidence_store",
+    "results": "results/drift_results.json"
+  }
+}

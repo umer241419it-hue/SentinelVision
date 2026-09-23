@@ -1,0 +1,25 @@
+{
+  "calibration_id": "threshold-1aff0a55ed0f",
+  "method": "reference_null",
+  "reference_id": "reference-v1",
+  "reference_manifest_digest": "6cc0bc8aed131ebba830333431d867137c6dd2cc6b24ace1ec99f84e4f4991aa",
+  "backbone": "pixelstat",
+  "embedding_dim": 734,
+  "threshold": 0.028902765912948783,
+  "quantile": 0.99,
+  "seed": 42,
+  "sample_count": 200,
+  "split_size": 60,
+  "bandwidth": "auto",
+  "kernel": "rbf",
+  "null_summary": {
+    "mean": 0.013753990505641576,
+    "std": 0.004738998850244195,
+    "min": 0.007035545588836012,
+    "p95": 0.0236992212394677,
+    "p99": 0.028902765912948783,
+    "max": 0.03298315356140624
+  },
+  "generated_at": "2026-09-23T04:26:01Z",
+  "note": "Threshold = quantile of MMD values observed between two disjoint random subsets of the reference battery itself. It captures normal reference variation; it is not a universal constant."
+}

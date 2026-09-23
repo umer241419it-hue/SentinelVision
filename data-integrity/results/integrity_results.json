@@ -1,0 +1,1566 @@
+{
+  "run": {
+    "module": "DataIntegrity",
+    "module_version": "1.1.0",
+    "run_timestamp": "2026-09-23T04:28:48Z",
+    "mode": "offline",
+    "input_dir": "C:\\Users\\maria\\OneDrive\\Desktop\\SentinelVision-Malad\\SentinelVision-Malad\\data\\integrity-test",
+    "labels_path": "C:\\Users\\maria\\OneDrive\\Desktop\\SentinelVision-Malad\\SentinelVision-Malad\\data\\integrity-test\\label_key.json",
+    "answer_key_path": null,
+    "checks_run": [
+      "duplicate"
+    ]
+  },
+  "summary": {
+    "module": "DataIntegrity",
+    "module_version": "1.1.0",
+    "checks_run": [
+      "duplicate"
+    ],
+    "check_errors": {},
+    "images_checked": 120,
+    "images_flagged": 20,
+    "flagged_by_check": {
+      "duplicate": 20,
+      "ood": 0,
+      "label_flip": 0
+    },
+    "severity_distribution": {
+      "LOW": 0,
+      "MEDIUM": 20,
+      "HIGH": 0
+    },
+    "findings_submitted": 20
+  },
+  "results": [
+    {
+      "image_id": "dup_0000_of_img_0017.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of img_0017.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "a3a62e7f8b2e286ac4cb438810a89cbe69e87e1f7290e2da3f30f5dc1250cc3d",
+      "evidence_path": "evidence_store/a3a62e7f8b2e286ac4cb438810a89cbe69e87e1f7290e2da3f30f5dc1250cc3d.json",
+      "finding": {
+        "assetID": "image-dup_0000_of_img_0017.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of img_0017.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "a3a62e7f8b2e286ac4cb438810a89cbe69e87e1f7290e2da3f30f5dc1250cc3d",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-dup_0000_of_img_0017.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0017.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "a3a62e7f8b2e286ac4cb438810a89cbe69e87e1f7290e2da3f30f5dc1250cc3d",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-dup_0000_of_img_0017.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0017.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "a3a62e7f8b2e286ac4cb438810a89cbe69e87e1f7290e2da3f30f5dc1250cc3d",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    },
+    {
+      "image_id": "dup_0001_of_img_0024.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of img_0024.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "2c994b17b537d76cc0eee982623488be01c788817bc43628807d1eb4c804156c",
+      "evidence_path": "evidence_store/2c994b17b537d76cc0eee982623488be01c788817bc43628807d1eb4c804156c.json",
+      "finding": {
+        "assetID": "image-dup_0001_of_img_0024.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of img_0024.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "2c994b17b537d76cc0eee982623488be01c788817bc43628807d1eb4c804156c",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-dup_0001_of_img_0024.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0024.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "2c994b17b537d76cc0eee982623488be01c788817bc43628807d1eb4c804156c",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-dup_0001_of_img_0024.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0024.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "2c994b17b537d76cc0eee982623488be01c788817bc43628807d1eb4c804156c",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    },
+    {
+      "image_id": "dup_0002_of_img_0030.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of img_0030.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "6b09033f4960da87c04842d52506b36fbcf6b7e4e595565f68777b836f1af438",
+      "evidence_path": "evidence_store/6b09033f4960da87c04842d52506b36fbcf6b7e4e595565f68777b836f1af438.json",
+      "finding": {
+        "assetID": "image-dup_0002_of_img_0030.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of img_0030.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "6b09033f4960da87c04842d52506b36fbcf6b7e4e595565f68777b836f1af438",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-dup_0002_of_img_0030.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0030.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "6b09033f4960da87c04842d52506b36fbcf6b7e4e595565f68777b836f1af438",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-dup_0002_of_img_0030.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0030.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "6b09033f4960da87c04842d52506b36fbcf6b7e4e595565f68777b836f1af438",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    },
+    {
+      "image_id": "dup_0003_of_img_0036.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of img_0036.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "dd17f61e7ba949ce4b140823099c519f6d3fffed769c2abb5013bac0d0faf71d",
+      "evidence_path": "evidence_store/dd17f61e7ba949ce4b140823099c519f6d3fffed769c2abb5013bac0d0faf71d.json",
+      "finding": {
+        "assetID": "image-dup_0003_of_img_0036.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of img_0036.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "dd17f61e7ba949ce4b140823099c519f6d3fffed769c2abb5013bac0d0faf71d",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-dup_0003_of_img_0036.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0036.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "dd17f61e7ba949ce4b140823099c519f6d3fffed769c2abb5013bac0d0faf71d",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-dup_0003_of_img_0036.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0036.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "dd17f61e7ba949ce4b140823099c519f6d3fffed769c2abb5013bac0d0faf71d",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    },
+    {
+      "image_id": "dup_0004_of_img_0051.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of img_0051.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "78bd82ed3577131427e11524ee3ab2868c40c6e7e00b8ba4e020108a09b71064",
+      "evidence_path": "evidence_store/78bd82ed3577131427e11524ee3ab2868c40c6e7e00b8ba4e020108a09b71064.json",
+      "finding": {
+        "assetID": "image-dup_0004_of_img_0051.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of img_0051.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "78bd82ed3577131427e11524ee3ab2868c40c6e7e00b8ba4e020108a09b71064",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-dup_0004_of_img_0051.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0051.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "78bd82ed3577131427e11524ee3ab2868c40c6e7e00b8ba4e020108a09b71064",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-dup_0004_of_img_0051.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0051.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "78bd82ed3577131427e11524ee3ab2868c40c6e7e00b8ba4e020108a09b71064",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    },
+    {
+      "image_id": "dup_0005_of_img_0062.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of img_0062.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "4e0943e19b42e3314bd7b4fb28c9cbc5dda402ecf432454aa8e63d2d638e2da1",
+      "evidence_path": "evidence_store/4e0943e19b42e3314bd7b4fb28c9cbc5dda402ecf432454aa8e63d2d638e2da1.json",
+      "finding": {
+        "assetID": "image-dup_0005_of_img_0062.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of img_0062.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "4e0943e19b42e3314bd7b4fb28c9cbc5dda402ecf432454aa8e63d2d638e2da1",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-dup_0005_of_img_0062.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0062.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "4e0943e19b42e3314bd7b4fb28c9cbc5dda402ecf432454aa8e63d2d638e2da1",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-dup_0005_of_img_0062.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0062.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "4e0943e19b42e3314bd7b4fb28c9cbc5dda402ecf432454aa8e63d2d638e2da1",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    },
+    {
+      "image_id": "dup_0006_of_img_0069.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of img_0069.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "bf6e7b47e690abf44a447651f95d777645314ebabad2ed8bd62b6ec4d60d52f2",
+      "evidence_path": "evidence_store/bf6e7b47e690abf44a447651f95d777645314ebabad2ed8bd62b6ec4d60d52f2.json",
+      "finding": {
+        "assetID": "image-dup_0006_of_img_0069.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of img_0069.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "bf6e7b47e690abf44a447651f95d777645314ebabad2ed8bd62b6ec4d60d52f2",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-dup_0006_of_img_0069.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0069.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "bf6e7b47e690abf44a447651f95d777645314ebabad2ed8bd62b6ec4d60d52f2",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-dup_0006_of_img_0069.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0069.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "bf6e7b47e690abf44a447651f95d777645314ebabad2ed8bd62b6ec4d60d52f2",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    },
+    {
+      "image_id": "dup_0007_of_img_0074.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of img_0074.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "030e68028c9da79e4899d687af3b5e25bf53c448a65b37ad3a89479a7b005446",
+      "evidence_path": "evidence_store/030e68028c9da79e4899d687af3b5e25bf53c448a65b37ad3a89479a7b005446.json",
+      "finding": {
+        "assetID": "image-dup_0007_of_img_0074.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of img_0074.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "030e68028c9da79e4899d687af3b5e25bf53c448a65b37ad3a89479a7b005446",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-dup_0007_of_img_0074.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0074.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "030e68028c9da79e4899d687af3b5e25bf53c448a65b37ad3a89479a7b005446",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-dup_0007_of_img_0074.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0074.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "030e68028c9da79e4899d687af3b5e25bf53c448a65b37ad3a89479a7b005446",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    },
+    {
+      "image_id": "dup_0008_of_img_0078.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of img_0078.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "79d0b12d3a18fecf428b1c30f9fc008666fc7230f94186ecaf6d95f81b486f7f",
+      "evidence_path": "evidence_store/79d0b12d3a18fecf428b1c30f9fc008666fc7230f94186ecaf6d95f81b486f7f.json",
+      "finding": {
+        "assetID": "image-dup_0008_of_img_0078.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of img_0078.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "79d0b12d3a18fecf428b1c30f9fc008666fc7230f94186ecaf6d95f81b486f7f",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-dup_0008_of_img_0078.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0078.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "79d0b12d3a18fecf428b1c30f9fc008666fc7230f94186ecaf6d95f81b486f7f",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-dup_0008_of_img_0078.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0078.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "79d0b12d3a18fecf428b1c30f9fc008666fc7230f94186ecaf6d95f81b486f7f",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    },
+    {
+      "image_id": "dup_0009_of_img_0081.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of img_0081.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "e483858f7c9fa9caacac1e45573597bb15aa2243ece3e8ec58b72d528d6cadeb",
+      "evidence_path": "evidence_store/e483858f7c9fa9caacac1e45573597bb15aa2243ece3e8ec58b72d528d6cadeb.json",
+      "finding": {
+        "assetID": "image-dup_0009_of_img_0081.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of img_0081.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "e483858f7c9fa9caacac1e45573597bb15aa2243ece3e8ec58b72d528d6cadeb",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-dup_0009_of_img_0081.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0081.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "e483858f7c9fa9caacac1e45573597bb15aa2243ece3e8ec58b72d528d6cadeb",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-dup_0009_of_img_0081.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of img_0081.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "e483858f7c9fa9caacac1e45573597bb15aa2243ece3e8ec58b72d528d6cadeb",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    },
+    {
+      "image_id": "img_0017.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of dup_0000_of_img_0017.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "a333ba864634e116e805f5f6c349f6be85890899cf6901c8b812e8363faf420d",
+      "evidence_path": "evidence_store/a333ba864634e116e805f5f6c349f6be85890899cf6901c8b812e8363faf420d.json",
+      "finding": {
+        "assetID": "image-img_0017.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of dup_0000_of_img_0017.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "a333ba864634e116e805f5f6c349f6be85890899cf6901c8b812e8363faf420d",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-img_0017.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0000_of_img_0017.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "a333ba864634e116e805f5f6c349f6be85890899cf6901c8b812e8363faf420d",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-img_0017.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0000_of_img_0017.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "a333ba864634e116e805f5f6c349f6be85890899cf6901c8b812e8363faf420d",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    },
+    {
+      "image_id": "img_0024.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of dup_0001_of_img_0024.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "7e704416cea4d40fbab62bdb66fd31dde686047787ec2a0f54e06ce1b9fe4bab",
+      "evidence_path": "evidence_store/7e704416cea4d40fbab62bdb66fd31dde686047787ec2a0f54e06ce1b9fe4bab.json",
+      "finding": {
+        "assetID": "image-img_0024.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of dup_0001_of_img_0024.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "7e704416cea4d40fbab62bdb66fd31dde686047787ec2a0f54e06ce1b9fe4bab",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-img_0024.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0001_of_img_0024.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "7e704416cea4d40fbab62bdb66fd31dde686047787ec2a0f54e06ce1b9fe4bab",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-img_0024.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0001_of_img_0024.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "7e704416cea4d40fbab62bdb66fd31dde686047787ec2a0f54e06ce1b9fe4bab",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    },
+    {
+      "image_id": "img_0030.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of dup_0002_of_img_0030.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "31ccf48dde7b0d059dc7d2944cd36736a0943f0242ab6b1288dda6c79316fbe0",
+      "evidence_path": "evidence_store/31ccf48dde7b0d059dc7d2944cd36736a0943f0242ab6b1288dda6c79316fbe0.json",
+      "finding": {
+        "assetID": "image-img_0030.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of dup_0002_of_img_0030.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "31ccf48dde7b0d059dc7d2944cd36736a0943f0242ab6b1288dda6c79316fbe0",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-img_0030.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0002_of_img_0030.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "31ccf48dde7b0d059dc7d2944cd36736a0943f0242ab6b1288dda6c79316fbe0",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-img_0030.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0002_of_img_0030.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "31ccf48dde7b0d059dc7d2944cd36736a0943f0242ab6b1288dda6c79316fbe0",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    },
+    {
+      "image_id": "img_0036.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of dup_0003_of_img_0036.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "0ec2327873620f89e2cd2a938f0203b246e19998418573e61ac643c75f153de3",
+      "evidence_path": "evidence_store/0ec2327873620f89e2cd2a938f0203b246e19998418573e61ac643c75f153de3.json",
+      "finding": {
+        "assetID": "image-img_0036.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of dup_0003_of_img_0036.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "0ec2327873620f89e2cd2a938f0203b246e19998418573e61ac643c75f153de3",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-img_0036.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0003_of_img_0036.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "0ec2327873620f89e2cd2a938f0203b246e19998418573e61ac643c75f153de3",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-img_0036.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0003_of_img_0036.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "0ec2327873620f89e2cd2a938f0203b246e19998418573e61ac643c75f153de3",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    },
+    {
+      "image_id": "img_0051.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of dup_0004_of_img_0051.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "c704c11e3c549bf40f1b6e914dba831461544bd5da5d74bf3c4d454ed820287e",
+      "evidence_path": "evidence_store/c704c11e3c549bf40f1b6e914dba831461544bd5da5d74bf3c4d454ed820287e.json",
+      "finding": {
+        "assetID": "image-img_0051.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of dup_0004_of_img_0051.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "c704c11e3c549bf40f1b6e914dba831461544bd5da5d74bf3c4d454ed820287e",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-img_0051.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0004_of_img_0051.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "c704c11e3c549bf40f1b6e914dba831461544bd5da5d74bf3c4d454ed820287e",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-img_0051.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0004_of_img_0051.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "c704c11e3c549bf40f1b6e914dba831461544bd5da5d74bf3c4d454ed820287e",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    },
+    {
+      "image_id": "img_0062.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of dup_0005_of_img_0062.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "59e08e8768ab7202e77b8fef70c2c68d7ad2f84998d99b7685179ac0787e408b",
+      "evidence_path": "evidence_store/59e08e8768ab7202e77b8fef70c2c68d7ad2f84998d99b7685179ac0787e408b.json",
+      "finding": {
+        "assetID": "image-img_0062.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of dup_0005_of_img_0062.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "59e08e8768ab7202e77b8fef70c2c68d7ad2f84998d99b7685179ac0787e408b",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-img_0062.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0005_of_img_0062.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "59e08e8768ab7202e77b8fef70c2c68d7ad2f84998d99b7685179ac0787e408b",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-img_0062.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0005_of_img_0062.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "59e08e8768ab7202e77b8fef70c2c68d7ad2f84998d99b7685179ac0787e408b",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    },
+    {
+      "image_id": "img_0069.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of dup_0006_of_img_0069.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "dca6c8b9636505582143262ab91535195c095768b76b160da32253aaadd6797a",
+      "evidence_path": "evidence_store/dca6c8b9636505582143262ab91535195c095768b76b160da32253aaadd6797a.json",
+      "finding": {
+        "assetID": "image-img_0069.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of dup_0006_of_img_0069.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "dca6c8b9636505582143262ab91535195c095768b76b160da32253aaadd6797a",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-img_0069.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0006_of_img_0069.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "dca6c8b9636505582143262ab91535195c095768b76b160da32253aaadd6797a",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-img_0069.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0006_of_img_0069.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "dca6c8b9636505582143262ab91535195c095768b76b160da32253aaadd6797a",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    },
+    {
+      "image_id": "img_0074.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of dup_0007_of_img_0074.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "f5fea785d4d02e9a53ec2dcccce74f8a2393878561ab71a8184415cc46b9b001",
+      "evidence_path": "evidence_store/f5fea785d4d02e9a53ec2dcccce74f8a2393878561ab71a8184415cc46b9b001.json",
+      "finding": {
+        "assetID": "image-img_0074.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of dup_0007_of_img_0074.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "f5fea785d4d02e9a53ec2dcccce74f8a2393878561ab71a8184415cc46b9b001",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-img_0074.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0007_of_img_0074.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "f5fea785d4d02e9a53ec2dcccce74f8a2393878561ab71a8184415cc46b9b001",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-img_0074.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0007_of_img_0074.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "f5fea785d4d02e9a53ec2dcccce74f8a2393878561ab71a8184415cc46b9b001",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    },
+    {
+      "image_id": "img_0078.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of dup_0008_of_img_0078.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "ef5beff9047e133c7faa085acce0129904655e28119c7d161d7a068c3e68d0d5",
+      "evidence_path": "evidence_store/ef5beff9047e133c7faa085acce0129904655e28119c7d161d7a068c3e68d0d5.json",
+      "finding": {
+        "assetID": "image-img_0078.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of dup_0008_of_img_0078.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "ef5beff9047e133c7faa085acce0129904655e28119c7d161d7a068c3e68d0d5",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-img_0078.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0008_of_img_0078.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "ef5beff9047e133c7faa085acce0129904655e28119c7d161d7a068c3e68d0d5",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-img_0078.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0008_of_img_0078.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "ef5beff9047e133c7faa085acce0129904655e28119c7d161d7a068c3e68d0d5",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    },
+    {
+      "image_id": "img_0081.png",
+      "flags": [
+        "duplicate"
+      ],
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "confidence": 0.6,
+      "reason": "near-duplicate of dup_0009_of_img_0081.png (standardized cosine 1.000 >= threshold 0.99)",
+      "evidence_hash": "b137f764d0213fc60e4675d21d263c9dd91c7592cd97df93f3a41e05b3ddfc48",
+      "evidence_path": "evidence_store/b137f764d0213fc60e4675d21d263c9dd91c7592cd97df93f3a41e05b3ddfc48.json",
+      "finding": {
+        "assetID": "image-img_0081.png",
+        "moduleName": "DataIntegrity",
+        "reason": "near-duplicate of dup_0009_of_img_0081.png (standardized cosine 1.000 >= threshold 0.99)",
+        "evidenceHash": "b137f764d0213fc60e4675d21d263c9dd91c7592cd97df93f3a41e05b3ddfc48",
+        "confidence": "0.60",
+        "severity": "MEDIUM",
+        "disposition": "REVIEW",
+        "timestamp": "2026-09-23T04:28:48Z"
+      },
+      "bridge": {
+        "submitted": true,
+        "http_status": 201,
+        "bridge_response": {
+          "success": true,
+          "message": "Finding successfully committed to (stub) ledger",
+          "data": {
+            "assetID": "image-img_0081.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0009_of_img_0081.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "b137f764d0213fc60e4675d21d263c9dd91c7592cd97df93f3a41e05b3ddfc48",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        },
+        "ledger_verification": {
+          "success": true,
+          "data": {
+            "assetID": "image-img_0081.png",
+            "moduleName": "DataIntegrity",
+            "reason": "near-duplicate of dup_0009_of_img_0081.png (standardized cosine 1.000 >= threshold 0.99)",
+            "evidenceHash": "b137f764d0213fc60e4675d21d263c9dd91c7592cd97df93f3a41e05b3ddfc48",
+            "confidence": "0.60",
+            "severity": "MEDIUM",
+            "disposition": "REVIEW",
+            "timestamp": "2026-09-23T04:28:48Z"
+          }
+        }
+      }
+    }
+  ],
+  "flagged": {
+    "dup_0000_of_img_0017.png": {
+      "image_id": "dup_0000_of_img_0017.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of img_0017.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0000_of_img_0017.png",
+              "image_b": "img_0017.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    },
+    "dup_0001_of_img_0024.png": {
+      "image_id": "dup_0001_of_img_0024.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of img_0024.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0001_of_img_0024.png",
+              "image_b": "img_0024.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    },
+    "dup_0002_of_img_0030.png": {
+      "image_id": "dup_0002_of_img_0030.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of img_0030.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0002_of_img_0030.png",
+              "image_b": "img_0030.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    },
+    "dup_0003_of_img_0036.png": {
+      "image_id": "dup_0003_of_img_0036.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of img_0036.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0003_of_img_0036.png",
+              "image_b": "img_0036.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    },
+    "dup_0004_of_img_0051.png": {
+      "image_id": "dup_0004_of_img_0051.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of img_0051.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0004_of_img_0051.png",
+              "image_b": "img_0051.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    },
+    "dup_0005_of_img_0062.png": {
+      "image_id": "dup_0005_of_img_0062.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of img_0062.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0005_of_img_0062.png",
+              "image_b": "img_0062.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    },
+    "dup_0006_of_img_0069.png": {
+      "image_id": "dup_0006_of_img_0069.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of img_0069.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0006_of_img_0069.png",
+              "image_b": "img_0069.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    },
+    "dup_0007_of_img_0074.png": {
+      "image_id": "dup_0007_of_img_0074.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of img_0074.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0007_of_img_0074.png",
+              "image_b": "img_0074.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    },
+    "dup_0008_of_img_0078.png": {
+      "image_id": "dup_0008_of_img_0078.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of img_0078.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0008_of_img_0078.png",
+              "image_b": "img_0078.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    },
+    "dup_0009_of_img_0081.png": {
+      "image_id": "dup_0009_of_img_0081.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of img_0081.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0009_of_img_0081.png",
+              "image_b": "img_0081.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    },
+    "img_0017.png": {
+      "image_id": "img_0017.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of dup_0000_of_img_0017.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0000_of_img_0017.png",
+              "image_b": "img_0017.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    },
+    "img_0024.png": {
+      "image_id": "img_0024.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of dup_0001_of_img_0024.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0001_of_img_0024.png",
+              "image_b": "img_0024.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    },
+    "img_0030.png": {
+      "image_id": "img_0030.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of dup_0002_of_img_0030.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0002_of_img_0030.png",
+              "image_b": "img_0030.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    },
+    "img_0036.png": {
+      "image_id": "img_0036.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of dup_0003_of_img_0036.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0003_of_img_0036.png",
+              "image_b": "img_0036.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    },
+    "img_0051.png": {
+      "image_id": "img_0051.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of dup_0004_of_img_0051.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0004_of_img_0051.png",
+              "image_b": "img_0051.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    },
+    "img_0062.png": {
+      "image_id": "img_0062.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of dup_0005_of_img_0062.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0005_of_img_0062.png",
+              "image_b": "img_0062.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    },
+    "img_0069.png": {
+      "image_id": "img_0069.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of dup_0006_of_img_0069.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0006_of_img_0069.png",
+              "image_b": "img_0069.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    },
+    "img_0074.png": {
+      "image_id": "img_0074.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of dup_0007_of_img_0074.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0007_of_img_0074.png",
+              "image_b": "img_0074.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    },
+    "img_0078.png": {
+      "image_id": "img_0078.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of dup_0008_of_img_0078.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0008_of_img_0078.png",
+              "image_b": "img_0078.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    },
+    "img_0081.png": {
+      "image_id": "img_0081.png",
+      "flags": [
+        "duplicate"
+      ],
+      "n_flags": 1,
+      "reason": "near-duplicate of dup_0009_of_img_0081.png (standardized cosine 1.000 >= threshold 0.99)",
+      "confidence": 0.6,
+      "severity": "MEDIUM",
+      "disposition": "REVIEW",
+      "details": {
+        "duplicate": {
+          "pairs": [
+            {
+              "image_a": "dup_0009_of_img_0081.png",
+              "image_b": "img_0081.png",
+              "similarity": 1.0
+            }
+          ],
+          "threshold": 0.99
+        }
+      }
+    }
+  },
+  "coverage_statement": "Data Integrity Coverage: the implemented checks operate on frozen shared embeddings (standardized per dimension) and (1) flag near-duplicate images by pairwise cosine similarity, (2) flag statistically out-of-distribution images by class-conditional trimmed Mahalanobis distance with held-out robust calibration, and (3) flag likely mislabeled samples by cleanlab confident learning on out-of-sample predicted probabilities. On the self-poisoned validation set (100 clean + 10 label flips + 10 byte-identical duplicates + 10 OOD noise images) the module catches the great majority of planted corruptions with a low false-positive rate - see data-integrity/results/validation_report.json for the measured rates. It does NOT detect subtle semantic near-duplicates below the similarity threshold, small-magnitude OOD samples below the calibrated threshold, or label errors indistinguishable from clean data in embedding space; confident learning accuracy depends on the auxiliary classifier, which was not extensively tuned. One finding per flagged asset is produced for human review; no automatic quarantine is performed.",
+  "known_limitations": [
+    "Cosine duplicate detection catches embedding-level near-duplicates only; two visually different photographs of the same scene will not be flagged.",
+    "The Mahalanobis reference is fit on the provided dataset with trimming; if the dataset itself is heavily poisoned, sensitivity degrades.",
+    "Label-flip detection depends on the auxiliary classifier quality; classes with very few samples produce weak out-of-sample estimates.",
+    "No check establishes intent or identifies an attacker; findings are evidence for human review only."
+  ]
+}

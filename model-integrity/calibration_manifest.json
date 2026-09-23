@@ -1,0 +1,107 @@
+[
+  {
+    "model_id": "id-00000028",
+    "access_path": "white-box",
+    "calibration_tier": "Tier A",
+    "chosen_channel_order": "BGR",
+    "calibration_accuracy": 100.0
+  },
+  {
+    "model_id": "id-00000112",
+    "access_path": "white-box",
+    "calibration_tier": "Tier A",
+    "chosen_channel_order": "BGR",
+    "calibration_accuracy": 99.4
+  },
+  {
+    "model_id": "id-00000173",
+    "access_path": "white-box",
+    "calibration_tier": "Tier A",
+    "chosen_channel_order": "BGR",
+    "calibration_accuracy": 99.4
+  },
+  {
+    "model_id": "id-00000278",
+    "access_path": "white-box",
+    "calibration_tier": "Tier A",
+    "chosen_channel_order": "BGR",
+    "calibration_accuracy": 100.0
+  },
+  {
+    "model_id": "id-00000431",
+    "access_path": "white-box",
+    "calibration_tier": "Tier A",
+    "chosen_channel_order": "BGR",
+    "calibration_accuracy": 100.0
+  },
+  {
+    "model_id": "id-00000449",
+    "access_path": "white-box",
+    "calibration_tier": "Tier A",
+    "chosen_channel_order": "BGR",
+    "calibration_accuracy": 99.6
+  },
+  {
+    "model_id": "id-00000594",
+    "access_path": "white-box",
+    "calibration_tier": "Tier A",
+    "chosen_channel_order": "BGR",
+    "calibration_accuracy": 99.8
+  },
+  {
+    "model_id": "id-00000621",
+    "access_path": "white-box",
+    "calibration_tier": "Tier A",
+    "chosen_channel_order": "BGR",
+    "calibration_accuracy": 99.0
+  },
+  {
+    "model_id": "id-00000637",
+    "access_path": "white-box",
+    "calibration_tier": "Tier A",
+    "chosen_channel_order": "BGR",
+    "calibration_accuracy": 99.4
+  },
+  {
+    "model_id": "id-00000658",
+    "access_path": "white-box",
+    "calibration_tier": "Tier A",
+    "chosen_channel_order": "BGR",
+    "calibration_accuracy": 100.0
+  },
+  {
+    "model_id": "id-00000664",
+    "access_path": "white-box",
+    "calibration_tier": "Tier A",
+    "chosen_channel_order": "BGR",
+    "calibration_accuracy": 99.4
+  },
+  {
+    "model_id": "id-00000728",
+    "access_path": "white-box",
+    "calibration_tier": "Tier A",
+    "chosen_channel_order": "BGR",
+    "calibration_accuracy": 100.0
+  },
+  {
+    "model_id": "id-00000838",
+    "access_path": "white-box",
+    "calibration_tier": "Tier A",
+    "chosen_channel_order": "BGR",
+    "calibration_accuracy": 99.8
+  },
+  {
+    "model_id": "id-00000905",
+    "access_path": "white-box",
+    "calibration_tier": "Tier A",
+    "chosen_channel_order": "BGR",
+    "calibration_accuracy": 99.8
+  },
+  {
+    "model_id": "id-00000912",
+    "access_path": "white-box",
+    "calibration_tier": "Tier A",
+    "chosen_channel_order": "BGR",
+    "calibration_accuracy": 99.8
+  }
+]

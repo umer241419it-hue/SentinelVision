@@ -1,0 +1,9 @@
+{
+  "assetID": "finding-malformed-001",
+  "moduleName": "MalwareDetector",
+  "reason": "Missing evidence hash in payload",
+  "confidence": 0.85,
+  "severity": "HIGH",
+  "disposition": "FLAGGED",
+  "timestamp": "2026-09-13T11:27:00Z"
+}

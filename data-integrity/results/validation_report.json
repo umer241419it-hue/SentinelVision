@@ -1,0 +1,1597 @@
+{
+  "integrity": {
+    "table": [
+      {
+        "image_id": "dup_0000_of_img_0017.png",
+        "given_label": "day",
+        "true_label": "night",
+        "corruption": "duplicate",
+        "flagged": true,
+        "flags": [
+          "duplicate",
+          "label_flip"
+        ],
+        "confidence": 0.75,
+        "severity": "HIGH",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "dup_0001_of_img_0024.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "duplicate",
+        "flagged": true,
+        "flags": [
+          "duplicate"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "dup_0002_of_img_0030.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "duplicate",
+        "flagged": true,
+        "flags": [
+          "duplicate"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "dup_0003_of_img_0036.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "duplicate",
+        "flagged": true,
+        "flags": [
+          "duplicate"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "dup_0004_of_img_0051.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "duplicate",
+        "flagged": true,
+        "flags": [
+          "duplicate"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "dup_0005_of_img_0062.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "duplicate",
+        "flagged": true,
+        "flags": [
+          "duplicate"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "dup_0006_of_img_0069.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "duplicate",
+        "flagged": true,
+        "flags": [
+          "duplicate"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "dup_0007_of_img_0074.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "duplicate",
+        "flagged": true,
+        "flags": [
+          "duplicate"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "dup_0008_of_img_0078.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "duplicate",
+        "flagged": true,
+        "flags": [
+          "duplicate"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "dup_0009_of_img_0081.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "duplicate",
+        "flagged": true,
+        "flags": [
+          "duplicate"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0000.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0001.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0002.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0003.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0004.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0005.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0006.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0007.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0008.png",
+        "given_label": "night",
+        "true_label": "day",
+        "corruption": "label_flip",
+        "flagged": true,
+        "flags": [
+          "label_flip"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0009.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0010.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0011.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0012.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0013.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0014.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0015.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0016.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0017.png",
+        "given_label": "day",
+        "true_label": "night",
+        "corruption": "label_flip",
+        "flagged": true,
+        "flags": [
+          "duplicate",
+          "label_flip"
+        ],
+        "confidence": 0.75,
+        "severity": "HIGH",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0018.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0019.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0020.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0021.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0022.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0023.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0024.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": true,
+        "flags": [
+          "duplicate"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0025.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": true,
+        "flags": [
+          "label_flip"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": false,
+        "verdict": "FP"
+      },
+      {
+        "image_id": "img_0026.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0027.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0028.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0029.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0030.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": true,
+        "flags": [
+          "duplicate"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0031.png",
+        "given_label": "day",
+        "true_label": "night",
+        "corruption": "label_flip",
+        "flagged": true,
+        "flags": [
+          "label_flip"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0032.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0033.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0034.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0035.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0036.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": true,
+        "flags": [
+          "duplicate"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0037.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0038.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0039.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0040.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0041.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0042.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0043.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0044.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0045.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0046.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0047.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0048.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0049.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0050.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0051.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": true,
+        "flags": [
+          "duplicate"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0052.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0053.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0054.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0055.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": true,
+        "flags": [
+          "label_flip"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": false,
+        "verdict": "FP"
+      },
+      {
+        "image_id": "img_0056.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0057.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0058.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0059.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0060.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0061.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0062.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": true,
+        "flags": [
+          "duplicate"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0063.png",
+        "given_label": "day",
+        "true_label": "night",
+        "corruption": "label_flip",
+        "flagged": true,
+        "flags": [
+          "label_flip"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0064.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0065.png",
+        "given_label": "day",
+        "true_label": "night",
+        "corruption": "label_flip",
+        "flagged": true,
+        "flags": [
+          "label_flip"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0066.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0067.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0068.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0069.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": true,
+        "flags": [
+          "duplicate"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0070.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0071.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0072.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0073.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0074.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": true,
+        "flags": [
+          "duplicate"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0075.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0076.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0077.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0078.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": true,
+        "flags": [
+          "duplicate"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0079.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0080.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0081.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": true,
+        "flags": [
+          "duplicate"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0082.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0083.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0084.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0085.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": true,
+        "flags": [
+          "label_flip"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": false,
+        "verdict": "FP"
+      },
+      {
+        "image_id": "img_0086.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0087.png",
+        "given_label": "day",
+        "true_label": "night",
+        "corruption": "label_flip",
+        "flagged": true,
+        "flags": [
+          "label_flip"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0088.png",
+        "given_label": "night",
+        "true_label": "day",
+        "corruption": "label_flip",
+        "flagged": true,
+        "flags": [
+          "label_flip"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0089.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0090.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0091.png",
+        "given_label": "day",
+        "true_label": "night",
+        "corruption": "label_flip",
+        "flagged": true,
+        "flags": [
+          "label_flip"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0092.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0093.png",
+        "given_label": "day",
+        "true_label": "night",
+        "corruption": "label_flip",
+        "flagged": true,
+        "flags": [
+          "label_flip"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0094.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0095.png",
+        "given_label": "day",
+        "true_label": "night",
+        "corruption": "label_flip",
+        "flagged": true,
+        "flags": [
+          "label_flip"
+        ],
+        "confidence": 0.6,
+        "severity": "MEDIUM",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "img_0096.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0097.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0098.png",
+        "given_label": "day",
+        "true_label": "day",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "img_0099.png",
+        "given_label": "night",
+        "true_label": "night",
+        "corruption": "clean",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "clean"
+      },
+      {
+        "image_id": "ood_0000.png",
+        "given_label": "day",
+        "true_label": null,
+        "corruption": "ood",
+        "flagged": true,
+        "flags": [
+          "ood"
+        ],
+        "confidence": 0.6,
+        "severity": "HIGH",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "ood_0001.png",
+        "given_label": "night",
+        "true_label": null,
+        "corruption": "ood",
+        "flagged": true,
+        "flags": [
+          "ood",
+          "label_flip"
+        ],
+        "confidence": 0.75,
+        "severity": "HIGH",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "ood_0002.png",
+        "given_label": "day",
+        "true_label": null,
+        "corruption": "ood",
+        "flagged": false,
+        "flags": [],
+        "confidence": null,
+        "severity": null,
+        "correct_catch": false,
+        "verdict": "FN"
+      },
+      {
+        "image_id": "ood_0003.png",
+        "given_label": "night",
+        "true_label": null,
+        "corruption": "ood",
+        "flagged": true,
+        "flags": [
+          "ood",
+          "label_flip"
+        ],
+        "confidence": 0.75,
+        "severity": "HIGH",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "ood_0004.png",
+        "given_label": "day",
+        "true_label": null,
+        "corruption": "ood",
+        "flagged": true,
+        "flags": [
+          "ood"
+        ],
+        "confidence": 0.6,
+        "severity": "HIGH",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "ood_0005.png",
+        "given_label": "night",
+        "true_label": null,
+        "corruption": "ood",
+        "flagged": true,
+        "flags": [
+          "ood",
+          "label_flip"
+        ],
+        "confidence": 0.75,
+        "severity": "HIGH",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "ood_0006.png",
+        "given_label": "day",
+        "true_label": null,
+        "corruption": "ood",
+        "flagged": true,
+        "flags": [
+          "ood"
+        ],
+        "confidence": 0.6,
+        "severity": "HIGH",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "ood_0007.png",
+        "given_label": "night",
+        "true_label": null,
+        "corruption": "ood",
+        "flagged": true,
+        "flags": [
+          "ood",
+          "label_flip"
+        ],
+        "confidence": 0.75,
+        "severity": "HIGH",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "ood_0008.png",
+        "given_label": "day",
+        "true_label": null,
+        "corruption": "ood",
+        "flagged": true,
+        "flags": [
+          "ood"
+        ],
+        "confidence": 0.6,
+        "severity": "HIGH",
+        "correct_catch": true,
+        "verdict": "TP"
+      },
+      {
+        "image_id": "ood_0009.png",
+        "given_label": "night",
+        "true_label": null,
+        "corruption": "ood",
+        "flagged": true,
+        "flags": [
+          "ood",
+          "label_flip"
+        ],
+        "confidence": 0.75,
+        "severity": "HIGH",
+        "correct_catch": true,
+        "verdict": "TP"
+      }
+    ],
+    "per_check": {
+      "duplicate": {
+        "detection_rate": 1.0,
+        "false_positive_rate": 0.0,
+        "events_caught": 10,
+        "n_events": 10,
+        "tp": 20,
+        "fp": 0
+      },
+      "ood": {
+        "detection_rate": 0.9,
+        "false_positive_rate": 0.0,
+        "events_caught": 9,
+        "n_events": 10,
+        "tp": 9,
+        "fp": 0
+      },
+      "label_flip": {
+        "detection_rate": 1.0,
+        "false_positive_rate": 0.0818,
+        "events_caught": 10,
+        "n_events": 10,
+        "tp": 10,
+        "fp": 9
+      }
+    },
+    "overall": {
+      "detection_rate": 0.9667,
+      "false_positive_rate": 0.037,
+      "events_caught": 29,
+      "total_events": 30,
+      "false_positives": 3,
+      "missed_corruptions": [
+        "ood_0002.png"
+      ],
+      "n_corrupted": 30,
+      "n_images": 120,
+      "n_flagged": 41
+    }
+  },
+  "shift_proof": {
+    "reference_id": "reference-v1",
+    "calibration_id": "threshold-1aff0a55ed0f",
+    "threshold": 0.028902765912948783,
+    "normal_window": {
+      "dir": "C:\\Users\\maria\\OneDrive\\Desktop\\SentinelVision-Malad\\SentinelVision-Malad\\data\\scenario1-normal",
+      "n_images": 100,
+      "mmd": 0.005972,
+      "alert": false,
+      "expected": "no alert",
+      "correct": true
+    },
+    "shifted_window": {
+      "dir": "C:\\Users\\maria\\OneDrive\\Desktop\\SentinelVision-Malad\\SentinelVision-Malad\\data\\scenario2-lighting-shift",
+      "n_images": 100,
+      "mmd": 0.710175,
+      "alert": true,
+      "expected": "alert",
+      "correct": true
+    },
+    "both_directions_correct": true
+  },
+  "coverage_statement": "Data Integrity Coverage: the implemented checks operate on frozen shared embeddings (standardized per dimension) and (1) flag near-duplicate images by pairwise cosine similarity, (2) flag statistically out-of-distribution images by class-conditional trimmed Mahalanobis distance with held-out robust calibration, and (3) flag likely mislabeled samples by cleanlab confident learning on out-of-sample predicted probabilities. On the self-poisoned validation set (100 clean + 10 label flips + 10 byte-identical duplicates + 10 OOD noise images) the module catches the great majority of planted corruptions with a low false-positive rate - see data-integrity/results/validation_report.json for the measured rates. It does NOT detect subtle semantic near-duplicates below the similarity threshold, small-magnitude OOD samples below the calibrated threshold, or label errors indistinguishable from clean data in embedding space; confident learning accuracy depends on the auxiliary classifier, which was not extensively tuned. One finding per flagged asset is produced for human review; no automatic quarantine is performed."
+}
