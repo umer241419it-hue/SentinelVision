@@ -14,3 +14,7 @@ model-integrity/triggers/
 crypto-utils/keys/
 *.key
 *.priv
+
+# Bridge runtime logs
+bridge/bridge.log
+bridge/*.log

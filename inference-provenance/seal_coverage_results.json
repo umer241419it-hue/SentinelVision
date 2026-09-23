@@ -1,0 +1,107 @@
+[
+  {
+    "model_id": "id-00000028",
+    "architecture": "ResNet50",
+    "sha_before": "cd88076498c5c79fce68bffef38102f3394ef5c9f6691dc2f0efc48bf51f3e0b",
+    "sha_after": "cd88076498c5c79fce68bffef38102f3394ef5c9f6691dc2f0efc48bf51f3e0b",
+    "verdict": "VALID"
+  },
+  {
+    "model_id": "id-00000112",
+    "architecture": "DenseNet121",
+    "sha_before": "d0d35a0d607ac4c8c3523b9471dd5eca1118ba6ba66a149aa503688fe776cfb5",
+    "sha_after": "d0d35a0d607ac4c8c3523b9471dd5eca1118ba6ba66a149aa503688fe776cfb5",
+    "verdict": "VALID"
+  },
+  {
+    "model_id": "id-00000173",
+    "architecture": "ResNet50",
+    "sha_before": "7070e6a83ff249d5fd6eee10ce0cac03ff2629b8bf68b6a4fe3f5e50814509c0",
+    "sha_after": "7070e6a83ff249d5fd6eee10ce0cac03ff2629b8bf68b6a4fe3f5e50814509c0",
+    "verdict": "VALID"
+  },
+  {
+    "model_id": "id-00000278",
+    "architecture": "DenseNet121",
+    "sha_before": "b63cd6320d987520795fd49fb576cf7dafbcba7a22ea65cbb146778c3d7c4b47",
+    "sha_after": "b63cd6320d987520795fd49fb576cf7dafbcba7a22ea65cbb146778c3d7c4b47",
+    "verdict": "VALID"
+  },
+  {
+    "model_id": "id-00000431",
+    "architecture": "InceptionV3",
+    "sha_before": "a0a8ad707d68cf0e6771c9b10f388c98b86de1226fc2384223b4903d70a8863c",
+    "sha_after": "a0a8ad707d68cf0e6771c9b10f388c98b86de1226fc2384223b4903d70a8863c",
+    "verdict": "VALID"
+  },
+  {
+    "model_id": "id-00000449",
+    "architecture": "ResNet50",
+    "sha_before": "95d73f48b013560816ec24ff16ea44f2cfc8b702e68efb656b3fce11dffd3d15",
+    "sha_after": "95d73f48b013560816ec24ff16ea44f2cfc8b702e68efb656b3fce11dffd3d15",
+    "verdict": "VALID"
+  },
+  {
+    "model_id": "id-00000594",
+    "architecture": "InceptionV3",
+    "sha_before": "5c7c0219d04ff96f13bcd88a147204c1af81286e968ff93a96031e3e9f82c05e",
+    "sha_after": "5c7c0219d04ff96f13bcd88a147204c1af81286e968ff93a96031e3e9f82c05e",
+    "verdict": "VALID"
+  },
+  {
+    "model_id": "id-00000621",
+    "architecture": "ResNet50",
+    "sha_before": "5edbb3bb2841cab40d9f0bab9ed561ef85bc71f2a33bbd9031a0d64c83ec781a",
+    "sha_after": "5edbb3bb2841cab40d9f0bab9ed561ef85bc71f2a33bbd9031a0d64c83ec781a",
+    "verdict": "VALID"
+  },
+  {
+    "model_id": "id-00000637",
+    "architecture": "InceptionV3",
+    "sha_before": "d6800cde840905fff0042cb712aeb7cc2a0da0070360c072a8f4f4ce9477791e",
+    "sha_after": "d6800cde840905fff0042cb712aeb7cc2a0da0070360c072a8f4f4ce9477791e",
+    "verdict": "VALID"
+  },
+  {
+    "model_id": "id-00000658",
+    "architecture": "DenseNet121",
+    "sha_before": "1ce6427f0f24de987d0d0dab4687521d04a299077b602d05c6c7b9e196e9bb07",
+    "sha_after": "1ce6427f0f24de987d0d0dab4687521d04a299077b602d05c6c7b9e196e9bb07",
+    "verdict": "VALID"
+  },
+  {
+    "model_id": "id-00000664",
+    "architecture": "InceptionV3",
+    "sha_before": "530d440a0806578cdddc9777f1267c9fdda079181c9ac1af2ae095b464db1571",
+    "sha_after": "530d440a0806578cdddc9777f1267c9fdda079181c9ac1af2ae095b464db1571",
+    "verdict": "VALID"
+  },
+  {
+    "model_id": "id-00000728",
+    "architecture": "InceptionV3",
+    "sha_before": "60144d09cd66b53575f5978633a6b7633898f148538ccffc538e562fb79debad",
+    "sha_after": "60144d09cd66b53575f5978633a6b7633898f148538ccffc538e562fb79debad",
+    "verdict": "VALID"
+  },
+  {
+    "model_id": "id-00000838",
+    "architecture": "DenseNet121",
+    "sha_before": "ebe745260639cd35a3adaa60f390057ab02f9f3f97d4a0d6c17ec1dd0b284079",
+    "sha_after": "ebe745260639cd35a3adaa60f390057ab02f9f3f97d4a0d6c17ec1dd0b284079",
+    "verdict": "VALID"
+  },
+  {
+    "model_id": "id-00000905",
+    "architecture": "InceptionV3",
+    "sha_before": "4f10bb5a094ac8ae5e9eff4af77f11fed0aab797fe473d16574ace88e7649ebd",
+    "sha_after": "4f10bb5a094ac8ae5e9eff4af77f11fed0aab797fe473d16574ace88e7649ebd",
+    "verdict": "VALID"
+  },
+  {
+    "model_id": "id-00000912",
+    "architecture": "ResNet50",
+    "sha_before": "417a4b855eb2a4fdc81f2c1181bf26921371d781bb0d97ded344408a8624cead",
+    "sha_after": "417a4b855eb2a4fdc81f2c1181bf26921371d781bb0d97ded344408a8624cead",
+    "verdict": "VALID"
+  }
+]

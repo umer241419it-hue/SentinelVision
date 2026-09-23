@@ -14,13 +14,52 @@ class FindingContract extends Contract {
      * submitFinding
      * Writes the 9 specified fields as JSON to the ledger under key = assetID.
      * Enforces presence of signature (non-empty string).
+     * Enforces assetID uniqueness (rejects overwrite of existing assetID).
+     * Enforces duplicate evidenceHash prevention via composite key secondary index.
      */
     async submitFinding(ctx, assetID, moduleName, reason, evidenceHash, confidence, severity, disposition, timestamp, signature) {
         if (!assetID) {
             throw new Error('assetID must be specified');
         }
+        if (!evidenceHash) {
+            throw new Error('evidenceHash must be specified');
+        }
         if (!signature || typeof signature !== 'string' || signature.trim() === '') {
             throw new Error('signature must be specified and non-empty');
+        }
+
+        // 1. Check if assetID already has a committed finding in world state
+        const existingFindingBytes = await ctx.stub.getState(assetID);
+        if (existingFindingBytes && existingFindingBytes.length > 0) {
+            throw new Error(`ASSET_EXISTS: assetID ${assetID} already has a committed finding; resubmission under an existing assetID is not permitted`);
+        }
+
+        // 2. Check for duplicate evidenceHash across all findings via composite key secondary index
+        const iterator = await ctx.stub.getStateByPartialCompositeKey('evidenceHash~assetID', [evidenceHash]);
+        let duplicateFound = false;
+        let existingAssetID = null;
+
+        try {
+            while (true) {
+                const response = await iterator.next();
+                if (response.value && response.value.key) {
+                    duplicateFound = true;
+                    const splitKey = ctx.stub.splitCompositeKey(response.value.key);
+                    existingAssetID = (splitKey.attributes && splitKey.attributes[1])
+                        ? splitKey.attributes[1]
+                        : (response.value.value ? response.value.value.toString('utf8') : 'UNKNOWN');
+                    break;
+                }
+                if (response.done) {
+                    break;
+                }
+            }
+        } finally {
+            await iterator.close();
+        }
+
+        if (duplicateFound) {
+            throw new Error(`DUPLICATE_EVIDENCE: evidenceHash ${evidenceHash} was already committed under assetID ${existingAssetID}`);
         }
 
         const finding = {
@@ -37,6 +76,11 @@ class FindingContract extends Contract {
 
         const findingBuffer = Buffer.from(stringify(sortKeysRecursive(finding)));
         await ctx.stub.putState(assetID, findingBuffer);
+
+        // Put marker at composite key so future submissions with this evidenceHash are caught
+        const compositeKey = ctx.stub.createCompositeKey('evidenceHash~assetID', [evidenceHash, assetID]);
+        await ctx.stub.putState(compositeKey, Buffer.from(assetID));
+
         return stringify(sortKeysRecursive(finding));
     }
 

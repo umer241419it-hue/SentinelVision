@@ -211,10 +211,15 @@ app.post('/findings', async (req, res) => {
         });
     } catch (err) {
         console.error('Error submitting transaction:', err);
+        let errorDetails = err.message || String(err);
+        if (err.details && Array.isArray(err.details) && err.details.length > 0) {
+            const detailMsgs = err.details.map(d => d.message || JSON.stringify(d)).join('; ');
+            errorDetails = `${errorDetails} - ${detailMsgs}`;
+        }
         return res.status(500).json({
             success: false,
             error: 'Ledger Commit Failure',
-            details: err.message || String(err)
+            details: errorDetails
         });
     }
 });
