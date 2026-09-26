@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# SentinelVision - Governance & Assurance Reporting CLI Wrapper
+set -e
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+export PYTHONPATH="$DIR:$DIR/crypto-utils:$DIR/data-integrity:$DIR/model-integrity:$DIR/inference-provenance/src:$DIR/drift-monitor:$PYTHONPATH"
+exec python3 -m governance.cli "$@"

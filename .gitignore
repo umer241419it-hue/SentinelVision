@@ -18,3 +18,17 @@ crypto-utils/keys/
 # Bridge runtime logs
 bridge/bridge.log
 bridge/*.log
+
+# Stage 6 generated artifacts & caches
+/data/
+data-integrity/cache/
+data-integrity/evidence_store/
+data-integrity/results/
+drift-monitor/reference/
+drift-monitor/calibration/
+drift-monitor/results/
+drift-monitor/evidence_store/
+.pytest_cache/
+*.npz
+models/*.pth
+datasets/
