@@ -32,3 +32,6 @@ drift-monitor/evidence_store/
 *.npz
 models/*.pth
 datasets/
+reports/
+.venv/
+venv/

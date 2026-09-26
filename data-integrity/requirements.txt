@@ -1,0 +1,18 @@
+# SentinelVision Data Integrity - Python dependencies.
+# All runtime dependencies are local; nothing is downloaded at runtime.
+
+numpy>=2.0
+pillow>=10.0
+scikit-learn>=1.4
+scipy>=1.11
+cleanlab>=2.7
+
+# Development / test
+pytest>=8.0
+
+# OPTIONAL: frozen ResNet-50 backbone (backbone="resnet50" in config.json).
+# The module works fully offline with the built-in deterministic "pixelstat"
+# backbone; uncomment to enable the torch backbone if weights are available
+# locally (runtime NEVER downloads weights).
+# torch>=2.2
+# torchvision>=0.17

@@ -1,0 +1,117 @@
+{
+  "benchmark_version": "1.0.0",
+  "master_seed": 42,
+  "mode": "offline",
+  "dataset": {
+    "name": "PASCAL VOC2012",
+    "version": "2012",
+    "source_url": "https://thor.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar",
+    "official_homepage": "https://www.robots.ox.ac.uk/~vgg/projects/pascal/VOC/voc2012/",
+    "expected_archive_md5": "6cd6e144f989b92b3379bac3b3de84fd",
+    "expected_archive_sha1": "4e443f8a2eca6b1dac8a6c57641b67dd40621a49",
+    "expected_archive_size": 1999639040,
+    "raw_dir": "datasets/sentinelvision_voc2012/raw",
+    "clean_dir": "datasets/sentinelvision_voc2012/clean",
+    "metadata_dir": "datasets/sentinelvision_voc2012/metadata",
+    "results_dir": "datasets/sentinelvision_voc2012/results"
+  },
+  "provenance": {
+    "num_contributors": 10,
+    "num_sources": 4,
+    "num_batches": 20,
+    "collection_id": "voc2012_sih_pipeline",
+    "seed": 42
+  },
+  "scenarios": {
+    "label_flip_rates": [
+      0.01,
+      0.05,
+      0.1,
+      0.2
+    ],
+    "duplicate_rates": [
+      0.01,
+      0.05,
+      0.1,
+      0.2
+    ],
+    "trigger_poison_rates": [
+      0.01,
+      0.05,
+      0.1
+    ],
+    "ood_count": 15,
+    "systematic_contributor": "contributor_07",
+    "systematic_confusion": [
+      "chair",
+      "sofa"
+    ],
+    "systematic_corruption_rate": 0.7
+  },
+  "detectors": {
+    "embedding": {
+      "backbone": "resnet50",
+      "device": "auto",
+      "batch_size": 32
+    },
+    "duplicate": {
+      "similarity_threshold": 0.99
+    },
+    "ood": {
+      "trim_fraction": 0.1,
+      "quantile": 0.99,
+      "calibration_splits": 8,
+      "seed": 42
+    },
+    "label_flip": {
+      "enabled": true,
+      "classifier": "knn",
+      "n_neighbors": 5,
+      "n_splits": 5,
+      "seed": 42,
+      "filter_by": "both",
+      "min_confidence_gap": 0.15,
+      "min_alt_prob": 0.35,
+      "min_odds_ratio": 1.5,
+      "min_centroid_ratio": 1.05
+    },
+    "trigger": {
+      "patch_size_ratio": 0.08,
+      "min_correlation": 0.65,
+      "min_cluster_size": 2,
+      "max_non_target_overlap": 0.2
+    },
+    "provenance_aggregator": {
+      "anomaly_rate_threshold": 0.1,
+      "min_group_size": 5,
+      "min_anomaly_count": 3,
+      "z_score_threshold": 2.0
+    }
+  },
+  "policy": {
+    "duplicate": {
+      "severity": "MEDIUM",
+      "disposition": "REVIEW"
+    },
+    "ood": {
+      "severity": "HIGH",
+      "disposition": "REVIEW"
+    },
+    "label_flip": {
+      "severity": "MEDIUM",
+      "disposition": "REVIEW"
+    },
+    "trigger": {
+      "severity": "CRITICAL",
+      "disposition": "QUARANTINE"
+    },
+    "systematic_anomaly": {
+      "severity": "HIGH",
+      "disposition": "REVIEW"
+    },
+    "multiple_checks": {
+      "severity": "HIGH",
+      "disposition": "REVIEW"
+    }
+  }
+}
