@@ -7,10 +7,10 @@ import GlassCard from '../components/GlassCard';
 import { StatusBadge } from '../components/Badges';
 import DataTable from '../components/DataTable';
 import {
-  clientValidateFile, uploadAndValidateDataset, listDatasetValidations, listDatasets,
+  clientValidateFile, uploadAndValidateDataset, listDatasetValidations,
   ALLOWED_EXTENSIONS, KIND_RULES
 } from '../services/datasetValidationApi';
-import { listContributors } from '../services/workflowApi';
+import { listContributors, getContributorModels } from '../services/workflowApi';
 import './DatasetValidation.css';
 
 const REPORT_STATUS_META = {
@@ -54,9 +54,8 @@ export default function DatasetValidation({ notify }) {
   const [report, setReport] = useState(null);
   const [history, setHistory] = useState([]);
   const [contributors, setContributors] = useState([]);
-  const [availableDatasets, setAvailableDatasets] = useState([]);
-  const [selectedDatasetId, setSelectedDatasetId] = useState('');
-  const [sourceMode, setSourceMode] = useState('existing');
+  const [availableModels, setAvailableModels] = useState([]);
+  const [selectedModelId, setSelectedModelId] = useState('');
   const [contributorId, setContributorId] = useState('');
   const [folderMode, setFolderMode] = useState(false);
   const inputRef = useRef(null);
@@ -90,46 +89,21 @@ export default function DatasetValidation({ notify }) {
     }
   }, []);
 
-  // Load the registered dataset catalog immediately, exactly like Model Validation
-  // loads its registered model catalog. Dataset selection must not depend on
-  // selecting a contributor first.
   useEffect(() => {
-    listDatasets('all')
-      .then(setAvailableDatasets)
-      .catch((err) => {
-        setAvailableDatasets([]);
-        notify?.(err.message, 'error');
-      });
-  }, []);
-
-  function selectExistingDataset(id) {
-    const dataset = availableDatasets.find((d) => (d.id || d.uploadId) === id);
-    setSelectedDatasetId(id);
-    setSourceMode('existing');
-    if (!dataset) return;
-
-    if (dataset.contributorId && dataset.contributorId !== 'unassigned') {
-      setContributorId(dataset.contributorId);
+    if (!contributorId) {
+      setAvailableModels([]);
+      setSelectedModelId('');
+      return;
     }
-    if (dataset.format && ['yolo', 'coco'].includes(String(dataset.format).toLowerCase())) {
-      setKind(String(dataset.format).toLowerCase());
-    }
-    setFiles([]);
-    setPrecheck([]);
-    setFolderMode(false);
-    setReport(null);
-  }
-
-  function reloadRegisteredDatasets() {
-    listDatasets('all')
-      .then(setAvailableDatasets)
-      .catch((err) => notify?.(err.message, 'error'));
-  }
+    getContributorModels(contributorId)
+      .then(setAvailableModels)
+      .catch(() => setAvailableModels([]));
+  }, [contributorId]);
 
   function pickFiles(fileList, fromFolder = false) {
     const picked = Array.from(fileList || []);
     setFiles(picked);
-    setSelectedDatasetId('');
+    setSelectedModelId('');
     setFolderMode(fromFolder);
     setReport(null);
     if (fromFolder) {
@@ -153,7 +127,10 @@ export default function DatasetValidation({ notify }) {
   }
 
   async function doValidate() {
-    if (selectedDatasetId) {
+    if (!selectedModelId) {
+      notify?.('Select the uploaded model to validate this dataset against.', 'error');
+      return;
+    }
       if (!contributorId) {
         notify?.('Select the contributor associated with this dataset before validation.', 'error');
         return;
@@ -161,7 +138,7 @@ export default function DatasetValidation({ notify }) {
       setBusy(true);
       setReport(null);
       try {
-        const { report: r } = await uploadAndValidateDataset(kind, [], contributorId, selectedDatasetId);
+        const { report: r } = await uploadAndValidateDataset(kind, [], contributorId, '', selectedModelId);
         setReport(r);
         notify?.(`Dataset validation: ${reportMeta(r.status).label}`, r.status === 'valid' || r.status === 'warning' ? 'success' : 'error');
         refreshHistory();
@@ -185,7 +162,7 @@ export default function DatasetValidation({ notify }) {
     setBusy(true);
     setReport(null);
     try {
-      const { report: r } = await uploadAndValidateDataset(kind, files, contributorId);
+      const { report: r } = await uploadAndValidateDataset(kind, files, contributorId, '', selectedModelId);
       setReport(r);
       const meta = reportMeta(r.status);
       notify?.(
@@ -227,75 +204,27 @@ export default function DatasetValidation({ notify }) {
           <span className="hdr-meta">{rules.label.toUpperCase()} · {rules.extensions.join(' · ')}</span>
         </div>
 
-        <div className="dv-source-selector">
-          <label className="dv-field-label">DATASET SOURCE *</label>
-          <select
-            className="dv-contributor-select"
-            value={sourceMode}
-            onChange={(e) => {
-              const next = e.target.value;
-              setSourceMode(next);
-              setSelectedDatasetId('');
-              setFiles([]);
-              setPrecheck([]);
-              setFolderMode(false);
-              setReport(null);
-              if (next === 'existing') reloadRegisteredDatasets();
-            }}
-            disabled={busy}
-          >
-            <option value="existing">USE ALREADY UPLOADED DATASET</option>
-            <option value="upload">UPLOAD NEW DATASET</option>
+        <div className="dv-contributor-row">
+          <label className="dv-field-label">PROVIDED BY *</label>
+          <select className="dv-contributor-select" value={contributorId} onChange={(e) => { setContributorId(e.target.value); setSelectedModelId(''); }} disabled={busy}>
+            <option value="">SELECT CONTRIBUTOR / VENDOR</option>
+            {contributors.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
           </select>
-          <span className="dv-field-help">
-            {sourceMode === 'existing'
-              ? 'Select a dataset already registered in SentinelVision. No re-upload is required.'
-              : 'Upload dataset files or select a complete dataset folder for validation.'}
-          </span>
+          <span className="dv-field-help">Select the vendor/contributor that supplied the dataset and model.</span>
         </div>
 
-        {sourceMode === 'existing' ? (
-          <>
-            <div className="dv-existing-box">
-              <label className="dv-field-label">REGISTERED DATASET *</label>
-              <select
-                className="dv-contributor-select"
-                value={selectedDatasetId}
-                onChange={(e) => selectExistingDataset(e.target.value)}
-                disabled={busy}
-              >
-                <option value="">SELECT REGISTERED DATASET</option>
-                {availableDatasets.map((d) => (
-                  <option key={d.id || d.uploadId} value={d.id || d.uploadId}>
-                    {d.name || d.originalName || d.uploadId}
-                    {d.contributorName ? ` — ${d.contributorName}` : ''}
-                  </option>
-                ))}
-              </select>
-              <span className="dv-field-help">
-                {availableDatasets.length
-                  ? `${availableDatasets.length} registered dataset(s) found.`
-                  : 'No registered datasets found in the dataset registry.'}
-              </span>
-            </div>
-
-            <div className="dv-contributor-row">
-              <label className="dv-field-label">PROVIDED BY</label>
-              <span className="dv-contributor-badge">{contributors.find((c) => c.id === contributorId)?.name || 'SELECT DATASET FIRST'}</span>
-            </div>
-          </>
-        ) : (
-          <div className="dv-contributor-row">
-            <label className="dv-field-label">PROVIDED BY *</label>
-            <select className="dv-contributor-select" value={contributorId} onChange={(e) => setContributorId(e.target.value)} disabled={busy}>
-              <option value="">SELECT CONTRIBUTOR / VENDOR</option>
-              {contributors.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-            <span className="dv-field-help">Select the vendor/contributor that supplied this dataset.</span>
-          </div>
-        )}
+        <div className="dv-contributor-row">
+          <label className="dv-field-label">UPLOADED MODEL *</label>
+          <select className="dv-contributor-select" value={selectedModelId} onChange={(e) => setSelectedModelId(e.target.value)} disabled={busy || !contributorId}>
+            <option value="">{contributorId ? 'SELECT UPLOADED MODEL' : 'SELECT CONTRIBUTOR FIRST'}</option>
+            {availableModels.map((m) => (
+              <option key={m.id} value={m.id}>{m.name || m.originalName || m.id}</option>
+            ))}
+          </select>
+          <span className="dv-field-help">{contributorId ? availableModels.length + ' uploaded model(s) available from this contributor.' : 'Choose a contributor to load its uploaded models.'}</span>
+        </div>
 
         <div className="dv-kind-row">
           <button
@@ -369,7 +298,7 @@ export default function DatasetValidation({ notify }) {
 
         <button
           className="auth-submit dv-validate"
-          disabled={busy || (sourceMode === 'existing' ? !selectedDatasetId || !contributorId : files.length === 0 || !contributorId) || (sourceMode === 'upload' && !folderMode && precheck.some((p) => !p.ok))}
+          disabled={busy || !contributorId || !selectedModelId || files.length === 0 || (!folderMode && precheck.some((p) => !p.ok))}
           onClick={doValidate}
         >
           {busy
