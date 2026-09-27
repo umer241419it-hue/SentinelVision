@@ -1112,69 +1112,75 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
         }
         if (!files.length) return res.status(400).json({ ok: false, error: 'No dataset files provided' });
 
-        const reports = files.map(file => {
-            const kind = req.query.kind || (file.filename.endsWith('.json') ? 'coco' : 'yolo');
-            return datasetValidationService.validateDatasetFile(
-                kind,
-                file.fileBuffer,
-                file.filename,
-                { id: contributorId, name: contributor.name }
-            );
-        });
+        const kind = String(req.query.kind || 'yolo').toLowerCase();
+        if (!['yolo', 'coco'].includes(kind)) {
+            return res.status(400).json({ ok: false, error: 'Dataset format must be YOLO or COCO' });
+        }
 
-        const status = reports.some(r => r.status === 'invalid' || r.status === 'rejected')
-            ? 'invalid'
-            : reports.some(r => r.status === 'warning') ? 'warning' : 'valid';
+        // The validation endpoint performs a fresh structural validation of the
+        // uploaded bytes. It does not look up or replay a previous validation.
+        const report = datasetValidationService.validateDatasetBundle(
+            kind,
+            files.map(file => ({
+                filename: file.filename,
+                fileBuffer: file.fileBuffer
+            })),
+            { id: contributorId, name: contributor.name }
+        );
 
-        const errorDetails = reports.flatMap(r => (r.errors || []).map(message => ({
-            type: 'VALIDATION_ERROR',
-            file: r.filename,
-            message
-        })));
-        const warningDetails = reports.flatMap(r => (r.warnings || []).map(message => ({
-            type: 'VALIDATION_WARNING',
-            file: r.filename,
-            message
-        })));
+        // Persist the exact uploaded folder as a registered dataset asset so a
+        // later assurance run can execute against the bytes that were validated.
+        const uploadId = `dataset-${report.datasetHash.slice(0, 10)}`;
+        const datasetDir = path.join(UPLOADS_DIR, uploadId);
+        if (!fs.existsSync(datasetDir)) fs.mkdirSync(datasetDir, { recursive: true });
 
-        const stats = reports.reduce((acc, r) => {
-            acc.images += Number(r.imageCount || 0);
-            acc.annotation_files += 1;
-            acc.annotations += Number(r.annotationCount || 0);
-            acc.classes += Number(r.categoryCount || 0);
-            return acc;
-        }, {
-            images: 0,
-            annotation_files: reports.length,
-            annotations: 0,
-            classes: 0,
-            images_without_annotations: 0,
-            annotations_without_images: 0,
-            empty_annotation_files: 0,
-            invalid_files: reports.filter(r => r.status === 'invalid' || r.status === 'rejected').length,
-            duplicate_files: 0,
-            unknown_class_ids: 0,
-            out_of_bounds_boxes: 0
-        });
+        for (const file of files) {
+            const rawName = String(file.filename || 'unnamed');
+            const relativeName = rawName
+                .replace(/\\\\/g, '/')
+                .replace(/^[/\\]+/, '')
+                .split('/')
+                .filter(part => part && part !== '.' && part !== '..')
+                .join('/');
+            const target = path.join(datasetDir, relativeName || `file-${Date.now()}`);
+            if (!target.startsWith(datasetDir + path.sep) && target !== datasetDir) {
+                throw new Error('Unsafe dataset file path rejected');
+            }
+            fs.mkdirSync(path.dirname(target), { recursive: true });
+            fs.writeFileSync(target, file.fileBuffer);
+        }
 
-        const aggregate = {
-            validationId: reports.length === 1 ? reports[0].validationId : `val-batch-${crypto.randomBytes(4).toString('hex')}`,
+        loadUploads();
+        const existingIdx = uploads.findIndex(u => u.uploadId === uploadId);
+        const now = new Date().toISOString();
+        const registryRecord = {
+            uploadId,
+            filename: uploadId,
+            originalName: report.format === 'COCO' ? 'Uploaded COCO Dataset Folder' : 'Uploaded YOLO Dataset Folder',
+            kind: 'dataset',
+            type: 'dataset',
+            sha256: report.datasetHash,
+            size: files.reduce((sum, f) => sum + (f.fileBuffer?.length || 0), 0),
+            createdAt: now,
+            uploadedAt: now,
+            filePath: datasetDir,
+            storagePath: datasetDir,
+            datasetPath: datasetDir,
             contributorId,
             contributorName: contributor.name,
-            status,
-            format: String(req.query.kind || reports[0].format || '').toUpperCase(),
-            files_processed: reports.length,
-            errors: errorDetails.length,
-            warnings: warningDetails.length,
-            error_details: errorDetails,
-            warning_details: warningDetails,
-            stats,
-            reports,
-            timestamp: new Date().toISOString()
+            format: report.format
         };
+        if (existingIdx >= 0) uploads[existingIdx] = { ...uploads[existingIdx], ...registryRecord };
+        else uploads.unshift(registryRecord);
+        saveUploads();
 
-        res.status(200).json({ ok: status === 'valid' || status === 'warning', report: aggregate });
+        report.datasetId = uploadId;
+        report.datasetPath = datasetDir;
+        report.registered = true;
+
+        res.status(200).json({ ok: report.status === 'valid' || report.status === 'warning', report });
     } catch (err) {
+        console.error('Dataset validation error:', err);
         res.status(500).json({ ok: false, error: err.message });
     }
 });
