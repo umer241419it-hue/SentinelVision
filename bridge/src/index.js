@@ -635,7 +635,7 @@ app.get('/api/contributors/:id/models', (req, res) => {
      res.json({ validations: modelValidationService.listValidations().slice(0, limit) });
  });
  
- app.post('/api/models/validate/:id', authService.requireAuth, authService.requireRole(['ANALYST']), (req, res) => {
+ app.post('/api/models/validate/:id', authService.requireAuth, authService.requireRole(['ANALYST']), async (req, res) => {
      loadUploads();
      loadContributors();
      const model = uploads.find(u => u.kind === 'model' && u.uploadId === req.params.id);
@@ -649,17 +649,25 @@ app.get('/api/contributors/:id/models', (req, res) => {
      // The registry/file checks above are only the ingestion gate. For a
      // calibrated SentinelVision model, execute the real Model Integrity engine
      // (STRIP + live SHA-256 verification) against this exact model file.
-     if (report.status !== 'INVALID' && report.computedSha256 && model.filePath) {
-         const rawName = model.originalName || path.basename(model.filePath);
+     if (report.status !== 'INVALID' && report.computedSha256 && (model.filePath || model.weightsPath)) {
+         const modelPath = model.filePath || model.weightsPath;
+         const rawName = model.originalName || path.basename(modelPath);
          const modelId = path.parse(rawName).name;
          const engineWorkspace = path.join(WORKSPACE_ROOT, 'reports', report.validationId, 'model-integrity');
          report.engine = await validationEngineService.runModelIntegrityEngine({
              modelId,
-             modelPath: path.isAbsolute(model.filePath) ? model.filePath : path.resolve(WORKSPACE_ROOT, model.filePath),
+             modelPath: path.isAbsolute(modelPath) ? modelPath : path.resolve(WORKSPACE_ROOT, modelPath),
              outputDir: engineWorkspace
          });
          if (report.engine.status === 'COMPLETED') {
              report.engineVerdict = 'ENGINE_COMPLETED';
+             if (report.engine?.output?.verdict === 'FAIL') {
+                 report.status = 'INVALID';
+                 report.errors = [
+                     ...(report.errors || []),
+                     ...(report.engine.output.findings || []).map(f => f.reason || 'Model integrity assurance detected a suspicious model behavior.')
+                 ];
+             }
          } else {
              report.engineVerdict = 'ENGINE_FAILED_OR_UNSUPPORTED';
              report.warnings = [
