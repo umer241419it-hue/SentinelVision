@@ -8,6 +8,7 @@ import DataIntegrity from './pages/DataIntegrity';
 import DatasetValidation from './pages/DatasetValidation';
 import ModelValidation from './pages/ModelValidation';
 import ModelHooks from './pages/ModelHooks';
+import InferenceProvenance from './pages/InferenceProvenance';
 import ModelIntegrity from './pages/ModelIntegrity';
 import Findings from './pages/Findings';
 import EvidenceVault from './pages/EvidenceVault';
@@ -173,6 +174,7 @@ export default function App() {
             <Route path="/dataset-validation" element={<RequireRole roles={['ANALYST']}><DatasetValidation notify={notify} /></RequireRole>} />
             <Route path="/model-validation" element={<RequireRole roles={['ANALYST']}><ModelValidation notify={notify} /></RequireRole>} />
             <Route path="/model-hooks" element={<RequireRole roles={['ANALYST']}><ModelHooks notify={notify} /></RequireRole>} />
+            <Route path="/inference-provenance" element={<RequireRole roles={['ANALYST']}><InferenceProvenance notify={notify} /></RequireRole>} />
             <Route path="/model-integrity" element={<RequireRole roles={['ANALYST']}><ModelIntegrity /></RequireRole>} />
 
             {/* Shared */}
