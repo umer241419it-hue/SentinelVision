@@ -6,6 +6,8 @@ import Overview from './pages/Overview';
 import DriftMonitor from './pages/DriftMonitor';
 import DataIntegrity from './pages/DataIntegrity';
 import DatasetValidation from './pages/DatasetValidation';
+import ModelValidation from './pages/ModelValidation';
+import ModelHooks from './pages/ModelHooks';
 import ModelIntegrity from './pages/ModelIntegrity';
 import Findings from './pages/Findings';
 import EvidenceVault from './pages/EvidenceVault';
@@ -169,6 +171,8 @@ export default function App() {
             <Route path="/drift-monitor" element={<RequireRole roles={['ANALYST']}><DriftMonitor /></RequireRole>} />
             <Route path="/data-integrity" element={<RequireRole roles={['ANALYST']}><DataIntegrity /></RequireRole>} />
             <Route path="/dataset-validation" element={<RequireRole roles={['ANALYST']}><DatasetValidation notify={notify} /></RequireRole>} />
+            <Route path="/model-validation" element={<RequireRole roles={['ANALYST']}><ModelValidation notify={notify} /></RequireRole>} />
+            <Route path="/model-hooks" element={<RequireRole roles={['ANALYST']}><ModelHooks notify={notify} /></RequireRole>} />
             <Route path="/model-integrity" element={<RequireRole roles={['ANALYST']}><ModelIntegrity /></RequireRole>} />
 
             {/* Shared */}
