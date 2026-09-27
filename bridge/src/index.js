@@ -1013,26 +1013,48 @@ app.post('/api/trust/tests/:testId/quarantine', (req, res) => {
 // 7. Dataset Validation Gate (/api/datasets/validate)
 // ---------------------------------------------------------------------------
 app.get('/api/datasets/validations', (req, res) => {
-    res.json({ validations: datasetValidationService.listValidations() });
+    const limit = Math.max(1, Math.min(100, Number(req.query.limit) || 50));
+    const validations = datasetValidationService.listValidations()
+        .filter(v => !req.query.contributorId || req.query.contributorId === 'all' || (v.contributorId || 'unassigned') === req.query.contributorId)
+        .slice(0, limit);
+    res.json({ validations });
 });
 
 app.post('/api/datasets/validate', async (req, res) => {
     try {
-        let fileBuffer, filename;
+        let fileBuffer, filename, contributorId = '', contributorName = '';
         if (req.headers['content-type']?.includes('multipart/form-data')) {
             const parsed = await parseMultipartBuffer(req);
             fileBuffer = parsed.fileBuffer;
             filename = parsed.filename;
+            contributorId = String(parsed.fields.contributorId || '').trim();
         } else if (req.body && req.body.fileContent) {
             fileBuffer = Buffer.from(req.body.fileContent, 'utf-8');
             filename = req.body.filename || 'dataset_annotation.json';
+            contributorId = String(req.body.contributorId || '').trim();
         } else {
             fileBuffer = Buffer.from(JSON.stringify(req.body || {}), 'utf-8');
             filename = 'dataset_annotation.json';
+            contributorId = String(req.body?.contributorId || '').trim();
         }
 
+        loadContributors();
+        const contributor = contributors.find(c => c.id === contributorId);
+        if (!contributor) {
+            return res.status(400).json({
+                ok: false,
+                error: 'Contributor / Vendor is required. Select the contributor who provided this dataset.'
+            });
+        }
+        contributorName = contributor.name;
+
         const kind = req.query.kind || (filename.endsWith('.json') ? 'coco' : 'yolo');
-        const report = datasetValidationService.validateDatasetFile(kind, fileBuffer, filename);
+        const report = datasetValidationService.validateDatasetFile(
+            kind,
+            fileBuffer,
+            filename,
+            { id: contributorId, name: contributorName }
+        );
 
         const httpStatus = report.status === 'valid' ? 200 : report.status === 'warning' ? 200 : 422;
         res.status(httpStatus).json({ ok: report.status !== 'rejected', report });
