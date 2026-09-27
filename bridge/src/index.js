@@ -170,9 +170,9 @@ app.use((req, res, next) => {
 });
 
 // Raw body parser for multipart file uploads & JSON
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(express.raw({ type: 'multipart/form-data', limit: '50mb' }));
+app.use(express.json({ limit: '512mb' }));
+app.use(express.urlencoded({ extended: true, limit: '512mb' }));
+app.use(express.raw({ type: 'multipart/form-data', limit: '512mb' }));
 
 const PORT = process.env.PORT || 3000;
 const utf8Decoder = new TextDecoder();
