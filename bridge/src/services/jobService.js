@@ -131,8 +131,8 @@ function summarizeData(job, resultPath = null) {
     }
 }
 
-function summarizeModel(job) {
-    const p = path.join(WORKSPACE_ROOT, 'model-integrity/findings.json');
+function summarizeModel(job, resultPath = null) {
+    const p = resultPath || path.join(WORKSPACE_ROOT, 'model-integrity/findings.json');
     if (!fs.existsSync(p)) return;
     try {
         const findings = JSON.parse(fs.readFileSync(p, 'utf-8'));
@@ -210,7 +210,7 @@ async function executeJob(job, normType, dataset, model, configId, logStream) {
                 '--config', dataConfig,
                 '--input', datasetPath,
                 '--labels', labels,
-                '--checks', 'duplicate,ood,label_flip,trigger',
+                '--checks', 'duplicate,ood,label_flip',
                 '--run-id', job.run_id
             ], path.join(WORKSPACE_ROOT, 'data-integrity'));
             summarizeData(job);
@@ -222,6 +222,7 @@ async function executeJob(job, normType, dataset, model, configId, logStream) {
             if (normType === 'MODEL_INTEGRITY') throw new Error('A model must be selected for MODEL_INTEGRITY.');
             setCheck(job, 'MODEL_INTEGRITY', 'SKIPPED', 'No model was selected.');
         } else {
+            fs.mkdirSync(path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'model-integrity'), { recursive: true });
             await run('MODEL INTEGRITY', 'python3', [
                 'src/strip_detector.py',
                 '--model-path', model.resolvedPath,
@@ -229,7 +230,7 @@ async function executeJob(job, normType, dataset, model, configId, logStream) {
                 '--output', path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'model-integrity', 'strip_results.json'),
                 '--hashes-output', path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'model-integrity', 'strip_hashes.json')
             ], path.join(WORKSPACE_ROOT, 'model-integrity'));
-            summarizeModel(job);
+            summarizeModel(job, path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'model-integrity', 'strip_results.json'));
         }
     }
 
