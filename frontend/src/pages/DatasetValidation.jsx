@@ -10,6 +10,7 @@ import {
   clientValidateFile, uploadAndValidateDataset, listDatasetValidations,
   ALLOWED_EXTENSIONS, KIND_RULES
 } from '../services/datasetValidationApi';
+import { listUploads } from '../services/workflowApi';
 import { listContributors } from '../services/workflowApi';
 import './DatasetValidation.css';
 
@@ -54,6 +55,9 @@ export default function DatasetValidation({ notify }) {
   const [report, setReport] = useState(null);
   const [history, setHistory] = useState([]);
   const [contributors, setContributors] = useState([]);
+  const [availableDatasets, setAvailableDatasets] = useState([]);
+  const [selectedDatasetId, setSelectedDatasetId] = useState('');
+  const [sourceMode, setSourceMode] = useState('existing');
   const [contributorId, setContributorId] = useState('');
   const [folderMode, setFolderMode] = useState(false);
   const inputRef = useRef(null);
@@ -72,6 +76,7 @@ export default function DatasetValidation({ notify }) {
   useEffect(() => {
     refreshHistory();
     listContributors().then(setContributors).catch(() => setContributors([]));
+    listUploads().then((items) => setAvailableDatasets(items.filter((x) => x.kind === 'dataset'))).catch(() => setAvailableDatasets([]));
   }, [refreshHistory]);
 
   // Electron/Chromium is most reliable when the directory picker property is
@@ -86,6 +91,17 @@ export default function DatasetValidation({ notify }) {
       input.setAttribute('directory', '');
     }
   }, []);
+
+  function selectExistingDataset(id) {
+    const dataset = availableDatasets.find((d) => (d.uploadId || d.id) === id);
+    setSelectedDatasetId(id);
+    setSourceMode('existing');
+    setFiles([]);
+    setPrecheck([]);
+    setFolderMode(false);
+    setReport(null);
+    if (dataset?.contributorId && !contributorId) setContributorId(dataset.contributorId);
+  }
 
   function pickFiles(fileList, fromFolder = false) {
     const picked = Array.from(fileList || []);
@@ -112,6 +128,26 @@ export default function DatasetValidation({ notify }) {
   }
 
   async function doValidate() {
+    if (sourceMode === 'existing') {
+      if (!selectedDatasetId) return;
+      if (!contributorId) {
+        notify?.('Select the contributor associated with this dataset before validation.', 'error');
+        return;
+      }
+      setBusy(true);
+      setReport(null);
+      try {
+        const { report: r } = await uploadAndValidateDataset(kind, [], contributorId, selectedDatasetId);
+        setReport(r);
+        notify?.(`Dataset validation: ${reportMeta(r.status).label}`, r.status === 'valid' || r.status === 'warning' ? 'success' : 'error');
+        refreshHistory();
+      } catch (err) {
+        notify?.(err.message, 'error');
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
     if (files.length === 0) return;
     if (!contributorId) {
       notify?.('Select the contributor who provided this dataset before validation.', 'error');
@@ -163,10 +199,26 @@ export default function DatasetValidation({ notify }) {
       {/* ---- Step 1: UPLOAD + CLIENT GATE ---- */}
       <GlassCard className="dv-upload">
         <div className="card-header">
-          <h3>01 · UPLOAD DATASET FILES</h3>
+          <h3>01 · SELECT OR UPLOAD DATASET</h3>
           <span className="hdr-meta">{rules.label.toUpperCase()} · {rules.extensions.join(' · ')}</span>
         </div>
 
+        <div className="dv-source-tabs">
+          <button className={`dv-source-tab ${sourceMode === 'existing' ? 'active' : ''}`} onClick={() => setSourceMode('existing')} disabled={busy}>SELECT EXISTING DATASET</button>
+          <button className={`dv-source-tab ${sourceMode === 'upload' ? 'active' : ''}`} onClick={() => setSourceMode('upload')} disabled={busy}>UPLOAD DATASET</button>
+        </div>
+        {sourceMode === 'existing' ? (
+          <div className="dv-existing-row">
+            <label className="dv-field-label">AVAILABLE DATASETS</label>
+            <select className="dv-contributor-select" value={selectedDatasetId} onChange={(e) => selectExistingDataset(e.target.value)} disabled={busy}>
+              <option value="">SELECT REGISTERED DATASET</option>
+              {availableDatasets.map((d) => (
+                <option key={d.uploadId || d.id} value={d.uploadId || d.id}>{d.originalName || d.name || d.uploadId}</option>
+              ))}
+            </select>
+            <span className="dv-field-help">{availableDatasets.length} registered dataset(s) available.</span>
+          </div>
+        ) : (
         <div className="dv-contributor-row">
           <label className="dv-field-label">PROVIDED BY *</label>
           <select className="dv-contributor-select" value={contributorId} onChange={(e) => setContributorId(e.target.value)} disabled={busy}>
@@ -246,9 +298,11 @@ export default function DatasetValidation({ notify }) {
           </div>
         )}
 
+        </div>
+
         <button
           className="auth-submit dv-validate"
-          disabled={busy || files.length === 0 || !contributorId || (!folderMode && precheck.some((p) => !p.ok))}
+          disabled={busy || (sourceMode === 'existing' ? !selectedDatasetId : files.length === 0) || !contributorId || (sourceMode === 'upload' && !folderMode && precheck.some((p) => !p.ok))}
           onClick={doValidate}
         >
           {busy
