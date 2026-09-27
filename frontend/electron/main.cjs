@@ -3,6 +3,11 @@
 const { app, BrowserWindow, shell } = require('electron');
 const path = require('path');
 
+// SentinelVision's ML/CUDA workloads run in the Python engines, not Chromium.
+// Disable Electron/Chromium hardware acceleration so the desktop shell also
+// works on Linux systems where the Chromium GPU process cannot launch.
+app.disableHardwareAcceleration();
+
 const DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL || '';
 
 let mainWindow = null;
