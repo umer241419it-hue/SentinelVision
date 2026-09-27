@@ -168,6 +168,14 @@ export default function ModelValidation({ notify }) {
             </div>
             {report.errors?.length > 0 && <div className="mv-errors">{report.errors.map((e, i) => <div key={i}><XCircle size={12} />{e}</div>)}</div>}
             {report.warnings?.length > 0 && <div className="mv-errors warn">{report.warnings.map((e, i) => <div key={i}><ScanLine size={12} />{e}</div>)}</div>}
+            {report.engine && (
+              <div className={`mv-engine ${report.engine.status === 'COMPLETED' ? 'ok' : 'bad'}`}>
+                <div className="mv-engine-title"><ScanLine size={13} /> MODEL INTEGRITY ENGINE: {report.engine.status}</div>
+                <div className="mono mv-engine-meta">ENGINE: {report.engine.engine || 'model-integrity/src/strip_detector.py'} · MODEL ID: {report.engine.modelId}</div>
+                {report.engine.output && <div className="mono mv-engine-meta">CLASS EVALUATIONS: {report.engine.output.length}</div>}
+                {report.engine.stderr && report.engine.status !== 'COMPLETED' && <pre className="mv-engine-log">{report.engine.stderr.slice(-3000)}</pre>}
+              </div>
+            )}
           </div>
         )}
       </GlassCard>
