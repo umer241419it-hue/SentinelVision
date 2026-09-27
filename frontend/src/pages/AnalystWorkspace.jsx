@@ -40,7 +40,7 @@ export default function AnalystWorkspace({ notify }) {
   const [uploads, setUploads] = useState([]);
   const [tests, setTests] = useState([]);
   const [contributors, setContributors] = useState([]);
-  const [selectedContributor, setSelectedContributor] = useState(urlContribId || 'vendor-alpha');
+  const [selectedContributor, setSelectedContributor] = useState(urlContribId || '');
   const [trustFilter, setTrustFilter] = useState('all');
 
   const [busy, setBusy] = useState(false);
@@ -72,9 +72,6 @@ export default function AnalystWorkspace({ notify }) {
       setUploads(u);
       setTests(t);
       setContributors(c);
-      if (c.length > 0 && !selectedContributor) {
-        setSelectedContributor(c[0].id);
-      }
     } catch (err) {
       notify?.(err.message, 'error');
     }
