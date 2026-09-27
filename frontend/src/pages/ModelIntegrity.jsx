@@ -107,7 +107,7 @@ export default function ModelIntegrity() {
     { label: 'Validation Status', value: summary.validationStatus },
     {
       label: 'Model Fleet',
-      value: `${summary.cleanModels} clean · ${summary.reviewModels} review · ${summary.quarantinedModels} quarantine`
+      value: `${signals.filter(s => s.ok).length} corroborated · ${signals.length} signals`
     }
   ];
 
@@ -159,35 +159,25 @@ export default function ModelIntegrity() {
             </h3>
           </div>
           <div className="det-results">
-            <div className="det-row">
-              <span className="det-label">Neural Cleanse + MAD</span>
-              <span className="det-value mono">anomaly index 3.13 · threshold 2.0 · class 2 flagged</span>
-              <SeverityBadge severity="CRITICAL" />
-            </div>
-            <div className="det-row">
-              <span className="det-label">STRIP Verification</span>
-              <span className="det-value mono">entropy suppression corroborates class 2</span>
-              <SeverityBadge severity="CRITICAL" />
-            </div>
-            <div className="det-row">
-              <span className="det-label">Dual-direction MMD</span>
-              <span className="det-value mono">poisoned vs clean proof — OK</span>
-              <SeverityBadge severity="LOW" />
-            </div>
-            <div className="det-row">
-              <span className="det-label">Fleet Scan</span>
-              <span className="det-value mono">15 models scored across 3 tasks</span>
-              <SeverityBadge severity="MEDIUM" />
-            </div>
+            {signals.map((s) => (
+              <div className="det-row" key={s.name || s.signal}>
+                <span className="det-label">{s.name || s.signal}</span>
+                <span className="det-value mono">
+                  {s.detail || s.interpretation || s.value || s.status || 'No detail available'}
+                </span>
+                <SeverityBadge severity={s.severity || 'MEDIUM'} />
+              </div>
+            ))}
+            {!signals.length && <div className="det-row"><span className="det-value mono">No detector signals recorded.</span></div>}
           </div>
           <div className="divider" />
           <div className="det-verdict">
             <ShieldAlert size={15} />
             <div>
-              <div className="det-verdict-title">QUARANTINE RECOMMENDED — pending human review</div>
+              <div className="det-verdict-title">{summary.modelStatus || 'MODEL STATUS UNAVAILABLE'}</div>
               <div className="det-verdict-sub">
-                Two independent detectors agree on class 2. Model withheld from deployment until
-                reviewed; evidence sealed with SHA-256 digests on the ledger.
+                Results shown above are loaded from the current SentinelVision model-integrity result store.
+                Review the evidence and disposition before operational use.
               </div>
             </div>
           </div>
@@ -201,22 +191,16 @@ export default function ModelIntegrity() {
             </h3>
           </div>
           <div className="mi-evidence">
-            <div className="ev-row">
-              <span className="ev-label">Trigger artifacts</span>
-              <span className="mono hash-chip">mask_epoch49_class2.npy · sealed</span>
-            </div>
-            <div className="ev-row">
-              <span className="ev-label">Activation probe</span>
-              <span className="mono hash-chip">probe_report_id-00000112.json</span>
-            </div>
-            <div className="ev-row">
-              <span className="ev-label">STRIP scores</span>
-              <span className="mono hash-chip">strip_results.json · SHA-256 sealed</span>
-            </div>
-            <div className="ev-row">
-              <span className="ev-label">Scoring output</span>
-              <span className="mono hash-chip">scoring_results.json · committed</span>
-            </div>
+            {[
+              ['Weights digest', metadata.weightsDigest],
+              ['Training origin', metadata.trainingOrigin],
+              ['Defense', metadata.defenseActive]
+            ].map(([label, value]) => (
+              <div className="ev-row" key={label}>
+                <span className="ev-label">{label}</span>
+                <span className="mono hash-chip">{value || '—'}</span>
+              </div>
+            ))}
           </div>
         </GlassCard>
 
