@@ -430,6 +430,14 @@ function validateDatasetBundle(kind, files, contributor = null) {
     return report;
 }
 
+function updateValidation(validationId, patch) {
+    const index = validationHistory.findIndex(v => v.validationId === validationId);
+    if (index < 0) return null;
+    validationHistory[index] = { ...validationHistory[index], ...patch };
+    saveHistory();
+    return validationHistory[index];
+}
+
 function listValidations() {
     return validationHistory;
 }
@@ -437,5 +445,6 @@ function listValidations() {
 module.exports = {
     validateDatasetFile,
     validateDatasetBundle,
+    updateValidation,
     listValidations
 };
