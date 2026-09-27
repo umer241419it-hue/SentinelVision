@@ -1,16 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  FileJson, FileText, FileType2, Loader2, CheckCircle2, XCircle, AlertTriangle,
-  Ban, RefreshCw, FileWarning, ShieldCheck, Copy, Package
+  FileJson, FileText, Loader2, CheckCircle2, XCircle, AlertTriangle,
+  Ban, RefreshCw, ShieldCheck, Package
 } from 'lucide-react';
 import GlassCard from '../components/GlassCard';
 import { StatusBadge } from '../components/Badges';
 import DataTable from '../components/DataTable';
 import {
-  clientValidateFile, uploadAndValidateDataset, listDatasetValidations,
+  clientValidateFile, uploadAndValidateDataset, listDatasets, listDatasetValidations,
   ALLOWED_EXTENSIONS, KIND_RULES
 } from '../services/datasetValidationApi';
-import { listContributors, getContributorModels } from '../services/workflowApi';
+import { listContributors } from '../services/workflowApi';
 import './DatasetValidation.css';
 
 const REPORT_STATUS_META = {
@@ -40,11 +40,13 @@ function fmtTime(iso) {
 }
 
 /**
- * DatasetValidation — COCO/YOLO dataset integrity gate (upload → validate →
- * report). Client-side checks pre-filter obvious rejects; the bridge is the
- * authoritative server-side validator (task §11). Shows the machine-readable
- * report: errors vs warnings separated, dataset completeness stats, and the
- * history of validated files.
+ * DatasetValidation — COCO/YOLO dataset integrity gate.
+ * 01 · UPLOAD DATASET FILES
+ * Select Contributor (PROVIDED BY *)
+ * Select Uploaded Dataset (UPLOADED DATASET *)
+ * Select YOLO / COCO
+ * Select Files / Select Dataset Folder
+ * Validate Dataset
  */
 export default function DatasetValidation({ notify }) {
   const [kind, setKind] = useState('yolo');
@@ -54,9 +56,9 @@ export default function DatasetValidation({ notify }) {
   const [report, setReport] = useState(null);
   const [history, setHistory] = useState([]);
   const [contributors, setContributors] = useState([]);
-  const [availableModels, setAvailableModels] = useState([]);
-  const [selectedModelId, setSelectedModelId] = useState('');
+  const [datasets, setDatasets] = useState([]);
   const [contributorId, setContributorId] = useState('');
+  const [datasetId, setDatasetId] = useState('');
   const [folderMode, setFolderMode] = useState(false);
   const inputRef = useRef(null);
   const folderInputRef = useRef(null);
@@ -76,9 +78,22 @@ export default function DatasetValidation({ notify }) {
     listContributors().then(setContributors).catch(() => setContributors([]));
   }, [refreshHistory]);
 
-  // Electron/Chromium is most reliable when the directory picker property is
-  // set explicitly; React's JSX attribute alone is not consistent across
-  // Electron versions.
+  // Load uploaded datasets whenever contributorId changes
+  useEffect(() => {
+    setDatasetId('');
+    if (!contributorId) {
+      setDatasets([]);
+      return;
+    }
+    listDatasets(contributorId)
+      .then(setDatasets)
+      .catch((err) => {
+        setDatasets([]);
+        notify?.(err.message, 'error');
+      });
+  }, [contributorId, notify]);
+
+  // Ensure directory picker attributes on the folder input for Electron/Chromium
   useEffect(() => {
     const input = folderInputRef.current;
     if (input) {
@@ -89,26 +104,14 @@ export default function DatasetValidation({ notify }) {
     }
   }, []);
 
-  useEffect(() => {
-    if (!contributorId) {
-      setAvailableModels([]);
-      setSelectedModelId('');
-      return;
-    }
-    getContributorModels(contributorId)
-      .then(setAvailableModels)
-      .catch(() => setAvailableModels([]));
-  }, [contributorId]);
-
   function pickFiles(fileList, fromFolder = false) {
     const picked = Array.from(fileList || []);
     setFiles(picked);
-    setSelectedModelId('');
     setFolderMode(fromFolder);
     setReport(null);
     if (fromFolder) {
       setPrecheck(picked.length
-        ? [{ name: `${picked.length} files from selected dataset folder`, size: picked.reduce((n, f) => n + f.size, 0), ok: true, reason: 'server-side folder validation' }]
+        ? [{ name: `${picked.length} files from selected dataset folder`, size: picked.reduce((n, f) => n + f.size, 0), ok: true, reason: 'folder structure preserved' }]
         : []);
       return;
     }
@@ -119,39 +122,21 @@ export default function DatasetValidation({ notify }) {
 
   function switchKind(nextKind) {
     setKind(nextKind);
-    setSelectedDatasetId('');
     setFiles([]);
     setPrecheck([]);
     setFolderMode(false);
     setReport(null);
+    if (inputRef.current) inputRef.current.value = '';
+    if (folderInputRef.current) folderInputRef.current.value = '';
   }
 
   async function doValidate() {
-    if (!selectedModelId) {
-      notify?.('Select the uploaded model to validate this dataset against.', 'error');
-      return;
-    }
-      if (!contributorId) {
-        notify?.('Select the contributor associated with this dataset before validation.', 'error');
-        return;
-      }
-      setBusy(true);
-      setReport(null);
-      try {
-        const { report: r } = await uploadAndValidateDataset(kind, [], contributorId, '', selectedModelId);
-        setReport(r);
-        notify?.(`Dataset validation: ${reportMeta(r.status).label}`, r.status === 'valid' || r.status === 'warning' ? 'success' : 'error');
-        refreshHistory();
-      } catch (err) {
-        notify?.(err.message, 'error');
-      } finally {
-        setBusy(false);
-      }
-      return;
-    }
-    if (files.length === 0) return;
     if (!contributorId) {
-      notify?.('Select the contributor who provided this dataset before validation.', 'error');
+      notify?.('Select the contributor / vendor who provided this dataset.', 'error');
+      return;
+    }
+    if (!datasetId && files.length === 0) {
+      notify?.('Select an uploaded dataset or select dataset files / folder to validate.', 'error');
       return;
     }
     const blocked = folderMode ? [] : precheck.filter((p) => !p.ok);
@@ -159,14 +144,15 @@ export default function DatasetValidation({ notify }) {
       notify?.(`${blocked.length} file(s) failed client-side checks — remove them before validating.`, 'error');
       return;
     }
+
     setBusy(true);
     setReport(null);
     try {
-      const { report: r } = await uploadAndValidateDataset(kind, files, contributorId, '', selectedModelId);
+      const { report: r } = await uploadAndValidateDataset(kind, files, contributorId, datasetId);
       setReport(r);
       const meta = reportMeta(r.status);
       notify?.(
-        `Dataset validation: ${meta.label} · ${r.files_processed} file(s) · ${r.errors || 0} error(s) · ${r.warnings || 0} warning(s)`,
+        `Dataset validation: ${meta.label} · ${r.files_processed || files.length} file(s) · ${r.errors || 0} error(s) · ${r.warnings || 0} warning(s)`,
         r.status === 'valid' || r.status === 'warning' ? 'success' : 'error'
       );
       refreshHistory();
@@ -181,7 +167,10 @@ export default function DatasetValidation({ notify }) {
 
   const meta = report ? reportMeta(report.status) : null;
   const stats = report?.stats || {};
+  const selectedDataset = useMemo(() => datasets.find((d) => d.id === datasetId), [datasets, datasetId]);
+
   const statRows = [
+    ...(report?.datasetName || selectedDataset?.name ? [['Dataset', report?.datasetName || selectedDataset?.name]] : []),
     ['Images', stats.images],
     ['Annotation files', stats.annotation_files],
     ['Annotations', stats.annotations],
@@ -195,39 +184,66 @@ export default function DatasetValidation({ notify }) {
     ['Out-of-bounds boxes', stats.out_of_bounds_boxes]
   ].filter(([, v]) => v != null);
 
+  const canValidate = !busy && !!contributorId && (!!datasetId || files.length > 0) && (!folderMode && files.length > 0 ? !precheck.some((p) => !p.ok) : true);
+
   return (
     <div className="anim-fade dv-grid">
       {/* ---- Step 1: UPLOAD + CLIENT GATE ---- */}
       <GlassCard className="dv-upload">
         <div className="card-header">
-          <h3>01 · SELECT OR UPLOAD DATASET</h3>
+          <h3>01 · UPLOAD DATASET FILES</h3>
           <span className="hdr-meta">{rules.label.toUpperCase()} · {rules.extensions.join(' · ')}</span>
         </div>
 
         <div className="dv-contributor-row">
           <label className="dv-field-label">PROVIDED BY *</label>
-          <select className="dv-contributor-select" value={contributorId} onChange={(e) => { setContributorId(e.target.value); setSelectedModelId(''); }} disabled={busy}>
+          <select
+            className="dv-contributor-select"
+            value={contributorId}
+            onChange={(e) => setContributorId(e.target.value)}
+            disabled={busy}
+          >
             <option value="">SELECT CONTRIBUTOR / VENDOR</option>
             {contributors.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
-          <span className="dv-field-help">Select the vendor/contributor that supplied the dataset and model.</span>
+          <span className="dv-field-help">Select the contributor / vendor who provided this dataset.</span>
         </div>
 
         <div className="dv-contributor-row">
-          <label className="dv-field-label">UPLOADED MODEL *</label>
-          <select className="dv-contributor-select" value={selectedModelId} onChange={(e) => setSelectedModelId(e.target.value)} disabled={busy || !contributorId}>
-            <option value="">{contributorId ? 'SELECT UPLOADED MODEL' : 'SELECT CONTRIBUTOR FIRST'}</option>
-            {availableModels.map((m) => (
-              <option key={m.id} value={m.id}>{m.name || m.originalName || m.id}</option>
-            ))}
+          <label className="dv-field-label">UPLOADED DATASET *</label>
+          <select
+            className="dv-contributor-select"
+            value={datasetId}
+            onChange={(e) => setDatasetId(e.target.value)}
+            disabled={busy || !contributorId}
+          >
+            {!contributorId ? (
+              <option value="">SELECT CONTRIBUTOR FIRST</option>
+            ) : datasets.length === 0 ? (
+              <option value="">NO UPLOADED DATASETS AVAILABLE</option>
+            ) : (
+              <>
+                <option value="">SELECT UPLOADED DATASET</option>
+                {datasets.map((d) => (
+                  <option key={d.id} value={d.id}>{d.name || d.id}</option>
+                ))}
+              </>
+            )}
           </select>
-          <span className="dv-field-help">{contributorId ? availableModels.length + ' uploaded model(s) available from this contributor.' : 'Choose a contributor to load its uploaded models.'}</span>
+          <span className="dv-field-help">
+            {!contributorId
+              ? 'Select a contributor to view its uploaded datasets.'
+              : datasets.length === 0
+              ? 'No uploaded datasets found for this contributor.'
+              : `${datasets.length} uploaded dataset(s) available for this contributor.`}
+          </span>
         </div>
 
         <div className="dv-kind-row">
           <button
+            type="button"
             className={`dv-kind ${kind === 'yolo' ? 'active' : ''}`}
             onClick={() => switchKind('yolo')}
             disabled={busy}
@@ -236,6 +252,7 @@ export default function DatasetValidation({ notify }) {
             <span>.txt annotations + .yaml/.yml config</span>
           </button>
           <button
+            type="button"
             className={`dv-kind ${kind === 'coco' ? 'active' : ''}`}
             onClick={() => switchKind('coco')}
             disabled={busy}
@@ -245,9 +262,8 @@ export default function DatasetValidation({ notify }) {
           </button>
         </div>
 
-        {sourceMode === 'upload' && (
         <div className="dv-pick-grid">
-          <button className="dv-drop" disabled={busy} onClick={() => inputRef.current?.click()}>
+          <button type="button" className="dv-drop" disabled={busy} onClick={() => inputRef.current?.click()}>
             <Package size={20} />
             <strong>SELECT FILES</strong>
             <span>
@@ -257,14 +273,14 @@ export default function DatasetValidation({ notify }) {
             </span>
             <span className="dv-allowed mono">ALLOWED: {ALLOWED_EXTENSIONS.join(' · ')} — MAX 20 MB / FILE</span>
           </button>
-          <button className="dv-drop dv-folder-drop" disabled={busy} onClick={() => folderInputRef.current?.click()}>
+          <button type="button" className="dv-drop dv-folder-drop" disabled={busy} onClick={() => folderInputRef.current?.click()}>
             <Package size={20} />
             <strong>SELECT DATASET FOLDER</strong>
             <span>Upload the complete folder containing images, annotations and config files.</span>
             <span className="dv-allowed mono">FOLDER STRUCTURE IS PRESERVED</span>
           </button>
         </div>
-        )}
+
         <input
           ref={inputRef}
           type="file"
@@ -278,8 +294,8 @@ export default function DatasetValidation({ notify }) {
           type="file"
           multiple
           hidden
-          webkitdirectory
-          directory
+          webkitdirectory=""
+          directory=""
           onChange={(e) => pickFiles(e.target.files, true)}
         />
 
@@ -297,8 +313,9 @@ export default function DatasetValidation({ notify }) {
         )}
 
         <button
+          type="button"
           className="auth-submit dv-validate"
-          disabled={busy || !contributorId || !selectedModelId || files.length === 0 || (!folderMode && precheck.some((p) => !p.ok))}
+          disabled={!canValidate}
           onClick={doValidate}
         >
           {busy
@@ -319,7 +336,7 @@ export default function DatasetValidation({ notify }) {
         </div>
 
         {!report && !busy && (
-          <div className="dv-empty">SELECT FILES AND RUN VALIDATION — THE BRIDGE PERFORMS THE AUTHORITATIVE CHECKS</div>
+          <div className="dv-empty">SELECT CONTRIBUTOR, DATASET, FILES AND RUN VALIDATION — THE BRIDGE PERFORMS THE AUTHORITATIVE CHECKS</div>
         )}
         {busy && (
           <div className="dv-progress mono">
@@ -333,6 +350,11 @@ export default function DatasetValidation({ notify }) {
               <span className="dv-verdict-label">STATUS</span>
               <span className="dv-verdict-val">{meta.label}</span>
               <span className="dv-verdict-format">{String(report.format || '').toUpperCase()}</span>
+              {(report.datasetName || report.datasetId) && (
+                <span className="dv-verdict-model mono" title={report.datasetId || ''}>
+                  DATASET: {report.datasetName || report.datasetId}
+                </span>
+              )}
               <span className="dv-verdict-counts">
                 {report.files_processed} file(s) · {report.errors || 0} error(s) · {report.warnings || 0} warning(s)
               </span>
@@ -400,6 +422,7 @@ export default function DatasetValidation({ notify }) {
                   {report.engine.output && (
                     <div className="dv-callout-sub mono">
                       VERDICT: {report.engine.output.verdict || '—'} · FLAGS: {report.engine.output.images_flagged ?? '—'} · CHECKS: {(report.engine.output.checks_run || []).join(', ') || 'duplicate, ood, label_flip'}
+                      {report.engine.output.dataset_name && ` · DATASET: ${report.engine.output.dataset_name}`}
                     </div>
                   )}
                   {report.engine.stderr && report.engine.status !== 'COMPLETED' && (
@@ -423,7 +446,7 @@ export default function DatasetValidation({ notify }) {
       <GlassCard className="dv-history">
         <div className="card-header">
           <h3>03 · VALIDATED FILES</h3>
-          <button className="hud-btn icon-only" onClick={() => { refreshHistory(); reloadRegisteredDatasets(); }} title="Refresh">
+          <button className="hud-btn icon-only" onClick={refreshHistory} title="Refresh">
             <RefreshCw size={13} />
           </button>
         </div>
@@ -433,6 +456,7 @@ export default function DatasetValidation({ notify }) {
             { key: 'format', label: 'Format', render: (r) => <span className="mono">{r.format}</span> },
             { key: 'filename', label: 'File' },
             { key: 'contributorName', label: 'Contributor', render: (r) => <span className="dv-contributor-badge">{r.contributorName || 'Unassigned'}</span> },
+            { key: 'datasetName', label: 'Dataset', render: (r) => <span className="mono">{r.datasetName || r.datasetId || '—'}</span> },
             { key: 'sizeBytes', label: 'Size', render: (r) => fmtBytes(r.sizeBytes) },
             { key: 'sha256', label: 'SHA-256', render: (r) => <span className="hash-chip" title={r.sha256}>{r.sha256?.slice(0, 12)}…</span> },
             { key: 'status', label: 'Verdict', render: (r) => <StatusBadge status={r.status === 'valid' ? 'PASS' : r.status === 'warning' ? 'WARNING' : 'FAIL'} /> },

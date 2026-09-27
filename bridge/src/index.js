@@ -1172,11 +1172,10 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
             const parsed = await parseMultipartData(req);
             files = parsed.files || [];
             contributorId = String(parsed.fields.contributorId || '').trim();
-            modelId = String(parsed.fields.modelId || '').trim();
-            const requestedDatasetId = String(parsed.fields.datasetId || '').trim();
-            if (requestedDatasetId) {
+            datasetId = String(parsed.fields.datasetId || '').trim();
+            if (datasetId && files.length === 0) {
                 loadUploads();
-                const existing = uploads.find(u => u.kind === 'dataset' && u.uploadId === requestedDatasetId);
+                const existing = uploads.find(u => u.kind === 'dataset' && (u.uploadId === datasetId || u.id === datasetId));
                 if (!existing) return res.status(404).json({ ok: false, error: 'Registered dataset not found' });
                 const existingPath = existing.datasetPath || existing.filePath || existing.storagePath;
                 const resolvedPath = existingPath && (path.isAbsolute(existingPath) ? existingPath : path.resolve(WORKSPACE_ROOT, existingPath));
@@ -1203,23 +1202,36 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
                 fileBuffer: Buffer.from(req.body.fileContent, 'utf-8')
             }];
             contributorId = String(req.body.contributorId || '').trim();
-            modelId = String(req.body.modelId || '').trim();
+            datasetId = String(req.body.datasetId || '').trim();
         } else {
             files = [{
                 filename: 'dataset_annotation.json',
                 fileBuffer: Buffer.from(JSON.stringify(req.body || {}), 'utf-8')
             }];
             contributorId = String(req.body?.contributorId || '').trim();
+            datasetId = String(req.body?.datasetId || '').trim();
         }
 
         loadContributors();
-        const contributor = contributors.find(c => c.id === contributorId);
+        let contributor = contributors.find(c => c.id === contributorId);
         if (!contributor) {
-            return res.status(400).json({
-                ok: false,
-                error: 'Contributor / Vendor is required. Select the contributor who provided this dataset.'
-            });
+            if (!contributorId && contributors.length > 0) {
+                contributor = contributors[0];
+                contributorId = contributor.id;
+            } else {
+                return res.status(400).json({
+                    ok: false,
+                    error: 'Contributor / Vendor is required. Select the contributor who provided this dataset.'
+                });
+            }
         }
+
+        loadUploads();
+        let selectedDataset = null;
+        if (datasetId) {
+            selectedDataset = uploads.find(u => u.kind === 'dataset' && (u.uploadId === datasetId || u.id === datasetId));
+        }
+
         if (!files.length) return res.status(400).json({ ok: false, error: 'No dataset files provided' });
 
         const kind = String(req.query.kind || 'yolo').toLowerCase();
@@ -1227,20 +1239,24 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
             return res.status(400).json({ ok: false, error: 'Dataset format must be YOLO or COCO' });
         }
 
-        // The validation endpoint performs a fresh structural validation of the
-        // uploaded bytes. It does not look up or replay a previous validation.
+        // Structural validation
+        const datasetObj = selectedDataset
+            ? { id: selectedDataset.uploadId, name: selectedDataset.originalName }
+            : (datasetId ? { id: datasetId, name: datasetId } : null);
+
         const report = datasetValidationService.validateDatasetBundle(
             kind,
             files.map(file => ({
                 filename: file.filename,
                 fileBuffer: file.fileBuffer
             })),
-            { id: contributorId, name: contributor.name }
+            { id: contributorId, name: contributor.name },
+            datasetObj
         );
 
         // Persist the exact uploaded folder as a registered dataset asset so a
         // later assurance run can execute against the bytes that were validated.
-        const uploadId = `dataset-${report.datasetHash.slice(0, 10)}`;
+        const uploadId = datasetId || `dataset-${report.datasetHash.slice(0, 10)}`;
         const datasetDir = path.join(UPLOADS_DIR, uploadId);
         if (!fs.existsSync(datasetDir)) fs.mkdirSync(datasetDir, { recursive: true });
 
@@ -1266,18 +1282,20 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
         const registryRecord = {
             uploadId,
             filename: uploadId,
-            originalName: report.format === 'COCO' ? 'Uploaded COCO Dataset Folder' : 'Uploaded YOLO Dataset Folder',
+            originalName: selectedDataset?.originalName || (report.format === 'COCO' ? 'Uploaded COCO Dataset Folder' : 'Uploaded YOLO Dataset Folder'),
             kind: 'dataset',
             type: 'dataset',
             sha256: report.datasetHash,
             size: files.reduce((sum, f) => sum + (f.fileBuffer?.length || 0), 0),
-            createdAt: now,
+            createdAt: selectedDataset?.createdAt || now,
             uploadedAt: now,
             filePath: datasetDir,
             storagePath: datasetDir,
             datasetPath: datasetDir,
             contributorId,
             contributorName: contributor.name,
+            datasetId: uploadId,
+            datasetName: selectedDataset?.originalName || uploadId,
             format: report.format
         };
         if (existingIdx >= 0) uploads[existingIdx] = { ...uploads[existingIdx], ...registryRecord };
@@ -1285,6 +1303,7 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
         saveUploads();
 
         report.datasetId = uploadId;
+        report.datasetName = registryRecord.datasetName;
         report.datasetPath = datasetDir;
         report.registered = true;
 
@@ -1296,7 +1315,9 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
             validationId: report.validationId,
             kind,
             files: files.map(file => ({ filename: file.filename, fileBuffer: file.fileBuffer })),
-            workspaceDir: engineWorkspace
+            workspaceDir: engineWorkspace,
+            datasetId: uploadId,
+            datasetName: registryRecord.datasetName
         });
 
         if (report.engine.status === 'COMPLETED' && report.engine?.findings?.length) {
@@ -1323,6 +1344,8 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
         datasetValidationService.updateValidation(report.validationId, {
             status: report.status,
             engine: report.engine,
+            datasetId: uploadId,
+            datasetName: registryRecord.datasetName,
             engineCompletedAt: new Date().toISOString()
         });
 

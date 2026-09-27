@@ -353,7 +353,7 @@ function validateCocoBundle(files, errors, warnings) {
     };
 }
 
-function validateDatasetBundle(kind, files, contributor = null) {
+function validateDatasetBundle(kind, files, contributor = null, dataset = null) {
     const startedAt = new Date().toISOString();
     const normalized = (files || []).map(f => ({
         filename: normalizeRelativePath(f.filename || 'unnamed'),
@@ -391,6 +391,8 @@ function validateDatasetBundle(kind, files, contributor = null) {
         filename: `${normalized.length} uploaded dataset file(s)`,
         contributorId: contributor?.id || 'unassigned',
         contributorName: contributor?.name || 'Unassigned',
+        datasetId: dataset?.id || dataset?.uploadId || (typeof dataset === 'string' ? dataset : null),
+        datasetName: dataset?.name || dataset?.originalName || null,
         status,
         format: String(kind || '').toUpperCase(),
         sizeBytes: normalized.reduce((sum, f) => sum + f.fileBuffer.length, 0),

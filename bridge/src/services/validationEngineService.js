@@ -67,7 +67,7 @@ function parseCocoLabels(files) {
     return labels;
 }
 
-async function runDatasetIntegrityEngine({ validationId, kind, files, workspaceDir }) {
+async function runDatasetIntegrityEngine({ validationId, kind, files, workspaceDir, datasetId = null, datasetName = null }) {
     // Demo assurance mode: keep the validation workflow deterministic and usable
     // on an air-gapped demo machine even when the heavyweight Python engines are
     // unavailable. The result is derived from the uploaded bytes/paths, never
@@ -111,7 +111,9 @@ async function runDatasetIntegrityEngine({ validationId, kind, files, workspaceD
             images_scanned: imageFiles.length,
             images_flagged: findings.length,
             annotation_files: kind === 'coco' ? jsonFiles.length : labelFiles.length,
-            annotations_available: hasAnnotations
+            annotations_available: hasAnnotations,
+            dataset_id: datasetId || null,
+            dataset_name: datasetName || null
         }
     };
 
@@ -124,6 +126,8 @@ async function runDatasetIntegrityEngine({ validationId, kind, files, workspaceD
         simulated: true,
         exitCode: 0,
         imagesPresentedToEngine: imageFiles.length,
+        datasetId: datasetId || null,
+        datasetName: datasetName || null,
         output: output.summary,
         findings: output.findings,
         resultsPath: outputPath,
