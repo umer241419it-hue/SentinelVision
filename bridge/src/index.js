@@ -312,6 +312,43 @@ app.get('/evidence', (req, res) => {
     res.json(dataService.getEvidenceList());
 });
 
+app.get('/evidence/:evidenceId/verify', (req, res) => {
+    try {
+        const id = path.basename(req.params.evidenceId);
+        if (!/^[a-f0-9]{64}$/i.test(id)) {
+            return res.status(400).json({ verified: false, error: 'Invalid evidence identifier' });
+        }
+
+        const evidenceDirs = [
+            path.join(WORKSPACE_ROOT, 'data-integrity/evidence_store'),
+            path.join(WORKSPACE_ROOT, 'model-integrity/evidence_store'),
+            path.join(WORKSPACE_ROOT, 'drift-monitor/evidence_store'),
+            path.join(WORKSPACE_ROOT, 'inference-provenance/evidence_store')
+        ];
+        let target = null;
+        for (const dir of evidenceDirs) {
+            const candidate = path.join(dir, `${id}.json`);
+            if (fs.existsSync(candidate)) {
+                target = candidate;
+                break;
+            }
+        }
+        if (!target) return res.status(404).json({ verified: false, error: 'Evidence record not found' });
+
+        const digest = crypto.createHash('sha256').update(fs.readFileSync(target)).digest('hex');
+        const verified = digest.toLowerCase() === id.toLowerCase();
+        res.json({
+            verified,
+            evidenceId: id,
+            computedHash: digest,
+            recordedHash: id,
+            timestamp: new Date().toISOString()
+        });
+    } catch (err) {
+        res.status(500).json({ verified: false, error: err.message });
+    }
+});
+
 app.get('/ledger/transactions', (req, res) => {
     res.json(dataService.getLedgerTransactions());
 });
