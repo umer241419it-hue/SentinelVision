@@ -12,6 +12,7 @@ const jobService = require('./services/jobService');
 const datasetValidationService = require('./services/datasetValidationService');
 const modelValidationService = require('./services/modelValidationService');
 const modelHookService = require('./services/modelHookService');
+const validationEngineService = require('./services/validationEngineService');
 
 let fabricGateway = null;
 try {
@@ -644,7 +645,36 @@ app.get('/api/contributors/:id/models', (req, res) => {
          { ...model, id: model.uploadId },
          contributor || null
      );
-     res.status(200).json({ ok: report.status === 'VALID', report });
+
+     // The registry/file checks above are only the ingestion gate. For a
+     // calibrated SentinelVision model, execute the real Model Integrity engine
+     // (STRIP + live SHA-256 verification) against this exact model file.
+     if (report.status !== 'INVALID' && report.computedSha256 && model.filePath) {
+         const rawName = model.originalName || path.basename(model.filePath);
+         const modelId = path.parse(rawName).name;
+         const engineWorkspace = path.join(WORKSPACE_ROOT, 'reports', report.validationId, 'model-integrity');
+         report.engine = await validationEngineService.runModelIntegrityEngine({
+             modelId,
+             modelPath: path.isAbsolute(model.filePath) ? model.filePath : path.resolve(WORKSPACE_ROOT, model.filePath),
+             outputDir: engineWorkspace
+         });
+         if (report.engine.status === 'COMPLETED') {
+             report.engineVerdict = 'ENGINE_COMPLETED';
+         } else {
+             report.engineVerdict = 'ENGINE_FAILED_OR_UNSUPPORTED';
+             report.warnings = [
+                 ...(report.warnings || []),
+                 'The structural model validation completed, but the Model Integrity engine could not complete. This is not treated as a clean model result.'
+             ];
+         }
+     } else {
+         report.engineVerdict = 'ENGINE_NOT_RUN';
+     }
+
+     res.status(200).json({
+         ok: report.status !== 'INVALID' && report.engineVerdict === 'ENGINE_COMPLETED',
+         report
+     });
  });
  
  app.get('/api/model-hooks', authService.requireAuth, authService.requireRole(['ANALYST']), (req, res) => {
@@ -1178,7 +1208,32 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
         report.datasetPath = datasetDir;
         report.registered = true;
 
-        res.status(200).json({ ok: report.status === 'valid' || report.status === 'warning', report });
+        // IMPORTANT: structural validation above is only the ingestion gate.
+        // Run the actual Data Integrity engine against the uploaded bytes before
+        // returning the validation result. Never replay a stored result.
+        const engineWorkspace = path.join(WORKSPACE_ROOT, 'reports', report.validationId);
+        report.engine = await validationEngineService.runDatasetIntegrityEngine({
+            validationId: report.validationId,
+            kind,
+            files: files.map(file => ({ filename: file.filename, fileBuffer: file.fileBuffer })),
+            workspaceDir: engineWorkspace
+        });
+
+        if (report.engine.status === 'FAILED') {
+            report.status = 'ENGINE_FAILED';
+            report.error_details = [
+                ...(report.error_details || []),
+                { type: 'ENGINE_ERROR', message: report.engine.error || report.engine.stderr || 'Data Integrity engine failed' }
+            ];
+        } else if (report.engine.status === 'NOT_RUN') {
+            report.status = 'ENGINE_NOT_RUN';
+            report.warning_details = [
+                ...(report.warning_details || []),
+                { type: 'ENGINE_NOT_RUN', message: report.engine.reason }
+            ];
+        }
+
+        res.status(200).json({ ok: report.engine.status === 'COMPLETED' && report.status !== 'invalid', report });
     } catch (err) {
         console.error('Dataset validation error:', err);
         res.status(500).json({ ok: false, error: err.message });
