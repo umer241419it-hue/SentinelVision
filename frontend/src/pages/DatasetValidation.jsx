@@ -89,30 +89,39 @@ export default function DatasetValidation({ notify }) {
     }
   }, []);
 
+  // Load the registered dataset catalog immediately, exactly like Model Validation
+  // loads its registered model catalog. Dataset selection must not depend on
+  // selecting a contributor first.
   useEffect(() => {
-    setSelectedDatasetId('');
-    if (!contributorId) {
-      setAvailableDatasets([]);
-      return;
-    }
-    listDatasets(contributorId)
+    listDatasets('all')
       .then(setAvailableDatasets)
       .catch((err) => {
         setAvailableDatasets([]);
         notify?.(err.message, 'error');
       });
-  }, [contributorId]);
+  }, []);
 
   function selectExistingDataset(id) {
     const dataset = availableDatasets.find((d) => (d.id || d.uploadId) === id);
     setSelectedDatasetId(id);
-    if (dataset?.format && ['yolo', 'coco'].includes(String(dataset.format).toLowerCase())) {
+    if (!dataset) return;
+
+    if (dataset.contributorId && dataset.contributorId !== 'unassigned') {
+      setContributorId(dataset.contributorId);
+    }
+    if (dataset.format && ['yolo', 'coco'].includes(String(dataset.format).toLowerCase())) {
       setKind(String(dataset.format).toLowerCase());
     }
     setFiles([]);
     setPrecheck([]);
     setFolderMode(false);
     setReport(null);
+  }
+
+  function reloadRegisteredDatasets() {
+    listDatasets('all')
+      .then(setAvailableDatasets)
+      .catch((err) => notify?.(err.message, 'error'));
   }
 
   function pickFiles(fileList, fromFolder = false) {
@@ -216,27 +225,34 @@ export default function DatasetValidation({ notify }) {
           <span className="hdr-meta">{rules.label.toUpperCase()} · {rules.extensions.join(' · ')}</span>
         </div>
 
-        <div className="dv-contributor-row">
-          <label className="dv-field-label">PROVIDED BY *</label>
-          <select className="dv-contributor-select" value={contributorId} onChange={(e) => setContributorId(e.target.value)} disabled={busy}>
-            <option value="">SELECT CONTRIBUTOR / VENDOR</option>
-            {contributors.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-          <span className="dv-field-help">Select the vendor/contributor that supplied this dataset.</span>
-        </div>
+        <label className="dv-field-label">DATASET *</label>
+        <select
+          className="dv-contributor-select"
+          value={selectedDatasetId}
+          onChange={(e) => selectExistingDataset(e.target.value)}
+          disabled={busy}
+        >
+          <option value="">SELECT REGISTERED DATASET</option>
+          {availableDatasets.map((d) => (
+            <option key={d.id || d.uploadId} value={d.id || d.uploadId}>
+              {d.name || d.originalName || d.uploadId}
+            </option>
+          ))}
+        </select>
+        <span className="dv-field-help">
+          {availableDatasets.length ? availableDatasets.length + ' registered dataset(s) available. Select one to validate without re-uploading.' : 'No registered datasets found. Use the upload controls below to register/validate a new dataset.'}
+        </span>
 
-        <div className="dv-contributor-row">
-          <label className="dv-field-label">DATASET *</label>
-          <select className="dv-contributor-select" value={selectedDatasetId} onChange={(e) => selectExistingDataset(e.target.value)} disabled={busy || !contributorId}>
-            <option value="">{contributorId ? 'SELECT REGISTERED DATASET OR UPLOAD BELOW' : 'SELECT CONTRIBUTOR FIRST'}</option>
-            {availableDatasets.map((d) => (
-              <option key={d.id || d.uploadId} value={d.id || d.uploadId}>{d.name || d.originalName || d.uploadId}</option>
-            ))}
-          </select>
-          <span className="dv-field-help">{contributorId ? availableDatasets.length + ' registered dataset(s) from this contributor. Select one to validate without re-uploading.' : 'Choose a contributor to load its registered datasets.'}</span>
-        </div>
+        <label className="dv-field-label">CONTRIBUTOR / VENDOR *</label>
+        <select className="dv-contributor-select" value={contributorId} onChange={(e) => setContributorId(e.target.value)} disabled={busy || !!selectedDatasetId}>
+          <option value="">SELECT CONTRIBUTOR / VENDOR</option>
+          {contributors.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
+        <span className="dv-field-help">
+          {selectedDatasetId ? 'Contributor is taken from the selected registered dataset.' : 'For a new upload, select the contributor that supplied the dataset.'}
+        </span>
 
         <div className="dv-kind-row">
           <button
@@ -433,7 +449,7 @@ export default function DatasetValidation({ notify }) {
       <GlassCard className="dv-history">
         <div className="card-header">
           <h3>03 · VALIDATED FILES</h3>
-          <button className="hud-btn icon-only" onClick={refreshHistory} title="Refresh">
+          <button className="hud-btn icon-only" onClick={() => { refreshHistory(); reloadRegisteredDatasets(); }} title="Refresh">
             <RefreshCw size={13} />
           </button>
         </div>
