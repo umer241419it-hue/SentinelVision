@@ -671,6 +671,12 @@ app.get('/api/contributors/:id/models', (req, res) => {
          report.engineVerdict = 'ENGINE_NOT_RUN';
      }
 
+     modelValidationService.updateValidation(report.validationId, {
+         engine: report.engine,
+         engineVerdict: report.engineVerdict,
+         validatedAt: new Date().toISOString()
+     });
+
      res.status(200).json({
          ok: report.status !== 'INVALID' && report.engineVerdict === 'ENGINE_COMPLETED',
          report
@@ -1232,6 +1238,12 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
                 { type: 'ENGINE_NOT_RUN', message: report.engine.reason }
             ];
         }
+
+        datasetValidationService.updateValidation(report.validationId, {
+            status: report.status,
+            engine: report.engine,
+            engineCompletedAt: new Date().toISOString()
+        });
 
         res.status(200).json({ ok: report.engine.status === 'COMPLETED' && report.status !== 'invalid', report });
     } catch (err) {
