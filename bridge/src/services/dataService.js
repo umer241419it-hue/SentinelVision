@@ -110,12 +110,12 @@ function getAllFindings() {
             if (up && up.contributorId) {
                 f.contributorId = up.contributorId;
                 f.contributorName = up.contributorName || up.contributorId;
-            } else if (f.moduleName === 'DataIntegrity' || f.moduleName === 'ModelIntegrity') {
-                f.contributorId = 'vendor-beta';
-                f.contributorName = 'Vendor Beta';
             } else {
-                f.contributorId = 'vendor-alpha';
-                f.contributorName = 'Vendor Alpha';
+                // Do not invent contributor attribution for legacy findings.
+                // Only attach a contributor when the finding can be mapped to a
+                // registered asset. Otherwise keep it explicitly unassigned.
+                f.contributorId = 'unassigned';
+                f.contributorName = 'Unassigned';
             }
         }
     });
