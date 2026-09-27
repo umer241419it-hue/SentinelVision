@@ -306,8 +306,6 @@ export default function DatasetValidation({ notify }) {
           </div>
         )}
 
-        </div>
-
         <button
           className="auth-submit dv-validate"
           disabled={busy || (!selectedDatasetId && files.length === 0) || !contributorId || (!selectedDatasetId && !folderMode && precheck.some((p) => !p.ok))}
