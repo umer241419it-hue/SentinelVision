@@ -1,3 +1,40 @@
+// ---------------------------------------------------------------------------
+// Inference Provenance page workflow
+// ---------------------------------------------------------------------------
+app.post('/api/inference-provenance/run', authService.requireAuth, authService.requireRole(['ANALYST']), (req, res) => {
+    try {
+        const { contributorId, modelId } = req.body || {};
+        if (!contributorId || !modelId) return res.status(400).json({ error: 'Contributor and uploaded model are required' });
+        loadContributors();
+        loadUploads();
+        const contributor = contributors.find(c => c.id === contributorId);
+        const model = uploads.find(u => u.kind === 'model' && u.uploadId === modelId && u.contributorId === contributorId);
+        if (!contributor) return res.status(404).json({ error: 'Contributor not found' });
+        if (!model) return res.status(404).json({ error: 'Uploaded model not found for this contributor' });
+        const job = jobService.startJob({
+            testType: 'INFERENCE_SEAL',
+            modelId: model.uploadId,
+            contributorId: contributor.id,
+            contributorName: contributor.name,
+            user: req.user
+        });
+        res.json({ test: job });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to start inference provenance verification', details: err.message });
+    }
+});
+
+app.get('/api/inference-provenance/records', authService.requireAuth, authService.requireRole(['ANALYST']), (req, res) => {
+    try {
+        const records = (dataService.getEvidenceList() || [])
+            .filter((r) => r.module === 'InferenceProvenance' || r.moduleName === 'InferenceProvenance')
+            .sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+        res.json({ records });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to load inference provenance records', details: err.message });
+    }
+});
+
 app.get('/api/datasets/validations', authService.requireAuth, authService.requireRole(['ANALYST']), (req, res) => {
     const limit = Math.max(1, Math.min(100, Number(req.query.limit) || 50));
     const validations = datasetValidationService.listValidations()
