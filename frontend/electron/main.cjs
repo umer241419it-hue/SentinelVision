@@ -4,8 +4,12 @@ const { app, BrowserWindow, shell } = require('electron');
 const path = require('path');
 
 // SentinelVision's ML/CUDA workloads run in the Python engines, not Chromium.
-// Disable Electron/Chromium hardware acceleration so the desktop shell also
-// works on Linux systems where the Chromium GPU process cannot launch.
+// Force Chromium's GPU path off before app startup. app.disableHardwareAcceleration()
+// is kept as the Electron-level setting, while the command-line switches prevent
+// Chromium from attempting to launch a separate GPU process on Linux systems
+// where that process is unavailable.
+app.commandLine.appendSwitch('disable-gpu');
+app.commandLine.appendSwitch('disable-gpu-compositing');
 app.disableHardwareAcceleration();
 
 const DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL || '';
