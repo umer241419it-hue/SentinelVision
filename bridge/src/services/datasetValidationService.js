@@ -61,7 +61,7 @@ function saveHistory() {
 
 loadHistory();
 
-function validateDatasetFile(kind, fileBuffer, originalName) {
+function validateDatasetFile(kind, fileBuffer, originalName, contributor = null) {
     const ext = path.extname(originalName).toLowerCase();
     const errors = [];
     const warnings = [];
@@ -165,7 +165,9 @@ function validateDatasetFile(kind, fileBuffer, originalName) {
         categoryCount: stats.categoryCount,
         errors,
         warnings,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        contributorId: contributor?.id || 'unassigned',
+        contributorName: contributor?.name || 'Unassigned'
     };
 
     validationHistory.unshift(report);
