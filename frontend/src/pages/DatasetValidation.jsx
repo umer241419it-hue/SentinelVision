@@ -55,7 +55,9 @@ export default function DatasetValidation({ notify }) {
   const [history, setHistory] = useState([]);
   const [contributors, setContributors] = useState([]);
   const [contributorId, setContributorId] = useState('');
+  const [folderMode, setFolderMode] = useState(false);
   const inputRef = useRef(null);
+  const folderInputRef = useRef(null);
 
   const rules = KIND_RULES[kind];
 
@@ -72,11 +74,17 @@ export default function DatasetValidation({ notify }) {
     listContributors().then(setContributors).catch(() => setContributors([]));
   }, [refreshHistory]);
 
-  function pickFiles(fileList) {
+  function pickFiles(fileList, fromFolder = false) {
     const picked = Array.from(fileList || []);
     setFiles(picked);
+    setFolderMode(fromFolder);
     setReport(null);
-    // Run the client-side gate immediately (extension + size + magic bytes).
+    if (fromFolder) {
+      setPrecheck(picked.length
+        ? [{ name: `${picked.length} files from selected dataset folder`, size: picked.reduce((n, f) => n + f.size, 0), ok: true, reason: 'server-side folder validation' }]
+        : []);
+      return;
+    }
     Promise.all(
       picked.map(async (f) => ({ name: f.name, size: f.size, ...(await clientValidateFile(f, kind)) }))
     ).then(setPrecheck);
@@ -86,6 +94,7 @@ export default function DatasetValidation({ notify }) {
     setKind(nextKind);
     setFiles([]);
     setPrecheck([]);
+    setFolderMode(false);
     setReport(null);
   }
 
@@ -95,7 +104,7 @@ export default function DatasetValidation({ notify }) {
       notify?.('Select the contributor who provided this dataset before validation.', 'error');
       return;
     }
-    const blocked = precheck.filter((p) => !p.ok);
+    const blocked = folderMode ? [] : precheck.filter((p) => !p.ok);
     if (blocked.length > 0) {
       notify?.(`${blocked.length} file(s) failed client-side checks — remove them before validating.`, 'error');
       return;
