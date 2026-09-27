@@ -236,7 +236,7 @@ async function executeJob(job, normType, dataset, model, configId, logStream) {
             await run('MODEL INTEGRITY', 'python3', [
                 'src/strip_detector.py',
                 '--model-path', model.resolvedPath,
-                '--model-id', path.basename(path.dirname(model.resolvedPath)),
+                '--model-id', path.parse(model.originalName || path.basename(model.resolvedPath)).name,
                 '--output', path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'model-integrity', 'strip_results.json'),
                 '--hashes-output', path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'model-integrity', 'strip_hashes.json')
             ], path.join(WORKSPACE_ROOT, 'model-integrity'));
