@@ -10,6 +10,7 @@ import {
   clientValidateFile, uploadAndValidateDataset, listDatasetValidations,
   ALLOWED_EXTENSIONS, KIND_RULES
 } from '../services/datasetValidationApi';
+import { listContributors } from '../services/workflowApi';
 import './DatasetValidation.css';
 
 const REPORT_STATUS_META = {
@@ -52,6 +53,8 @@ export default function DatasetValidation({ notify }) {
   const [busy, setBusy] = useState(false);
   const [report, setReport] = useState(null);
   const [history, setHistory] = useState([]);
+  const [contributors, setContributors] = useState([]);
+  const [contributorId, setContributorId] = useState('');
   const inputRef = useRef(null);
 
   const rules = KIND_RULES[kind];
@@ -66,6 +69,7 @@ export default function DatasetValidation({ notify }) {
 
   useEffect(() => {
     refreshHistory();
+    listContributors().then(setContributors).catch(() => setContributors([]));
   }, [refreshHistory]);
 
   function pickFiles(fileList) {
@@ -87,6 +91,10 @@ export default function DatasetValidation({ notify }) {
 
   async function doValidate() {
     if (files.length === 0) return;
+    if (!contributorId) {
+      notify?.('Select the contributor who provided this dataset before validation.', 'error');
+      return;
+    }
     const blocked = precheck.filter((p) => !p.ok);
     if (blocked.length > 0) {
       notify?.(`${blocked.length} file(s) failed client-side checks — remove them before validating.`, 'error');
@@ -95,7 +103,7 @@ export default function DatasetValidation({ notify }) {
     setBusy(true);
     setReport(null);
     try {
-      const { report: r } = await uploadAndValidateDataset(kind, files);
+      const { report: r } = await uploadAndValidateDataset(kind, files, contributorId);
       setReport(r);
       const meta = reportMeta(r.status);
       notify?.(
@@ -134,6 +142,17 @@ export default function DatasetValidation({ notify }) {
         <div className="card-header">
           <h3>01 · UPLOAD DATASET FILES</h3>
           <span className="hdr-meta">{rules.label.toUpperCase()} · {rules.extensions.join(' · ')}</span>
+        </div>
+
+        <div className="dv-contributor-row">
+          <label className="dv-field-label">PROVIDED BY *</label>
+          <select className="dv-contributor-select" value={contributorId} onChange={(e) => setContributorId(e.target.value)} disabled={busy}>
+            <option value="">SELECT CONTRIBUTOR / VENDOR</option>
+            {contributors.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          <span className="dv-field-help">Select the vendor/contributor that supplied this dataset.</span>
         </div>
 
         <div className="dv-kind-row">
@@ -189,7 +208,7 @@ export default function DatasetValidation({ notify }) {
 
         <button
           className="auth-submit dv-validate"
-          disabled={busy || files.length === 0 || precheck.some((p) => !p.ok)}
+          disabled={busy || files.length === 0 || !contributorId || precheck.some((p) => !p.ok)}
           onClick={doValidate}
         >
           {busy
@@ -303,6 +322,7 @@ export default function DatasetValidation({ notify }) {
             { key: 'uploadId', label: 'ID', render: (r) => <span className="mono dv-hid">{r.uploadId}</span> },
             { key: 'datasetFormat', label: 'Format', render: (r) => <span className="mono">{r.datasetFormat}</span> },
             { key: 'originalName', label: 'File' },
+            { key: 'contributorName', label: 'Contributor', render: (r) => <span className="dv-contributor-badge">{r.contributorName || 'Unassigned'}</span> },
             { key: 'sizeBytes', label: 'Size', render: (r) => fmtBytes(r.sizeBytes) },
             { key: 'sha256', label: 'SHA-256', render: (r) => <span className="hash-chip" title={r.sha256}>{r.sha256?.slice(0, 12)}…</span> },
             { key: 'processingStatus', label: 'Verdict', render: () => <StatusBadge status="PASS" /> },
