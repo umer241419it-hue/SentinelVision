@@ -58,6 +58,7 @@ export default function DatasetValidation({ notify }) {
   const [availableDatasets, setAvailableDatasets] = useState([]);
   const [selectedDatasetId, setSelectedDatasetId] = useState('');
   const [sourceMode, setSourceMode] = useState('existing');
+  const [existingKind, setExistingKind] = useState('yolo');
   const [contributorId, setContributorId] = useState('');
   const [folderMode, setFolderMode] = useState(false);
   const inputRef = useRef(null);
@@ -96,6 +97,7 @@ export default function DatasetValidation({ notify }) {
     const dataset = availableDatasets.find((d) => (d.uploadId || d.id) === id);
     setSelectedDatasetId(id);
     setSourceMode('existing');
+    if (dataset?.format) setKind(String(dataset.format).toLowerCase());
     setFiles([]);
     setPrecheck([]);
     setFolderMode(false);
