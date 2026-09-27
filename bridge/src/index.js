@@ -848,8 +848,12 @@ app.post('/api/uploads/:kind', async (req, res) => {
 
         loadContributors();
         const found = contributors.find(c => c.id === contributorId);
-        if (found) contributorName = found.name;
-        else if (!contributorName) contributorName = contributorId === 'unassigned' ? 'Unassigned' : contributorId;
+        if (!found || !contributorId || contributorId === 'unassigned') {
+            return res.status(400).json({
+                error: `Contributor / Vendor is required and must be a registered contributor for this upload.`
+            });
+        }
+        contributorName = found.name;
 
         const kind = req.params.kind === 'model' ? 'model' : 'dataset';
         const sha256 = crypto.createHash('sha256').update(fileBuffer).digest('hex');
