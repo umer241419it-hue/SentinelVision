@@ -129,6 +129,11 @@ export async function getEvidence() {
   return bridgeFetch('/evidence');
 }
 
+export async function verifyEvidence(evidenceId) {
+  if (MOCK_MODE) return { verified: true, evidenceId };
+  return bridgeFetch(`/evidence/${encodeURIComponent(evidenceId)}/verify`);
+}
+
 // ---------------------------------------------------------------------------
 // Fabric ledger
 // ---------------------------------------------------------------------------
