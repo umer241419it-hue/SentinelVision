@@ -74,6 +74,19 @@ export default function DatasetValidation({ notify }) {
     listContributors().then(setContributors).catch(() => setContributors([]));
   }, [refreshHistory]);
 
+  // Electron/Chromium is most reliable when the directory picker property is
+  // set explicitly; React's JSX attribute alone is not consistent across
+  // Electron versions.
+  useEffect(() => {
+    const input = folderInputRef.current;
+    if (input) {
+      input.webkitdirectory = true;
+      input.directory = true;
+      input.setAttribute('webkitdirectory', '');
+      input.setAttribute('directory', '');
+    }
+  }, []);
+
   function pickFiles(fileList, fromFolder = false) {
     const picked = Array.from(fileList || []);
     setFiles(picked);
@@ -215,8 +228,8 @@ export default function DatasetValidation({ notify }) {
           type="file"
           multiple
           hidden
-          webkitdirectory="true"
-          directory="true"
+          webkitdirectory
+          directory
           onChange={(e) => pickFiles(e.target.files, true)}
         />
 
