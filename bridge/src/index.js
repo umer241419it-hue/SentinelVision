@@ -353,6 +353,11 @@ app.get('/ledger/transactions', (req, res) => {
     res.json(dataService.getLedgerTransactions());
 });
 
+// Compatibility route used by the auditor frontend.
+app.get('/api/auditor/ledger/transactions', (req, res) => {
+    res.json(dataService.getLedgerTransactions());
+});
+
 app.get('/overview', (req, res) => {
     res.json(dataService.getOverview());
 });
@@ -589,6 +594,57 @@ app.get('/api/auditor/quarantine/:id', (req, res) => {
     res.json({ item });
 });
 
+app.post('/api/auditor/quarantine/:id/release', (req, res) => {
+    const item = quarantineRegistry.find(q => q.id === req.params.id);
+    if (!item) return res.status(404).json({ error: 'Quarantine item not found' });
+
+    item.status = 'RELEASED';
+    item.disposition = 'RELEASE';
+    item.reviewedBy = req.user ? req.user.email : 'auditor@sentinelvision.io';
+    item.reviewedAt = new Date().toISOString();
+    item.reviewerNotes = req.body?.notes || 'Released by auditor';
+
+    saveQuarantine();
+    jobService.recordAuditEvent('QUARANTINE_RELEASED', { id: item.id }, req.user);
+    res.json({ success: true, item });
+});
+
+app.post('/api/auditor/quarantine/:id/commit', async (req, res) => {
+    const item = quarantineRegistry.find(q => q.id === req.params.id);
+    if (!item) return res.status(404).json({ error: 'Quarantine item not found' });
+
+    let ledgerStatus = 'RECORDED';
+    try {
+        if (fabricGateway && fabricGateway.initializeContract) {
+            const contract = await fabricGateway.initializeContract();
+            await contract.submitTransaction(
+                'submitFinding',
+                String(item.assetId),
+                'Governance',
+                String(item.reason),
+                '',
+                '1',
+                String(item.severity || 'HIGH'),
+                String(item.disposition || 'QUARANTINE'),
+                String(item.submittedAt || new Date().toISOString()),
+                ''
+            );
+            ledgerStatus = 'COMMITTED';
+        } else {
+            ledgerStatus = 'OFFLINE_RECORDED';
+        }
+    } catch (err) {
+        ledgerStatus = 'OFFLINE_RECORDED';
+        console.log('Fabric Gateway commit notice:', err.message);
+    }
+
+    item.ledgerStatus = ledgerStatus;
+    item.committedAt = new Date().toISOString();
+    saveQuarantine();
+    jobService.recordAuditEvent('QUARANTINE_LEDGER_COMMIT', { id: item.id, ledgerStatus }, req.user);
+    res.json({ success: true, item, ledgerStatus });
+});
+
 app.post('/api/auditor/quarantine/:id/decision', (req, res) => {
     const item = quarantineRegistry.find(q => q.id === req.params.id);
     if (!item) return res.status(404).json({ error: 'Quarantine item not found' });
@@ -607,6 +663,37 @@ app.post('/api/auditor/quarantine/:id/decision', (req, res) => {
 
 app.get('/api/auditor/logs', (req, res) => {
     res.json({ logs: jobService.getAuditLogs() });
+});
+
+app.get('/api/auditor/sessions', (req, res) => {
+    res.json({ sessions: authService.listSessions() });
+});
+
+app.get('/api/auditor/users', (req, res) => {
+    res.json({ users: authService.listUsers() });
+});
+
+app.post('/api/auditor/users/:userId/status', (req, res) => {
+    try {
+        const user = authService.setUserStatus(req.params.userId, req.body?.status);
+        jobService.recordAuditEvent('USER_STATUS_CHANGED', {
+            userId: req.params.userId,
+            status: req.body?.status
+        }, req.user);
+        res.json({ success: true, user });
+    } catch (err) {
+        res.status(err.status || 500).json({ error: err.message });
+    }
+});
+
+app.post('/api/auditor/users/pending/:userId/approve', (req, res) => {
+    try {
+        const user = authService.approvePendingUser(req.params.userId);
+        jobService.recordAuditEvent('USER_APPROVED', { userId: req.params.userId }, req.user);
+        res.json({ success: true, user });
+    } catch (err) {
+        res.status(err.status || 500).json({ error: err.message });
+    }
 });
 
 app.get('/api/auditor/reports', (req, res) => {
