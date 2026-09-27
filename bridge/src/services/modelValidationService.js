@@ -4,7 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const HISTORY_FILE = path.resolve(__dirname, '../../../data/model_validations.json');
+const WORKSPACE_ROOT = path.resolve(__dirname, '../../../');
+const HISTORY_FILE = path.join(WORKSPACE_ROOT, 'data/model_validations.json');
 
 const ALLOWED_EXTENSIONS = ['.pt', '.pth', '.onnx', '.bin', '.h5', '.keras', '.tflite', '.ckpt', '.tar', '.gz'];
 
@@ -42,7 +43,8 @@ function sha256File(filePath) {
 function validateModelAsset(model, contributor) {
     const errors = [];
     const warnings = [];
-    const modelPath = model?.weightsPath || model?.filePath;
+    const rawModelPath = model?.weightsPath || model?.filePath;
+    const modelPath = rawModelPath && (path.isAbsolute(rawModelPath) ? rawModelPath : path.resolve(WORKSPACE_ROOT, rawModelPath));
     const filename = model?.originalName || model?.name || path.basename(modelPath || '');
     const ext = path.extname(filename).toLowerCase();
 
