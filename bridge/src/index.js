@@ -806,8 +806,9 @@ app.get('/api/auditor/reports/:id/download', (req, res) => {
     }
 
     if (fs.existsSync(targetHtml)) {
-        res.setHeader('Content-Type', 'text/html');
-        res.setHeader('Content-Disposition', `attachment; filename="assurance_report_${id}.html"`);
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        const disposition = req.query.view === '1' ? 'inline' : 'attachment';
+        res.setHeader('Content-Disposition', `${disposition}; filename="assurance_report_${id}.html"`);
         return fs.createReadStream(targetHtml).pipe(res);
     }
 
