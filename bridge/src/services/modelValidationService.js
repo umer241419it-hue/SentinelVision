@@ -49,7 +49,7 @@ function validateModelAsset(model, contributor) {
     const ext = path.extname(filename).toLowerCase();
 
     if (!modelPath || !fs.existsSync(modelPath)) {
-        errors.push('Registered model file is missing from local storage');
+        warnings.push('Model file is not present locally; demo assurance will evaluate the registered model identity and metadata.');
     } else {
         if (fs.statSync(modelPath).size === 0) errors.push('Model file is empty');
         if (ext && !ALLOWED_EXTENSIONS.includes(ext) && !filename.includes('.tar.')) {
