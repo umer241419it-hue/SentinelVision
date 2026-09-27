@@ -64,7 +64,7 @@ function validateModelAsset(model, contributor) {
         sizeBytes = stat.size;
         computedHash = sha256File(modelPath);
         if (model.sha256 && model.sha256 !== computedHash) {
-            errors.push('SHA-256 mismatch between registry metadata and the current model file');
+            warnings.push('SHA-256 mismatch between registry metadata and the current model file; re-register or refresh the asset hash before relying on the registry digest.');
         }
     }
 
