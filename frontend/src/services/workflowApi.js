@@ -38,7 +38,17 @@ export function getContributorDatasets(id) {
 }
 
 export function getContributorModels(id) {
-  return authFetch(`/api/contributors/${encodeURIComponent(id)}/models`).then((d) => d.models || []);
+  return authFetch(`/api/contributors/${encodeURIComponent(id)}/models`).then((d) =>
+    (d.models || []).map((m) => ({
+      ...m,
+      id: m.id || m.uploadId,
+      name: m.name || m.originalName || m.filename,
+      sha256: m.sha256,
+      framework: m.framework || 'Unknown',
+      contributorId: m.contributorId || id,
+      contributorName: m.contributorName || 'Unknown'
+    }))
+  );
 }
 
 // ---------------------------------------------------------------------------
