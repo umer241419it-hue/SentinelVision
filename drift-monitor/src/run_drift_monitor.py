@@ -230,7 +230,7 @@ def run(
     else:
         effective_run_id = run_id
     evidence_store = os.path.join(base_dir, config.get("output", {}).get("evidence_store", "evidence_store"))
-    results_path = os.path.abspath(results_path_override or os.path.join(base_dir, config.get("output", {}).get("results", "results/drift_results.json"))
+    results_path = os.path.abspath(results_path_override or os.path.join(base_dir, config.get("output", {}).get("results", "results/drift_results.json")))
 
     results: List[Dict[str, Any]] = []
     for seq_idx, win in feed_stream(window, live_emb, live_meta):

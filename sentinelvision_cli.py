@@ -257,7 +257,19 @@ def cmd_integrity_scan(args):
     labels_dict = {}
     multi_labels = {}
     image_paths = []
-    all_files = sorted([f for f in os.listdir(images_dir) if f.lower().endswith(('.jpg', '.jpeg', '.png'))])
+    all_files = sorted([
+        f for f in os.listdir(images_dir)
+        if f.lower().endswith(('.jpg', '.jpeg', '.png'))
+    ])
+
+    requested_limit = getattr(args, "limit", None)
+    if requested_limit is not None:
+        requested_limit = int(requested_limit)
+        if requested_limit <= 0:
+            print(f"[ERROR] --limit must be a positive integer, got {requested_limit}")
+            sys.exit(1)
+        all_files = all_files[:requested_limit]
+
     print(f"[*] Ingesting {len(all_files)} samples from {dataset_path}...")
     for fname in all_files:
         sid = os.path.splitext(fname)[0]
@@ -281,15 +293,28 @@ def cmd_integrity_scan(args):
     with open(tmp_labels_path, "w", encoding="utf-8") as f:
         json.dump(labels_dict, f)
 
+    output_dir = os.path.abspath(args.output_dir or os.path.join(WORKSPACE_ROOT, "datasets", "sentinelvision_voc2012", "results"))
+    os.makedirs(output_dir, exist_ok=True)
+
     emb_cfg = config.get("detectors", {}).get("embedding", {})
     backbone = emb_cfg.get("backbone", "pixelstat")
-    pref_cache = os.path.join(dataset_path, f"{backbone}_cache.npz")
-    cache_path = pref_cache if os.path.exists(pref_cache) else os.path.join(dataset_path, "embeddings_cache.npz")
+
+    if requested_limit is not None:
+        cache_path = os.path.join(output_dir, f"{backbone}_cache.json")
+    else:
+        pref_cache = os.path.join(dataset_path, f"{backbone}_cache.npz")
+        cache_path = (
+            pref_cache
+            if os.path.exists(pref_cache)
+            else os.path.join(dataset_path, "embeddings_cache.npz")
+        )
+
     dataset, dataset_meta = build_dataset(
         input_dir=images_dir,
         labels_path=tmp_labels_path,
         extractor_config=emb_cfg,
         cache_path=cache_path,
+        image_ids=all_files,
     )
     dataset.multi_labels = multi_labels
 
@@ -371,8 +396,7 @@ def cmd_integrity_scan(args):
     print(f"[OK] Scan complete: {len(sample_findings)} anomalous samples, {len(group_analysis['group_findings'])} group anomalies.")
 
     # Save scan outputs
-    results_dir = os.path.abspath(args.output_dir or os.path.join(WORKSPACE_ROOT, "datasets", "sentinelvision_voc2012", "results"))
-    os.makedirs(results_dir, exist_ok=True)
+    results_dir = output_dir
     scan_output_path = os.path.join(results_dir, "scan_findings.json")
     with open(scan_output_path, "w", encoding="utf-8") as f:
         json.dump({"sample_findings": sample_findings, "group_analysis": group_analysis}, f, indent=2)

@@ -40,6 +40,7 @@ LABEL_FLIP_DEFAULT_FILTER_BY = "predicted_neq_given"
 LABEL_FLIP_DEFAULT_MIN_GAP = 0.10
 LABEL_FLIP_DEFAULT_MIN_ALT_PROB = 0.20
 LABEL_FLIP_DEFAULT_MIN_ODDS = 1.2
+LABEL_FLIP_DISTANCE_BATCH_SIZE = 256
 
 _VALID_CLASSIFIERS = ("knn", "logreg")
 
@@ -180,6 +181,7 @@ def find_label_flips(
     min_odds_ratio: float = LABEL_FLIP_DEFAULT_MIN_ODDS,
     min_centroid_ratio: float = 0.0,
     device: Optional[str] = None,
+    batch_size: int = LABEL_FLIP_DISTANCE_BATCH_SIZE,
 ) -> Dict[str, Any]:
     """
     GPU-accelerated confident learning label-flip detector with multi-evidence gating.
@@ -286,14 +288,35 @@ def find_label_flips(
     odds_ratio = top1_prob / (given_prob + 1e-4)
     discordant = (top1_class != labels_t)
 
-    # Global neighborhood consensus on GPU
-    all_dists = torch.cdist(emb_std, emb_std, p=2.0)
-    all_dists.fill_diagonal_(float("inf"))
+    # Global neighborhood consensus on GPU (batched to prevent full N×N distance matrix allocation)
     k_eval = min(n_neighbors, n_samples - 1)
-    _, topk_i = torch.topk(all_dists, k=k_eval, largest=False, dim=1)
+    if k_eval <= 0:
+        topk_i = torch.empty((n_samples, 0), dtype=torch.int64, device=torch_dev)
+    else:
+        topk_batches = []
+        for start in range(0, n_samples, batch_size):
+            end = min(start + batch_size, n_samples)
+            query_emb = emb_std[start:end]
+            batch_dists = torch.cdist(query_emb, emb_std, p=2.0)
+
+            # Exclude each query sample from being its own neighbor (equivalent to fill_diagonal_(inf))
+            b_len = end - start
+            r_idx = torch.arange(b_len, device=torch_dev)
+            batch_dists[r_idx, start + r_idx] = float("inf")
+
+            _, b_topk = torch.topk(batch_dists, k=k_eval, largest=False, dim=1)
+            topk_batches.append(b_topk)
+            del batch_dists
+
+        topk_i = torch.cat(topk_batches, dim=0)
+
     neighbor_labels = labels_t[topk_i]
-    given_neighbor_agreement = (neighbor_labels == labels_t.unsqueeze(1)).float().mean(dim=1)
-    alt_neighbor_agreement = (neighbor_labels == top1_class.unsqueeze(1)).float().mean(dim=1)
+    if k_eval > 0:
+        given_neighbor_agreement = (neighbor_labels == labels_t.unsqueeze(1)).float().mean(dim=1)
+        alt_neighbor_agreement = (neighbor_labels == top1_class.unsqueeze(1)).float().mean(dim=1)
+    else:
+        given_neighbor_agreement = torch.zeros(n_samples, dtype=torch.float32, device=torch_dev)
+        alt_neighbor_agreement = torch.zeros(n_samples, dtype=torch.float32, device=torch_dev)
 
     # Multi-evidence suspiciousness score on GPU
     suspiciousness = (

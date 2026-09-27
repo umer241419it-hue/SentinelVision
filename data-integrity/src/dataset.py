@@ -210,9 +210,28 @@ def build_dataset(
     labels_path: str,
     extractor_config: Dict[str, Any],
     cache_path: Optional[str] = None,
+    image_ids: Optional[List[str]] = None,
 ) -> Tuple[ImageDataset, Dict[str, Any]]:
-    """Discover images, validate labels, and return (dataset, metadata)."""
-    image_ids = discover_images(input_dir)
+    """Discover or use a selected image subset, validate labels, and return (dataset, metadata)."""
+    if image_ids is None:
+        image_ids = discover_images(input_dir)
+    else:
+        image_ids = list(image_ids)
+
+        if not image_ids:
+            raise DatasetError("No images selected for dataset construction.")
+
+        missing_files = [
+            image_id
+            for image_id in image_ids
+            if not os.path.isfile(os.path.join(input_dir, image_id))
+        ]
+        if missing_files:
+            raise DatasetError(
+                f"Selected images missing from '{input_dir}': "
+                f"{missing_files[:3]}"
+            )
+
     labels = load_labels(labels_path, image_ids)
     dataset = ImageDataset(input_dir, labels, extractor_config, cache_path)
     return dataset, {
@@ -224,3 +243,4 @@ def build_dataset(
         },
         "extractor": dataset.extractor_metadata,
     }
+
