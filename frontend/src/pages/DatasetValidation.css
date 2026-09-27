@@ -337,3 +337,6 @@
 }
 
 .dv-pick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.dv-folder-drop{border-style:dashed}.dv-folder-drop span{max-width:34ch}@media(max-width:900px){.dv-pick-grid{grid-template-columns:1fr}}
+
+/* ---------- Dataset source selection ---------- */
+.dv-source-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 14px}.dv-source-tab{padding:11px 10px;border:1px solid var(--border-medium);background:var(--surface-0);color:var(--text-secondary);font:inherit;font-size:10px;font-weight:800;letter-spacing:.12em;cursor:pointer}.dv-source-tab:hover:not(:disabled){border-color:var(--accent-cyan);color:var(--accent-cyan)}.dv-source-tab.active{border-color:var(--accent-cyan);background:var(--accent-cyan-soft);color:var(--accent-cyan)}.dv-source-tab:disabled{opacity:.5;cursor:not-allowed}.dv-existing-box{display:grid;grid-template-columns:auto minmax(220px,1fr);align-items:center;gap:7px 10px;margin:0 0 12px;padding:10px;border:1px solid var(--border-medium);background:var(--surface-0)}.dv-existing-box .dv-field-help{grid-column:2}.dv-upload-mode-note{margin:0 0 12px;padding:10px;border:1px dashed var(--border-medium);font-size:9px;letter-spacing:.08em;color:var(--text-muted)}
