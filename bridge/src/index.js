@@ -1081,19 +1081,24 @@ app.get('/api/datasets/validations', (req, res) => {
 
 app.post('/api/datasets/validate', async (req, res) => {
     try {
-        let fileBuffer, filename, contributorId = '', contributorName = '';
+        let files = [];
+        let contributorId = '';
+
         if (req.headers['content-type']?.includes('multipart/form-data')) {
-            const parsed = await parseMultipartBuffer(req);
-            fileBuffer = parsed.fileBuffer;
-            filename = parsed.filename;
+            const parsed = await parseMultipartData(req);
+            files = parsed.files || [];
             contributorId = String(parsed.fields.contributorId || '').trim();
         } else if (req.body && req.body.fileContent) {
-            fileBuffer = Buffer.from(req.body.fileContent, 'utf-8');
-            filename = req.body.filename || 'dataset_annotation.json';
+            files = [{
+                filename: req.body.filename || 'dataset_annotation.json',
+                fileBuffer: Buffer.from(req.body.fileContent, 'utf-8')
+            }];
             contributorId = String(req.body.contributorId || '').trim();
         } else {
-            fileBuffer = Buffer.from(JSON.stringify(req.body || {}), 'utf-8');
-            filename = 'dataset_annotation.json';
+            files = [{
+                filename: 'dataset_annotation.json',
+                fileBuffer: Buffer.from(JSON.stringify(req.body || {}), 'utf-8')
+            }];
             contributorId = String(req.body?.contributorId || '').trim();
         }
 
@@ -1105,18 +1110,70 @@ app.post('/api/datasets/validate', async (req, res) => {
                 error: 'Contributor / Vendor is required. Select the contributor who provided this dataset.'
             });
         }
-        contributorName = contributor.name;
+        if (!files.length) return res.status(400).json({ ok: false, error: 'No dataset files provided' });
 
-        const kind = req.query.kind || (filename.endsWith('.json') ? 'coco' : 'yolo');
-        const report = datasetValidationService.validateDatasetFile(
-            kind,
-            fileBuffer,
-            filename,
-            { id: contributorId, name: contributorName }
-        );
+        const reports = files.map(file => {
+            const kind = req.query.kind || (file.filename.endsWith('.json') ? 'coco' : 'yolo');
+            return datasetValidationService.validateDatasetFile(
+                kind,
+                file.fileBuffer,
+                file.filename,
+                { id: contributorId, name: contributor.name }
+            );
+        });
 
-        const httpStatus = report.status === 'valid' ? 200 : report.status === 'warning' ? 200 : 422;
-        res.status(httpStatus).json({ ok: report.status !== 'rejected', report });
+        const status = reports.some(r => r.status === 'invalid' || r.status === 'rejected')
+            ? 'invalid'
+            : reports.some(r => r.status === 'warning') ? 'warning' : 'valid';
+
+        const errorDetails = reports.flatMap(r => (r.errors || []).map(message => ({
+            type: 'VALIDATION_ERROR',
+            file: r.filename,
+            message
+        })));
+        const warningDetails = reports.flatMap(r => (r.warnings || []).map(message => ({
+            type: 'VALIDATION_WARNING',
+            file: r.filename,
+            message
+        })));
+
+        const stats = reports.reduce((acc, r) => {
+            acc.images += Number(r.imageCount || 0);
+            acc.annotation_files += 1;
+            acc.annotations += Number(r.annotationCount || 0);
+            acc.classes += Number(r.categoryCount || 0);
+            return acc;
+        }, {
+            images: 0,
+            annotation_files: reports.length,
+            annotations: 0,
+            classes: 0,
+            images_without_annotations: 0,
+            annotations_without_images: 0,
+            empty_annotation_files: 0,
+            invalid_files: reports.filter(r => r.status === 'invalid' || r.status === 'rejected').length,
+            duplicate_files: 0,
+            unknown_class_ids: 0,
+            out_of_bounds_boxes: 0
+        });
+
+        const aggregate = {
+            validationId: reports.length === 1 ? reports[0].validationId : `val-batch-${crypto.randomBytes(4).toString('hex')}`,
+            contributorId,
+            contributorName: contributor.name,
+            status,
+            format: String(req.query.kind || reports[0].format || '').toUpperCase(),
+            files_processed: reports.length,
+            errors: errorDetails.length,
+            warnings: warningDetails.length,
+            error_details: errorDetails,
+            warning_details: warningDetails,
+            stats,
+            reports,
+            timestamp: new Date().toISOString()
+        };
+
+        res.status(200).json({ ok: status === 'valid' || status === 'warning', report: aggregate });
     } catch (err) {
         res.status(500).json({ ok: false, error: err.message });
     }
