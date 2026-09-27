@@ -91,6 +91,8 @@ function validateDatasetFile(kind, fileBuffer, originalName, contributor = null)
             format: kind.toUpperCase(),
             errors: [`Content is binary (${magic}); renamed files cannot bypass validation`],
             warnings: [],
+            sizeBytes,
+            sha256,
             timestamp: new Date().toISOString()
         };
     }
@@ -102,6 +104,8 @@ function validateDatasetFile(kind, fileBuffer, originalName, contributor = null)
             format: kind.toUpperCase(),
             errors: ['Content is not decodable text; renamed files cannot bypass validation'],
             warnings: [],
+            sizeBytes,
+            sha256,
             timestamp: new Date().toISOString()
         };
     }
