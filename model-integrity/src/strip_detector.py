@@ -218,40 +218,89 @@ def evaluate_model_strip(model_id: str,
 
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="SentinelVision STRIP model-integrity detector")
+    parser.add_argument("--model-path", default=None, help="Evaluate one selected .pt model instead of the calibration manifest")
+    parser.add_argument("--model-id", default=None, help="Model ID used to locate calibration/triggers/example data")
+    parser.add_argument("--data-dir", default=None, help="Directory containing model example-data directories")
+    parser.add_argument("--triggers-dir", default=None, help="Directory containing reconstructed trigger tensors")
+    parser.add_argument("--manifest", default=None, help="Calibration manifest JSON")
+    parser.add_argument("--output", default=None, help="Output strip_results.json path")
+    parser.add_argument("--hashes-output", default=None, help="Output strip_hashes.json path")
+    args = parser.parse_args()
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Executing STRIP detector on device: {device}")
     
-    data_dir = os.path.join(BASE_DIR, "data", "trojai_sample")
-    triggers_dir = os.path.join(BASE_DIR, "triggers")
-    manifest_path = os.path.join(BASE_DIR, "calibration_manifest.json")
-    output_json_path = os.path.join(BASE_DIR, "strip_results.json")
-    hashes_json_path = os.path.join(BASE_DIR, "strip_hashes.json")
-    
-    with open(manifest_path, "r") as f:
+    data_dir = os.path.abspath(args.data_dir or os.path.join(BASE_DIR, "data", "trojai_sample"))
+    triggers_dir = os.path.abspath(args.triggers_dir or os.path.join(BASE_DIR, "triggers"))
+    manifest_path = os.path.abspath(args.manifest or os.path.join(BASE_DIR, "calibration_manifest.json"))
+    output_json_path = os.path.abspath(args.output or os.path.join(BASE_DIR, "strip_results.json"))
+    hashes_json_path = os.path.abspath(args.hashes_output or os.path.join(BASE_DIR, "strip_hashes.json"))
+
+    with open(manifest_path, "r", encoding="utf-8") as f:
         manifest = json.load(f)
-        
-    all_table_rows = []
-    all_hash_pairs = {}
-    
-    t_start = time.time()
-    for idx, entry in enumerate(manifest, 1):
-        mid = entry["model_id"]
-        print(f"[{idx}/{len(manifest)}] Evaluating {mid}...")
-        hashes, rows = evaluate_model_strip(
-            mid, entry, data_dir, triggers_dir, device
-        )
-        all_hash_pairs[mid] = hashes
-        all_table_rows.extend(rows)
-        print(f"  -> Completed 5 classes. SHA-256 verified identical: {hashes['after'][:16]}...")
-        
-    total_elapsed = time.time() - t_start
-    print(f"\nAll 15 models (75 pairs) completed in {total_elapsed:.2f}s ({total_elapsed/60:.2f}m).\n")
-    
-    with open(output_json_path, "w") as f:
+
+    if args.model_path:
+        model_path = os.path.abspath(args.model_path)
+        if not os.path.isfile(model_path):
+            raise FileNotFoundError(f"Selected model file not found: {model_path}")
+        mid = args.model_id or os.path.splitext(os.path.basename(model_path))[0]
+
+        # The STRIP protocol requires the calibrated model metadata, donor
+        # images, and reconstructed trigger tensors. Never silently substitute
+        # another model from the manifest.
+        entry = next((x for x in manifest if str(x.get("model_id")) == str(mid)), None)
+        if entry is None:
+            raise RuntimeError(
+                f"No calibration_manifest entry exists for selected model '{mid}'. "
+                "STRIP cannot safely evaluate this model without calibrated channel order and trigger artifacts."
+            )
+
+        expected = os.path.abspath(os.path.join(data_dir, mid, "model.pt"))
+        if os.path.realpath(expected) != os.path.realpath(model_path):
+            # Single-model uploads can live outside the repository, but the
+            # detector still needs the model's example_data directory.
+            model_root = os.path.dirname(model_path)
+            if not os.path.isdir(os.path.join(model_root, "example_data")):
+                raise RuntimeError(
+                    "Selected model has no sibling example_data directory. "
+                    "STRIP requires donor examples for query-only evaluation."
+                )
+            # evaluate_model_strip currently resolves model.pt from data_dir/model_id.
+            # Materialize a temporary symlink-free compatibility layout by using
+            # the model's parent as data root and its basename as the ID.
+            data_dir = os.path.dirname(model_root)
+            mid = os.path.basename(model_root)
+            if mid != entry.get("model_id"):
+                raise RuntimeError(
+                    f"Selected model directory '{mid}' does not match calibrated model_id '{entry.get('model_id')}'."
+                )
+
+        print(f"[1/1] Evaluating selected model {mid}...")
+        hashes, rows = evaluate_model_strip(mid, entry, data_dir, triggers_dir, device)
+        all_table_rows = rows
+        all_hash_pairs = {mid: hashes}
+        print(f"  -> Completed {len(rows)} class evaluations. SHA-256 verified: {hashes['after'][:16]}...")
+    else:
+        all_table_rows = []
+        all_hash_pairs = {}
+        t_start = time.time()
+        for idx, entry in enumerate(manifest, 1):
+            mid = entry["model_id"]
+            print(f"[{idx}/{len(manifest)}] Evaluating {mid}...")
+            hashes, rows = evaluate_model_strip(mid, entry, data_dir, triggers_dir, device)
+            all_hash_pairs[mid] = hashes
+            all_table_rows.extend(rows)
+            print(f"  -> Completed {len(rows)} class evaluations. SHA-256 verified identical: {hashes['after'][:16]}...")
+        total_elapsed = time.time() - t_start
+        print(f"\nAll {len(manifest)} calibrated models completed in {total_elapsed:.2f}s ({total_elapsed/60:.2f}m).\n")
+
+    with open(output_json_path, "w", encoding="utf-8") as f:
         json.dump(all_table_rows, f, indent=2)
     print(f"Saved full results to {output_json_path}")
-    
-    with open(hashes_json_path, "w") as f:
+
+    with open(hashes_json_path, "w", encoding="utf-8") as f:
         json.dump(all_hash_pairs, f, indent=2)
     print(f"Saved live hash pairs to {hashes_json_path}")
 
