@@ -230,7 +230,7 @@ def run(
     else:
         effective_run_id = run_id
     evidence_store = os.path.join(base_dir, config.get("output", {}).get("evidence_store", "evidence_store"))
-    results_path = os.path.join(base_dir, config.get("output", {}).get("results", "results/drift_results.json"))
+    results_path = os.path.abspath(results_path_override or os.path.join(base_dir, config.get("output", {}).get("results", "results/drift_results.json"))
 
     results: List[Dict[str, Any]] = []
     for seq_idx, win in feed_stream(window, live_emb, live_meta):
@@ -332,6 +332,7 @@ def main() -> None:
     parser.add_argument("--bridge-url", default=os.environ.get("BRIDGE_URL", "http://localhost:3000"))
     parser.add_argument("--timestamp-fixed", default=None, help="Fixed run timestamp for reproducibility runs")
     parser.add_argument("--run-id", default=None, help="Explicit run ID (defaults to UTC timestamp + reference digest)")
+    parser.add_argument("--output", default=None, help="Per-run drift results JSON path")
     args = parser.parse_args()
 
     config_path = os.path.abspath(args.config)
