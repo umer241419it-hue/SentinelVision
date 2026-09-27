@@ -388,10 +388,14 @@ function validateDatasetBundle(kind, files, contributor = null) {
 
     const report = {
         validationId: `val-${crypto.randomBytes(4).toString('hex')}`,
+        filename: `${normalized.length} uploaded dataset file(s)`,
         contributorId: contributor?.id || 'unassigned',
         contributorName: contributor?.name || 'Unassigned',
         status,
         format: String(kind || '').toUpperCase(),
+        sizeBytes: normalized.reduce((sum, f) => sum + f.fileBuffer.length, 0),
+        sha256: aggregateHash,
+        timestamp: new Date().toISOString(),
         files_processed: normalized.length,
         errors: errors.length,
         warnings: warnings.length,
