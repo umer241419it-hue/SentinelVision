@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Radar, DatabaseZap, ScanFace, ListChecks, Vault,
   Link2, HeartPulse, Settings, ShieldCheck, UploadCloud, Gavel,
-  ScrollText, Users, FileBarChart, FileCheck2, Building2
+  ScrollText, Users, FileBarChart, FileCheck2, Building2, PlugZap
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './Sidebar.css';
@@ -17,6 +17,8 @@ const NAV = [
   { to: '/drift-monitor', label: 'Drift Monitor', code: 'ANA-02', icon: Radar, roles: ['ANALYST'] },
   { to: '/data-integrity', label: 'Data Integrity', code: 'ANA-03', icon: DatabaseZap, roles: ['ANALYST'] },
   { to: '/dataset-validation', label: 'Dataset Validation', code: 'ANA-05', icon: FileCheck2, roles: ['ANALYST'] },
+  { to: '/model-validation', label: 'Model Validation', code: 'ANA-06', icon: FileCheck2, roles: ['ANALYST'] },
+  { to: '/model-hooks', label: 'Model Hooks', code: 'ANA-07', icon: PlugZap, roles: ['ANALYST'] },
   { to: '/model-integrity', label: 'Model Integrity', code: 'ANA-04', icon: ScanFace, roles: ['ANALYST'] },
   // Shared
   { to: '/contributors', label: 'Contributors / Vendors', code: 'SHR-04', icon: Building2, roles: ['ANALYST', 'AUDITOR'] },
