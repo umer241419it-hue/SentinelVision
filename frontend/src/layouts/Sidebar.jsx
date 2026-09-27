@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Radar, DatabaseZap, ScanFace, ListChecks, Vault,
   Link2, HeartPulse, Settings, ShieldCheck, UploadCloud, Gavel,
-  ScrollText, Users, FileBarChart, FileCheck2
+  ScrollText, Users, FileBarChart, FileCheck2, Building2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './Sidebar.css';
@@ -19,6 +19,7 @@ const NAV = [
   { to: '/dataset-validation', label: 'Dataset Validation', code: 'ANA-05', icon: FileCheck2, roles: ['ANALYST'] },
   { to: '/model-integrity', label: 'Model Integrity', code: 'ANA-04', icon: ScanFace, roles: ['ANALYST'] },
   // Shared
+  { to: '/contributors', label: 'Contributors / Vendors', code: 'SHR-04', icon: Building2, roles: ['ANALYST', 'AUDITOR'] },
   { to: '/findings', label: 'Findings', code: 'SHR-05', icon: ListChecks, roles: ['ANALYST', 'AUDITOR'] },
   { to: '/evidence-vault', label: 'Evidence Vault', code: 'SHR-06', icon: Vault, roles: ['ANALYST', 'AUDITOR'] },
   // Auditor modules

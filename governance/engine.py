@@ -75,6 +75,7 @@ class GovernanceEngine:
             "models": [],
             "inference_records": [],
             "reference_batteries": [],
+            "contributors": [],
         }
         self.access_profile: Dict[str, Any] = {
             "data_access": "UNSPECIFIED",
@@ -121,6 +122,27 @@ class GovernanceEngine:
             AuditEventType.ASSET_REGISTERED,
             data={"asset_type": "dataset", "asset": ds_info},
             reference_ids=[dataset_id],
+        )
+
+    def register_contributor(
+        self,
+        contributor_id: str,
+        name: str,
+        contributor_type: str = "VENDOR",
+    ) -> None:
+        """Register asset contributor/vendor in governance inventory and audit log."""
+        c_info = {
+            "contributor_id": contributor_id,
+            "name": name,
+            "type": contributor_type,
+        }
+        if "contributors" not in self.assets:
+            self.assets["contributors"] = []
+        self.assets["contributors"].append(c_info)
+        self.audit_trail.add_event(
+            AuditEventType.ASSET_REGISTERED,
+            data={"asset_type": "contributor", "asset": c_info},
+            reference_ids=[contributor_id],
         )
 
     def register_model_asset(

@@ -36,6 +36,13 @@ def cmd_assess(args):
     output_dir = Path(args.output or os.path.join(WORKSPACE_ROOT, "reports"))
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # 0. Contributor / Vendor
+    if getattr(args, "contributor_id", None):
+        engine.register_contributor(
+            contributor_id=args.contributor_id,
+            name=getattr(args, "contributor_name", None) or args.contributor_id,
+        )
+
     # 1. Dataset / Data Integrity
     if args.data_results and os.path.exists(args.data_results):
         print(f"[*] Ingesting Training Data Integrity findings from: {args.data_results}")
@@ -286,6 +293,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_assess.add_argument("--inference-records", default=None, help="Path to inference seals JSON")
     p_assess.add_argument("--drift-results", default=None, help="Path to DistributionShift results JSON")
     p_assess.add_argument("--reference", default=None, help="Path to reference battery manifest")
+    p_assess.add_argument("--contributor-id", default=None, help="Contributor / Vendor identifier")
+    p_assess.add_argument("--contributor-name", default=None, help="Contributor / Vendor human-readable name")
     p_assess.add_argument("--output", default=None, help="Output directory for reports")
     p_assess.set_defaults(func=cmd_assess)
 

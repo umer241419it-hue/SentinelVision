@@ -18,6 +18,8 @@ const EVIDENCE_DIRS = [
     { module: 'DistributionShift', dir: path.join(WORKSPACE_ROOT, 'drift-monitor/evidence_store') },
     { module: 'InferenceProvenance', dir: path.join(WORKSPACE_ROOT, 'inference-provenance/evidence_store') }
 ];
+const UPLOADS_META_FILE = path.join(WORKSPACE_ROOT, 'data/uploads_meta.json');
+const CONTRIBUTORS_FILE = path.join(WORKSPACE_ROOT, 'data/contributors.json');
 
 function readJsonSafe(filePath, fallback = null) {
     if (!fs.existsSync(filePath)) return fallback;
@@ -99,6 +101,24 @@ function getAllFindings() {
             });
         });
     }
+
+    // Enrich all findings with contributor context
+    const uploads = readJsonSafe(UPLOADS_META_FILE, []);
+    all.forEach(f => {
+        if (!f.contributorId) {
+            const up = uploads.find(u => u.uploadId === f.assetID || u.uploadId === f.datasetId || u.uploadId === f.modelId);
+            if (up && up.contributorId) {
+                f.contributorId = up.contributorId;
+                f.contributorName = up.contributorName || up.contributorId;
+            } else if (f.moduleName === 'DataIntegrity' || f.moduleName === 'ModelIntegrity') {
+                f.contributorId = 'vendor-beta';
+                f.contributorName = 'Vendor Beta';
+            } else {
+                f.contributorId = 'vendor-alpha';
+                f.contributorName = 'Vendor Alpha';
+            }
+        }
+    });
 
     return all;
 }

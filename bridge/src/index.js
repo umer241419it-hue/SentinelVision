@@ -23,9 +23,28 @@ const CRYPTO_UTILS_DIR = path.resolve(__dirname, '../../crypto-utils');
 const WORKSPACE_ROOT = path.resolve(__dirname, '../../');
 const UPLOADS_DIR = path.join(WORKSPACE_ROOT, 'data/uploads');
 const UPLOADS_META_FILE = path.join(WORKSPACE_ROOT, 'data/uploads_meta.json');
+const CONTRIBUTORS_FILE = path.join(WORKSPACE_ROOT, 'data/contributors.json');
 const QUARANTINE_FILE = path.join(WORKSPACE_ROOT, 'data/quarantine_registry.json');
 
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+
+// Load / Save Contributors
+let contributors = [];
+function loadContributors() {
+    if (fs.existsSync(CONTRIBUTORS_FILE)) {
+        try { contributors = JSON.parse(fs.readFileSync(CONTRIBUTORS_FILE, 'utf-8')); } catch { contributors = []; }
+    } else {
+        contributors = [];
+    }
+}
+function saveContributors() {
+    try {
+        fs.writeFileSync(CONTRIBUTORS_FILE, JSON.stringify(contributors, null, 2), 'utf-8');
+    } catch (err) {
+        console.error('Error saving contributors:', err.message);
+    }
+}
+loadContributors();
 
 // Load / Save Uploads
 let uploads = [];
@@ -156,57 +175,106 @@ app.use(express.raw({ type: 'multipart/form-data', limit: '50mb' }));
 const PORT = process.env.PORT || 3000;
 const utf8Decoder = new TextDecoder();
 
-// Helper to parse multipart/form-data with zero external dependencies
-function parseMultipartBuffer(req) {
+// Helper to parse multipart/form-data with multiple files & fields (zero external dependencies)
+function parseMultipartData(req) {
     return new Promise((resolve, reject) => {
+        const getBuffer = () => {
+            if (Buffer.isBuffer(req.body) && req.body.length > 0) {
+                return Promise.resolve(req.body);
+            }
+            return new Promise((res, rej) => {
+                const chunks = [];
+                req.on('data', (c) => chunks.push(c));
+                req.on('end', () => res(Buffer.concat(chunks)));
+                req.on('error', rej);
+            });
+        };
+
         const contentType = req.headers['content-type'] || '';
         const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
         if (!boundaryMatch) {
             return reject(new Error('Missing multipart boundary'));
         }
-        const boundary = boundaryMatch[1] || boundaryMatch[2];
+        const boundary = (boundaryMatch[1] || boundaryMatch[2]).trim();
+        const boundaryBuf = Buffer.from(`--${boundary}`);
 
-        const chunks = [];
-        req.on('data', (c) => chunks.push(c));
-        req.on('end', () => {
-            const buf = Buffer.concat(chunks);
-            const boundaryBuf = Buffer.from(`--${boundary}`);
-            const endBoundaryBuf = Buffer.from(`--${boundary}--`);
-
-            let fileBuffer = null;
-            let filename = 'uploaded_file';
+        getBuffer().then((buf) => {
+            const files = [];
+            const fields = {};
 
             let cur = 0;
             while (cur < buf.length) {
                 const bIdx = buf.indexOf(boundaryBuf, cur);
                 if (bIdx === -1) break;
 
-                const headerStart = bIdx + boundaryBuf.length + 2; // skip \r\n
-                const headerEnd = buf.indexOf(Buffer.from('\r\n\r\n'), headerStart);
+                // Check if closing boundary --boundary--
+                if (buf.slice(bIdx + boundaryBuf.length, bIdx + boundaryBuf.length + 2).toString() === '--') {
+                    break;
+                }
+
+                let headerStart = bIdx + boundaryBuf.length;
+                if (buf[headerStart] === 13 && buf[headerStart + 1] === 10) headerStart += 2; // \r\n
+                else if (buf[headerStart] === 10) headerStart += 1; // \n
+
+                const headerEndCRLF = buf.indexOf(Buffer.from('\r\n\r\n'), headerStart);
+                const headerEndLF = buf.indexOf(Buffer.from('\n\n'), headerStart);
+                let headerEnd = -1;
+                let headerEndLen = 4;
+                if (headerEndCRLF !== -1 && (headerEndLF === -1 || headerEndCRLF <= headerEndLF)) {
+                    headerEnd = headerEndCRLF;
+                    headerEndLen = 4;
+                } else if (headerEndLF !== -1) {
+                    headerEnd = headerEndLF;
+                    headerEndLen = 2;
+                }
                 if (headerEnd === -1) break;
 
                 const headers = buf.slice(headerStart, headerEnd).toString('utf-8');
+                const partStart = headerEnd + headerEndLen;
+
+                const nextBIdx = buf.indexOf(boundaryBuf, partStart);
+                if (nextBIdx === -1) break;
+
+                let partEnd = nextBIdx;
+                if (partEnd >= 2 && buf[partEnd - 2] === 13 && buf[partEnd - 1] === 10) partEnd -= 2;
+                else if (partEnd >= 1 && buf[partEnd - 1] === 10) partEnd -= 1;
+
+                const partBuffer = buf.slice(partStart, partEnd);
+
+                const nameMatch = headers.match(/name="([^"]+)"/i);
                 const fnMatch = headers.match(/filename="([^"]+)"/i);
+                const fieldName = nameMatch ? nameMatch[1] : '';
+
                 if (fnMatch) {
-                    filename = fnMatch[1];
+                    files.push({
+                        fieldName,
+                        filename: fnMatch[1],
+                        fileBuffer: partBuffer,
+                        size: partBuffer.length
+                    });
+                } else if (fieldName) {
+                    fields[fieldName] = partBuffer.toString('utf-8').trim();
                 }
 
-                const partStart = headerEnd + 4;
-                const nextBIdx = buf.indexOf(boundaryBuf, partStart);
-                const partEnd = nextBIdx !== -1 ? nextBIdx - 2 : buf.length; // skip \r\n before next boundary
-
-                fileBuffer = buf.slice(partStart, partEnd);
-                break;
+                cur = nextBIdx;
             }
 
-            if (!fileBuffer) {
-                return reject(new Error('No file part found in request'));
-            }
-
-            resolve({ fileBuffer, filename });
-        });
-        req.on('error', reject);
+            resolve({ files, fields });
+        }).catch(reject);
     });
+}
+
+// Backward-compatible single file parser
+async function parseMultipartBuffer(req) {
+    const parsed = await parseMultipartData(req);
+    if (!parsed.files || parsed.files.length === 0) {
+        throw new Error('No file part found in request');
+    }
+    return {
+        fileBuffer: parsed.files[0].fileBuffer,
+        filename: parsed.files[0].filename,
+        fields: parsed.fields
+    };
 }
 
 // ---------------------------------------------------------------------------
@@ -373,26 +441,48 @@ app.get('/overview/activity', (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// 4. Resource Registries (/api/datasets, /api/models, /api/configs)
+// 4. Resource Registries (/api/datasets, /api/models, /api/configs, /api/contributors)
 // ---------------------------------------------------------------------------
 app.get('/api/datasets', (req, res) => {
+    loadUploads();
+    const contributorId = req.query.contributorId;
+    let list = uploads.filter(u => u.kind === 'dataset');
+    if (contributorId && contributorId !== 'all') {
+        list = list.filter(u => (u.contributorId || 'unassigned') === contributorId);
+    }
     res.json({
-        datasets: uploads.filter(u => u.kind === 'dataset').map(u => ({
+        datasets: list.map(u => ({
             id: u.uploadId,
             name: u.originalName,
             sha256: u.sha256,
-            datasetPath: u.datasetPath
+            datasetPath: u.datasetPath || u.filePath,
+            contributorId: u.contributorId || 'unassigned',
+            contributorName: u.contributorName || 'Unassigned',
+            format: u.format || 'Unknown',
+            size: u.size,
+            createdAt: u.createdAt
         }))
     });
 });
 
 app.get('/api/models', (req, res) => {
+    loadUploads();
+    const contributorId = req.query.contributorId;
+    let list = uploads.filter(u => u.kind === 'model');
+    if (contributorId && contributorId !== 'all') {
+        list = list.filter(u => (u.contributorId || 'unassigned') === contributorId);
+    }
     res.json({
-        models: uploads.filter(u => u.kind === 'model').map(u => ({
+        models: list.map(u => ({
             id: u.uploadId,
             name: u.originalName,
             sha256: u.sha256,
-            weightsPath: u.weightsPath
+            weightsPath: u.weightsPath || u.filePath,
+            contributorId: u.contributorId || 'unassigned',
+            contributorName: u.contributorName || 'Unassigned',
+            framework: u.framework || 'PyTorch',
+            size: u.size,
+            createdAt: u.createdAt
         }))
     });
 });
@@ -407,27 +497,359 @@ app.get('/api/configs', (req, res) => {
     });
 });
 
+// Contributors Management APIs
+app.get('/api/contributors', (req, res) => {
+    loadContributors();
+    loadUploads();
+    const result = contributors.map(c => {
+        const cDatasets = uploads.filter(u => u.kind === 'dataset' && u.contributorId === c.id);
+        const cModels = uploads.filter(u => u.kind === 'model' && u.contributorId === c.id);
+        return {
+            ...c,
+            datasetCount: cDatasets.length,
+            modelCount: cModels.length,
+            totalAssets: cDatasets.length + cModels.length
+        };
+    });
+
+    const unassignedDatasets = uploads.filter(u => u.kind === 'dataset' && (!u.contributorId || u.contributorId === 'unassigned'));
+    const unassignedModels = uploads.filter(u => u.kind === 'model' && (!u.contributorId || u.contributorId === 'unassigned'));
+    if (unassignedDatasets.length > 0 || unassignedModels.length > 0) {
+        result.push({
+            id: 'unassigned',
+            name: 'Unassigned Assets',
+            type: 'LEGACY',
+            description: 'Legacy or unassigned datasets and models',
+            status: 'ACTIVE',
+            datasetCount: unassignedDatasets.length,
+            modelCount: unassignedModels.length,
+            totalAssets: unassignedDatasets.length + unassignedModels.length,
+            createdAt: '2026-09-01T00:00:00Z',
+            updatedAt: '2026-09-01T00:00:00Z'
+        });
+    }
+
+    res.json({ contributors: result });
+});
+
+app.get('/api/contributors/:id', (req, res) => {
+    loadContributors();
+    loadUploads();
+    const id = req.params.id;
+    let contributor = contributors.find(c => c.id === id);
+    if (!contributor && id === 'unassigned') {
+        contributor = {
+            id: 'unassigned',
+            name: 'Unassigned Assets',
+            type: 'LEGACY',
+            description: 'Legacy or unassigned datasets and models',
+            status: 'ACTIVE',
+            createdAt: '2026-09-01T00:00:00Z',
+            updatedAt: '2026-09-01T00:00:00Z'
+        };
+    }
+    if (!contributor) {
+        return res.status(404).json({ error: 'Contributor not found' });
+    }
+    const cDatasets = uploads.filter(u => u.kind === 'dataset' && (u.contributorId === id || (id === 'unassigned' && (!u.contributorId || u.contributorId === 'unassigned'))));
+    const cModels = uploads.filter(u => u.kind === 'model' && (u.contributorId === id || (id === 'unassigned' && (!u.contributorId || u.contributorId === 'unassigned'))));
+
+    res.json({
+        contributor: {
+            ...contributor,
+            datasetCount: cDatasets.length,
+            modelCount: cModels.length,
+            datasets: cDatasets,
+            models: cModels
+        }
+    });
+});
+
+app.post('/api/contributors', (req, res) => {
+    loadContributors();
+    const { name, id: customId, type, description } = req.body || {};
+    if (!name || typeof name !== 'string' || !name.trim()) {
+        return res.status(400).json({ error: 'Contributor name is required' });
+    }
+    const trimmedName = name.trim();
+    const id = (customId && customId.trim()) || trimmedName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+    if (contributors.some(c => c.id === id)) {
+        return res.status(409).json({ error: `Contributor with ID "${id}" already exists` });
+    }
+
+    const newContributor = {
+        id,
+        name: trimmedName,
+        type: type || 'VENDOR',
+        description: description || 'External asset provider',
+        status: 'ACTIVE',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
+    contributors.push(newContributor);
+    saveContributors();
+
+    res.status(201).json({ contributor: newContributor });
+});
+
+app.patch('/api/contributors/:id', (req, res) => {
+    loadContributors();
+    const id = req.params.id;
+    const contributor = contributors.find(c => c.id === id);
+    if (!contributor) return res.status(404).json({ error: 'Contributor not found' });
+
+    const { name, type, description, status } = req.body || {};
+    if (name) contributor.name = name.trim();
+    if (type) contributor.type = type;
+    if (description !== undefined) contributor.description = description;
+    if (status) contributor.status = status;
+    contributor.updatedAt = new Date().toISOString();
+    saveContributors();
+
+    res.json({ contributor });
+});
+
+app.get('/api/contributors/:id/datasets', (req, res) => {
+    loadUploads();
+    const id = req.params.id;
+    const cDatasets = uploads.filter(u => u.kind === 'dataset' && (u.contributorId === id || (id === 'unassigned' && (!u.contributorId || u.contributorId === 'unassigned'))));
+    res.json({ datasets: cDatasets });
+});
+
+app.get('/api/contributors/:id/models', (req, res) => {
+    loadUploads();
+    const id = req.params.id;
+    const cModels = uploads.filter(u => u.kind === 'model' && (u.contributorId === id || (id === 'unassigned' && (!u.contributorId || u.contributorId === 'unassigned'))));
+    res.json({ models: cModels });
+});
+
 // ---------------------------------------------------------------------------
-// 5. Uploads (/api/uploads)
+// 5. Uploads (/api/uploads, /api/datasets/upload, /api/models/upload)
 // ---------------------------------------------------------------------------
+async function handleMultipleAssetUpload(req, res, kind) {
+    try {
+        let items = [];
+        let contributorId = '';
+        let contributorName = '';
+
+        if (req.headers['content-type']?.includes('multipart/form-data')) {
+            const parsed = await parseMultipartData(req);
+            contributorId = (parsed.fields.contributorId || req.query.contributorId || '').trim();
+            contributorName = (parsed.fields.contributorName || req.query.contributorName || '').trim();
+            items = parsed.files.map(f => ({
+                filename: f.filename,
+                buffer: f.fileBuffer
+            }));
+        } else if (req.body && Array.isArray(req.body.files)) {
+            contributorId = (req.body.contributorId || req.query.contributorId || '').trim();
+            contributorName = (req.body.contributorName || '').trim();
+            items = req.body.files.map(f => ({
+                filename: f.filename || `file-${Date.now()}`,
+                buffer: Buffer.from(f.fileContent || f.base64 || '', f.base64 ? 'base64' : 'utf-8')
+            }));
+        } else if (req.body && (req.body.fileContent || req.body.filename)) {
+            contributorId = (req.body.contributorId || req.query.contributorId || '').trim();
+            contributorName = (req.body.contributorName || '').trim();
+            items = [{
+                filename: req.body.filename || `file-${Date.now()}`,
+                buffer: Buffer.from(req.body.fileContent || '', 'utf-8')
+            }];
+        } else {
+            return res.status(400).json({ error: 'No files provided in upload request' });
+        }
+
+        // Validate contributorId
+        if (!contributorId || contributorId === 'unassigned') {
+            return res.status(400).json({
+                error: `Contributor / Vendor is required. Select the contributor who provided this ${kind}.`
+            });
+        }
+
+        loadContributors();
+        const foundContrib = contributors.find(c => c.id === contributorId);
+        if (!foundContrib) {
+            return res.status(400).json({
+                error: `Contributor "${contributorId}" does not exist. Please select a valid registered contributor.`
+            });
+        }
+        contributorName = foundContrib.name;
+
+        if (items.length === 0) {
+            return res.status(400).json({ error: 'No files detected in upload' });
+        }
+
+        const results = [];
+        loadUploads();
+
+        for (const item of items) {
+            try {
+                const { filename, buffer } = item;
+                if (!buffer || buffer.length === 0) {
+                    results.push({
+                        filename,
+                        status: 'FAILED',
+                        error: 'Empty file buffer'
+                    });
+                    continue;
+                }
+
+                // Format validation
+                const ext = path.extname(filename).toLowerCase();
+                if (kind === 'model') {
+                    const validModelExts = ['.pt', '.pth', '.onnx', '.bin', '.h5', '.keras', '.tflite', '.ckpt', '.tar', '.gz'];
+                    if (ext && !validModelExts.includes(ext) && !filename.includes('.tar.')) {
+                        results.push({
+                            filename,
+                            status: 'FAILED',
+                            error: `Unsupported model extension "${ext}". Allowed: ${validModelExts.join(', ')}`
+                        });
+                        continue;
+                    }
+                } else if (kind === 'dataset') {
+                    const validDatasetExts = ['.zip', '.tar', '.gz', '.tgz', '.json', '.xml', '.csv', '.parquet', '.jpg', '.jpeg', '.png'];
+                    if (ext && !validDatasetExts.includes(ext) && !filename.includes('.tar.')) {
+                        results.push({
+                            filename,
+                            status: 'FAILED',
+                            error: `Unsupported dataset extension "${ext}". Allowed: ${validDatasetExts.join(', ')}`
+                        });
+                        continue;
+                    }
+                }
+
+                const sha256 = crypto.createHash('sha256').update(buffer).digest('hex');
+                const uploadId = `${kind}-${sha256.slice(0, 10)}`;
+
+                const existingIdx = uploads.findIndex(u => u.sha256 === sha256 && u.contributorId === contributorId);
+                if (existingIdx !== -1) {
+                    results.push({
+                        filename,
+                        uploadId: uploads[existingIdx].uploadId,
+                        status: 'EXISTS',
+                        message: 'Asset already registered for this contributor',
+                        sha256,
+                        contributorId,
+                        contributorName
+                    });
+                    continue;
+                }
+
+                const destPath = path.join(UPLOADS_DIR, `${uploadId}_${filename}`);
+                fs.writeFileSync(destPath, buffer);
+
+                const now = new Date().toISOString();
+                const newUpload = {
+                    uploadId,
+                    filename,
+                    originalName: filename,
+                    kind,
+                    type: kind,
+                    sha256,
+                    size: buffer.length,
+                    createdAt: now,
+                    uploadedAt: now,
+                    filePath: destPath,
+                    storagePath: destPath,
+                    contributorId,
+                    contributorName,
+                    format: kind === 'dataset' ? (ext.replace('.', '').toUpperCase() || 'CUSTOM') : undefined,
+                    framework: kind === 'model' ? (ext === '.onnx' ? 'ONNX' : 'PyTorch') : undefined,
+                    datasetPath: kind === 'dataset' ? destPath : undefined,
+                    weightsPath: kind === 'model' ? destPath : undefined
+                };
+
+                uploads.unshift(newUpload);
+                results.push({
+                    filename,
+                    uploadId,
+                    status: 'SUCCESS',
+                    size: buffer.length,
+                    sha256,
+                    contributorId,
+                    contributorName
+                });
+            } catch (fileErr) {
+                results.push({
+                    filename: item.filename,
+                    status: 'FAILED',
+                    error: fileErr.message
+                });
+            }
+        }
+
+        saveUploads();
+
+        const successCount = results.filter(r => r.status === 'SUCCESS' || r.status === 'EXISTS').length;
+        const failCount = results.filter(r => r.status === 'FAILED').length;
+
+        res.status(failCount === items.length ? 400 : 201).json({
+            success: successCount > 0,
+            contributor: {
+                id: contributorId,
+                name: contributorName
+            },
+            total: items.length,
+            successful: successCount,
+            failed: failCount,
+            results
+        });
+    } catch (err) {
+        console.error('Multiple upload error:', err);
+        res.status(500).json({ error: 'Upload process failed', details: err.message });
+    }
+}
+
 app.get('/api/uploads', (req, res) => {
-    res.json({ uploads });
+    loadUploads();
+    const contributorId = req.query.contributorId;
+    let list = uploads;
+    if (contributorId && contributorId !== 'all') {
+        list = list.filter(u => (u.contributorId || 'unassigned') === contributorId);
+    }
+    res.json({ uploads: list });
+});
+
+app.post('/api/datasets/upload', async (req, res) => {
+    return handleMultipleAssetUpload(req, res, 'dataset');
+});
+
+app.post('/api/models/upload', async (req, res) => {
+    return handleMultipleAssetUpload(req, res, 'model');
 });
 
 app.post('/api/uploads/:kind', async (req, res) => {
     try {
-        let fileBuffer, filename;
+        let fileBuffer, filename, contributorId = req.query.contributorId || 'unassigned', contributorName = req.query.contributorName;
         if (req.headers['content-type']?.includes('multipart/form-data')) {
-            const parsed = await parseMultipartBuffer(req);
-            fileBuffer = parsed.fileBuffer;
-            filename = parsed.filename;
+            const parsed = await parseMultipartData(req);
+            if (parsed.files.length > 1) {
+                return handleMultipleAssetUpload(req, res, req.params.kind);
+            }
+            if (parsed.files.length > 0) {
+                fileBuffer = parsed.files[0].fileBuffer;
+                filename = parsed.files[0].filename;
+            }
+            if (parsed.fields.contributorId) contributorId = parsed.fields.contributorId;
+            if (parsed.fields.contributorName) contributorName = parsed.fields.contributorName;
         } else if (req.body && req.body.fileContent) {
             fileBuffer = Buffer.from(req.body.fileContent, 'utf-8');
             filename = req.body.filename || `upload-${Date.now()}`;
+            if (req.body.contributorId) contributorId = req.body.contributorId;
+            if (req.body.contributorName) contributorName = req.body.contributorName;
         } else {
             fileBuffer = Buffer.from(JSON.stringify(req.body || {}), 'utf-8');
             filename = `payload-${Date.now()}.json`;
         }
+
+        if (!fileBuffer) {
+            return res.status(400).json({ error: 'No file data received' });
+        }
+
+        loadContributors();
+        const found = contributors.find(c => c.id === contributorId);
+        if (found) contributorName = found.name;
+        else if (!contributorName) contributorName = contributorId === 'unassigned' ? 'Unassigned' : contributorId;
 
         const kind = req.params.kind === 'model' ? 'model' : 'dataset';
         const sha256 = crypto.createHash('sha256').update(fileBuffer).digest('hex');
@@ -443,43 +865,79 @@ app.post('/api/uploads/:kind', async (req, res) => {
             sha256,
             size: fileBuffer.length,
             createdAt: new Date().toISOString(),
-            filePath: destPath
+            filePath: destPath,
+            contributorId,
+            contributorName,
+            datasetPath: kind === 'dataset' ? destPath : undefined,
+            weightsPath: kind === 'model' ? destPath : undefined
         };
 
         uploads.unshift(newUpload);
         saveUploads();
 
-        res.status(201).json({ upload: newUpload });
+        res.status(201).json({ upload: newUpload, success: true });
     } catch (err) {
         res.status(500).json({ error: 'Upload failed', details: err.message });
     }
 });
 
 // ---------------------------------------------------------------------------
-// 6. Test & Run Automation Engine (/api/trust/run, /api/runs)
+// 6. Test & Run Automation Engine (/api/trust/run, /api/runs, /api/trust/batch)
 // ---------------------------------------------------------------------------
 app.post('/api/trust/run', (req, res) => {
-    const { datasetId, modelId, configId, testType } = req.body || {};
+    const { datasetId, modelId, configId, testType, contributorId, contributorName, batchId } = req.body || {};
     const job = jobService.startJob({
         testType: testType || 'FULL_ASSURANCE',
         datasetId,
         modelId,
         configId,
+        contributorId,
+        contributorName,
+        batchId,
         user: req.user
     });
     res.json({ test: job });
 });
 
 app.post('/api/runs', (req, res) => {
-    const { testType, datasetId, modelId, configId } = req.body || {};
+    const { testType, datasetId, modelId, configId, contributorId, contributorName, batchId } = req.body || {};
     const job = jobService.startJob({
         testType: testType || 'FULL_ASSURANCE',
         datasetId,
         modelId,
         configId,
+        contributorId,
+        contributorName,
+        batchId,
         user: req.user
     });
     res.json(job);
+});
+
+app.post('/api/trust/batch', (req, res) => {
+    const { contributorId, pairs, configId, testType } = req.body || {};
+    loadContributors();
+    const contributor = contributors.find(c => c.id === contributorId);
+    const contributorName = contributor ? contributor.name : (contributorId || 'Unassigned');
+    const batchId = `batch-${Date.now()}`;
+
+    const jobs = [];
+    if (Array.isArray(pairs)) {
+        for (const pair of pairs) {
+            const job = jobService.startJob({
+                testType: testType || 'FULL_ASSURANCE',
+                datasetId: pair.datasetId,
+                modelId: pair.modelId,
+                configId: configId || pair.configId,
+                contributorId,
+                contributorName,
+                batchId,
+                user: req.user
+            });
+            jobs.push(job);
+        }
+    }
+    res.json({ batchId, contributorId, contributorName, count: jobs.length, jobs });
 });
 
 app.get('/api/trust/tests', (req, res) => {

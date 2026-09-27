@@ -139,6 +139,12 @@ export default function FindingDrawer({ finding, onClose }) {
                 <div className="drawer-field-value">{(finding.confidence * 100).toFixed(0)}%</div>
               </div>
               <div>
+                <div className="drawer-field-label">Contributor / Vendor</div>
+                <div className="drawer-field-value mono" style={{ color: 'var(--accent-cyan)' }}>
+                  {finding.contributorName || finding.contributorId || 'Unassigned'}
+                </div>
+              </div>
+              <div>
                 <div className="drawer-field-label">Timestamp</div>
                 <div className="drawer-field-value">{fmtTime(finding.timestamp)}</div>
               </div>

@@ -20,6 +20,7 @@ import LedgerTransactions from './pages/LedgerTransactions';
 import GovernanceReports from './pages/GovernanceReports';
 import SystemLogs from './pages/SystemLogs';
 import UserSessions from './pages/UserSessions';
+import Contributors from './pages/Contributors';
 import FindingDrawer from './components/FindingDrawer';
 import ToastHost from './components/ToastHost';
 import { getBridgeStatus, getFindingById, getFindings } from './services/api';
@@ -171,6 +172,7 @@ export default function App() {
             <Route path="/model-integrity" element={<RequireRole roles={['ANALYST']}><ModelIntegrity /></RequireRole>} />
 
             {/* Shared */}
+            <Route path="/contributors" element={<Contributors notify={notify} />} />
             <Route path="/findings" element={<Findings onOpenFinding={findingTarget} />} />
             <Route
               path="/evidence-vault"

@@ -9,18 +9,50 @@
 import { authFetch, BRIDGE_BASE_URL } from './authApi';
 
 // ---------------------------------------------------------------------------
-// Analyst — uploads (multipart)
+// Contributor / Vendor Management
 // ---------------------------------------------------------------------------
-export async function uploadAsset(kind, file) {
+export function listContributors() {
+  return authFetch('/api/contributors').then((d) => d.contributors || []);
+}
+
+export function getContributor(id) {
+  return authFetch(`/api/contributors/${encodeURIComponent(id)}`).then((d) => d.contributor);
+}
+
+export function createContributor(data) {
+  return authFetch('/api/contributors', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+}
+
+export function updateContributor(id, data) {
+  return authFetch(`/api/contributors/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data)
+  });
+}
+
+export function getContributorDatasets(id) {
+  return authFetch(`/api/contributors/${encodeURIComponent(id)}/datasets`).then((d) => d.datasets || []);
+}
+
+export function getContributorModels(id) {
+  return authFetch(`/api/contributors/${encodeURIComponent(id)}/models`).then((d) => d.models || []);
+}
+
+// ---------------------------------------------------------------------------
+// Analyst — uploads (multipart single & multiple)
+// ---------------------------------------------------------------------------
+export async function uploadAsset(kind, file, contributorId = 'unassigned') {
   const token = localStorage.getItem('sv-token');
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('contributorId', contributorId);
   const res = await fetch(`${BRIDGE_BASE_URL}/api/uploads/${kind}`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
-    body: (() => {
-      const fd = new FormData();
-      fd.append('file', file);
-      return fd;
-    })()
+    body: fd
   });
   const body = await res.json().catch(() => null);
   if (!res.ok) {
@@ -31,17 +63,47 @@ export async function uploadAsset(kind, file) {
   return body.upload;
 }
 
-export function listUploads() {
-  return authFetch('/api/uploads').then((d) => d.uploads || []);
+export async function uploadMultipleAssets(kind, files, contributorId = 'unassigned') {
+  const token = localStorage.getItem('sv-token');
+  const endpoint = kind === 'model' ? '/api/models/upload' : '/api/datasets/upload';
+  const fd = new FormData();
+  fd.append('contributorId', contributorId);
+  for (const f of files) {
+    fd.append('files', f);
+  }
+  const res = await fetch(`${BRIDGE_BASE_URL}${endpoint}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: fd
+  });
+  const body = await res.json().catch(() => null);
+  if (!res.ok && !body?.results) {
+    const err = new Error(body?.details || body?.error || `Upload failed: ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
+  return body;
+}
+
+export function listUploads(contributorId) {
+  const q = contributorId && contributorId !== 'all' ? `?contributorId=${encodeURIComponent(contributorId)}` : '';
+  return authFetch(`/api/uploads${q}`).then((d) => d.uploads || []);
 }
 
 // ---------------------------------------------------------------------------
-// Analyst — trustworthiness / training / tests
+// Analyst — trustworthiness / training / tests / batches
 // ---------------------------------------------------------------------------
-export function runTrustCheck({ datasetId, modelId, labelsPath }) {
+export function runTrustCheck({ datasetId, modelId, labelsPath, contributorId, contributorName, batchId }) {
   return authFetch('/api/trust/run', {
     method: 'POST',
-    body: JSON.stringify({ datasetId, modelId, labelsPath })
+    body: JSON.stringify({ datasetId, modelId, labelsPath, contributorId, contributorName, batchId })
+  });
+}
+
+export function runTrustBatch({ contributorId, pairs, configId, testType }) {
+  return authFetch('/api/trust/batch', {
+    method: 'POST',
+    body: JSON.stringify({ contributorId, pairs, configId, testType })
   });
 }
 

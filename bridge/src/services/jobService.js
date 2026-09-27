@@ -10,6 +10,7 @@ const RUN_LOGS_DIR = path.join(WORKSPACE_ROOT, 'reports/runs');
 const JOBS_FILE = path.join(WORKSPACE_ROOT, 'data/jobs.json');
 const AUDIT_FILE = path.join(WORKSPACE_ROOT, 'data/audit_trail.json');
 const UPLOADS_META_FILE = path.join(WORKSPACE_ROOT, 'data/uploads_meta.json');
+const CONTRIBUTORS_FILE = path.join(WORKSPACE_ROOT, 'data/contributors.json');
 
 for (const dir of [RUN_LOGS_DIR, path.dirname(JOBS_FILE)]) {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -47,6 +48,16 @@ function recordAuditEvent(eventType, payload, user = null) {
     auditTrail.push(event);
     saveState();
     return event;
+}
+
+function loadContributors() {
+    try {
+        return fs.existsSync(CONTRIBUTORS_FILE)
+            ? JSON.parse(fs.readFileSync(CONTRIBUTORS_FILE, 'utf-8'))
+            : [];
+    } catch {
+        return [];
+    }
 }
 
 function loadUploads() {
@@ -270,25 +281,50 @@ async function executeJob(job, normType, dataset, model, configId, logStream) {
     if (normType === 'FULL_ASSURANCE' || normType === 'TRUST_CHECK') {
         const reportOutputDir = path.join(WORKSPACE_ROOT, 'reports', job.run_id);
         fs.mkdirSync(reportOutputDir, { recursive: true });
-        await run('GOVERNANCE REPORT', 'python3', [
+        const reportArgs = [
             '-m', 'governance.cli', 'assess',
             '--data-results', job.dataResultsPath || path.join(WORKSPACE_ROOT, 'data-integrity/results/integrity_results.json'),
             '--model-findings', job.modelResultsPath || path.join(WORKSPACE_ROOT, 'model-integrity/findings.json'),
             '--drift-results', job.driftResultsPath || path.join(WORKSPACE_ROOT, 'drift-monitor/results/drift_results.json'),
             '--inference-records', path.join(WORKSPACE_ROOT, 'inference-provenance/seal_coverage_results.json'),
             '--output', reportOutputDir
-        ], WORKSPACE_ROOT);
+        ];
+        if (job.contributorId && job.contributorId !== 'unassigned') {
+            reportArgs.push('--contributor-id', job.contributorId);
+            reportArgs.push('--contributor-name', job.contributorName || job.contributorId);
+        }
+        if (job.datasetId) reportArgs.push('--dataset-id', job.datasetId);
+        if (job.modelId) reportArgs.push('--model-id', job.modelId);
+
+        await run('GOVERNANCE REPORT', 'python3', reportArgs, WORKSPACE_ROOT);
         const reportJson = path.join(reportOutputDir, 'assurance_report.json');
         if (!fs.existsSync(reportJson)) throw new Error('Governance command completed but assurance_report.json was not produced.');
         job.reportPath = reportJson;
         const report = JSON.parse(fs.readFileSync(reportJson, 'utf-8'));
+        report.contributor = {
+            id: job.contributorId || 'unassigned',
+            name: job.contributorName || 'Unassigned'
+        };
+        if (!report.assets) report.assets = {};
+        report.assets.contributor = {
+            id: job.contributorId || 'unassigned',
+            name: job.contributorName || 'Unassigned'
+        };
+        if (Array.isArray(report.findings)) {
+            report.findings.forEach(f => {
+                f.contributorId = job.contributorId || 'unassigned';
+                f.contributorName = job.contributorName || 'Unassigned';
+            });
+        }
+        fs.writeFileSync(reportJson, JSON.stringify(report, null, 2), 'utf-8');
+
         job.disposition = report.governance_disposition || job.disposition || 'REVIEW';
         job.trustStatus = job.disposition === 'ACCEPT' ? 'PASS' : job.disposition === 'REVIEW' ? 'WARNING' : 'FAIL';
         job.findingsCount = Array.isArray(report.findings) ? report.findings.length : job.findingsCount;
     }
 }
 
-function startJob({ testType = 'FULL_ASSURANCE', datasetId, modelId, configId, user }) {
+function startJob({ testType = 'FULL_ASSURANCE', datasetId, modelId, configId, user, contributorId: explicitContribId, contributorName: explicitContribName, batchId }) {
     const runId = `test-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
     const logPath = path.join(RUN_LOGS_DIR, `${runId}.log`);
     const logStream = fs.createWriteStream(logPath, { flags: 'a' });
@@ -296,12 +332,23 @@ function startJob({ testType = 'FULL_ASSURANCE', datasetId, modelId, configId, u
     const dataset = resolveAsset(datasetId, 'dataset');
     const model = resolveAsset(modelId, 'model');
 
+    const contributorId = explicitContribId || dataset?.contributorId || model?.contributorId || 'unassigned';
+    let contributorName = explicitContribName || dataset?.contributorName || model?.contributorName;
+    if (!contributorName || contributorName === 'Unassigned') {
+        const contribList = loadContributors();
+        const c = contribList.find(x => x.id === contributorId);
+        contributorName = c ? c.name : (contributorId === 'unassigned' ? 'Unassigned' : contributorId);
+    }
+
     const job = {
         run_id: runId,
         testId: runId,
+        batchId: batchId || null,
         testType: normType,
         status: 'RUNNING',
         currentStep: 'Resolving selected assets',
+        contributorId,
+        contributorName,
         datasetId: datasetId || null,
         datasetName: dataset?.originalName || datasetId || null,
         modelId: modelId || null,
@@ -329,7 +376,7 @@ function startJob({ testType = 'FULL_ASSURANCE', datasetId, modelId, configId, u
 
     jobs[runId] = job;
     saveState();
-    recordAuditEvent('JOB_STARTED', { runId, testType: normType, datasetId, modelId }, user);
+    recordAuditEvent('JOB_STARTED', { runId, testType: normType, datasetId, modelId, contributorId, contributorName, batchId: job.batchId }, user);
 
     (async () => {
         try {
@@ -362,6 +409,9 @@ function startJob({ testType = 'FULL_ASSURANCE', datasetId, modelId, configId, u
                 status: job.status,
                 trustStatus: job.trustStatus,
                 durationMs: job.durationMs,
+                contributorId: job.contributorId,
+                contributorName: job.contributorName,
+                batchId: job.batchId,
                 error: job.error || null
             }, user);
         }
