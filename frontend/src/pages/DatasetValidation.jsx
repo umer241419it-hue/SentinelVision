@@ -56,6 +56,7 @@ export default function DatasetValidation({ notify }) {
   const [contributors, setContributors] = useState([]);
   const [availableDatasets, setAvailableDatasets] = useState([]);
   const [selectedDatasetId, setSelectedDatasetId] = useState('');
+  const [sourceMode, setSourceMode] = useState('existing');
   const [contributorId, setContributorId] = useState('');
   const [folderMode, setFolderMode] = useState(false);
   const inputRef = useRef(null);
@@ -104,6 +105,7 @@ export default function DatasetValidation({ notify }) {
   function selectExistingDataset(id) {
     const dataset = availableDatasets.find((d) => (d.id || d.uploadId) === id);
     setSelectedDatasetId(id);
+    setSourceMode('existing');
     if (!dataset) return;
 
     if (dataset.contributorId && dataset.contributorId !== 'unassigned') {
@@ -225,23 +227,24 @@ export default function DatasetValidation({ notify }) {
           <span className="hdr-meta">{rules.label.toUpperCase()} · {rules.extensions.join(' · ')}</span>
         </div>
 
-        <label className="dv-field-label">DATASET *</label>
-        <select
-          className="dv-contributor-select"
-          value={selectedDatasetId}
-          onChange={(e) => selectExistingDataset(e.target.value)}
-          disabled={busy}
-        >
-          <option value="">SELECT REGISTERED DATASET</option>
-          {availableDatasets.map((d) => (
-            <option key={d.id || d.uploadId} value={d.id || d.uploadId}>
-              {d.name || d.originalName || d.uploadId}
-            </option>
-          ))}
-        </select>
-        <span className="dv-field-help">
-          {availableDatasets.length ? availableDatasets.length + ' registered dataset(s) available. Select one to validate without re-uploading.' : 'No registered datasets found. Use the upload controls below to register/validate a new dataset.'}
-        </span>
+        <div className="dv-source-tabs">
+          <button
+            type="button"
+            className={`dv-source-tab ${sourceMode === 'existing' ? 'active' : ''}`}
+            onClick={() => { setSourceMode('existing'); setFiles([]); setPrecheck([]); setFolderMode(false); setReport(null); }}
+            disabled={busy}
+          >
+            SELECT REGISTERED DATASET
+          </button>
+          <button
+            type="button"
+            className={`dv-source-tab ${sourceMode === 'upload' ? 'active' : ''}`}
+            onClick={() => { setSourceMode('upload'); setSelectedDatasetId(''); setReport(null); }}
+            disabled={busy}
+          >
+            UPLOAD DATASET
+          </button>
+        </div>
 
         <label className="dv-field-label">CONTRIBUTOR / VENDOR *</label>
         <select className="dv-contributor-select" value={contributorId} onChange={(e) => setContributorId(e.target.value)} disabled={busy || !!selectedDatasetId}>
@@ -253,6 +256,36 @@ export default function DatasetValidation({ notify }) {
         <span className="dv-field-help">
           {selectedDatasetId ? 'Contributor is taken from the selected registered dataset.' : 'For a new upload, select the contributor that supplied the dataset.'}
         </span>
+
+        {sourceMode === 'existing' ? (
+          <div className="dv-existing-box">
+            <label className="dv-field-label">REGISTERED DATASET *</label>
+            <select
+              className="dv-contributor-select"
+              value={selectedDatasetId}
+              onChange={(e) => selectExistingDataset(e.target.value)}
+              disabled={busy || !contributorId}
+            >
+              <option value="">{contributorId ? 'SELECT REGISTERED DATASET' : 'SELECT CONTRIBUTOR FIRST'}</option>
+              {availableDatasets
+                .filter((d) => !contributorId || !d.contributorId || d.contributorId === contributorId)
+                .map((d) => (
+                  <option key={d.id || d.uploadId} value={d.id || d.uploadId}>
+                    {d.name || d.originalName || d.uploadId}
+                  </option>
+                ))}
+            </select>
+            <span className="dv-field-help">
+              {availableDatasets.length
+                ? availableDatasets.length + ' registered dataset(s) available. Select one to validate without uploading again.'
+                : 'No registered datasets are available. Switch to UPLOAD DATASET.'}
+            </span>
+          </div>
+        ) : (
+          <div className="dv-upload-mode-note">
+            SELECT DATASET FILES OR A COMPLETE DATASET FOLDER BELOW. THE SELECTED CONTENT WILL BE SENT FOR VALIDATION.
+          </div>
+        )}
 
         <div className="dv-kind-row">
           <button
@@ -273,6 +306,7 @@ export default function DatasetValidation({ notify }) {
           </button>
         </div>
 
+        {sourceMode === 'upload' && (
         <div className="dv-pick-grid">
           <button className="dv-drop" disabled={busy} onClick={() => inputRef.current?.click()}>
             <Package size={20} />
@@ -291,6 +325,7 @@ export default function DatasetValidation({ notify }) {
             <span className="dv-allowed mono">FOLDER STRUCTURE IS PRESERVED</span>
           </button>
         </div>
+        )}
         <input
           ref={inputRef}
           type="file"
@@ -324,7 +359,7 @@ export default function DatasetValidation({ notify }) {
 
         <button
           className="auth-submit dv-validate"
-          disabled={busy || (!selectedDatasetId && files.length === 0) || !contributorId || (!selectedDatasetId && !folderMode && precheck.some((p) => !p.ok))}
+          disabled={busy || (sourceMode === 'existing' ? !selectedDatasetId : files.length === 0) || !contributorId || (sourceMode === 'upload' && !folderMode && precheck.some((p) => !p.ok))}
           onClick={doValidate}
         >
           {busy
