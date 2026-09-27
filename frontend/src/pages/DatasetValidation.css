@@ -289,3 +289,49 @@
 /* ---------- History ---------- */
 .dv-hid { color: var(--accent-cyan); font-size: 10.5px; }
 .dv-history .dt-wrap { max-height: 320px; }
+
+
+/* ---------- Contributor attribution ---------- */
+.dv-contributor-row {
+  display: grid;
+  grid-template-columns: auto minmax(220px, 1fr);
+  align-items: center;
+  gap: 7px 10px;
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid var(--border-medium);
+  background: var(--surface-0);
+}
+.dv-field-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  color: var(--text-muted);
+}
+.dv-contributor-select {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--border-medium);
+  background: var(--surface-1, var(--surface-0));
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 11px;
+}
+.dv-field-help {
+  grid-column: 2;
+  font-size: 9.5px;
+  color: var(--text-faint);
+}
+.dv-contributor-badge {
+  display: inline-block;
+  padding: 3px 7px;
+  border: 1px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+  font-size: 9px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+@media (max-width: 600px) {
+  .dv-contributor-row { grid-template-columns: 1fr; }
+  .dv-field-help { grid-column: 1; }
+}
