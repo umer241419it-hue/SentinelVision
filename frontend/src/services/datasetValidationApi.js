@@ -117,6 +117,13 @@ export async function uploadAndValidateDataset(kind, files, contributorId, datas
   return { httpStatus: res.status, report: body };
 }
 
+export function listDatasets(contributorId = 'all') {
+  const q = contributorId && contributorId !== 'all'
+    ? `?contributorId=${encodeURIComponent(contributorId)}`
+    : '';
+  return authFetch(`/api/datasets${q}`).then((d) => d.datasets || []);
+}
+
 export function listDatasetValidations(limit = 50) {
   return authFetch(`/api/datasets/validations?limit=${limit}`).then((d) => d.validations || []);
 }
