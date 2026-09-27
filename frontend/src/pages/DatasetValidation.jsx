@@ -343,13 +343,13 @@ export default function DatasetValidation({ notify }) {
               <div className={`dv-callout ${report.engine.status === 'COMPLETED' ? 'dv-callout-ok' : 'dv-callout-reject'}`}>
                 {report.engine.status === 'COMPLETED' ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
                 <div>
-                  <b>DATA INTEGRITY ENGINE: {report.engine.status}</b>
+                  <b>DATA INTEGRITY ASSURANCE (DEMO): {report.engine.status}</b>
                   <div className="dv-callout-sub mono">
-                    {report.engine.imagesPresentedToEngine || 0} annotated image(s) executed through data-integrity/src/run_data_integrity.py
+                    {report.engine.imagesPresentedToEngine || 0} annotated image(s) evaluated by the deterministic demo assurance profile
                   </div>
                   {report.engine.output && (
                     <div className="dv-callout-sub mono">
-                      FLAGS: {report.engine.output.images_flagged ?? '—'} · CHECKS: {(report.engine.output.checks_run || []).join(', ') || 'duplicate, ood, label_flip'}
+                      VERDICT: {report.engine.output.verdict || '—'} · FLAGS: {report.engine.output.images_flagged ?? '—'} · CHECKS: {(report.engine.output.checks_run || []).join(', ') || 'duplicate, ood, label_flip'}
                     </div>
                   )}
                   {report.engine.stderr && report.engine.status !== 'COMPLETED' && (
