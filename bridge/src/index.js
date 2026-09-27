@@ -667,6 +667,8 @@ app.get('/api/contributors/:id/models', (req, res) => {
                      ...(report.errors || []),
                      ...(report.engine.output.findings || []).map(f => f.reason || 'Model integrity assurance detected a suspicious model behavior.')
                  ];
+             } else {
+                 report.status = 'VALID';
              }
          } else {
              report.engineVerdict = 'ENGINE_FAILED_OR_UNSUPPORTED';
