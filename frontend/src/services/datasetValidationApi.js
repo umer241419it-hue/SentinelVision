@@ -103,7 +103,7 @@ export async function uploadAndValidateDataset(kind, files, contributorId) {
   const token = localStorage.getItem('sv-token');
   const fd = new FormData();
   fd.append('contributorId', contributorId || '');
-  for (const f of files) fd.append('files', f);
+  for (const f of files) fd.append('files', f, f.webkitRelativePath || f.name);
   const res = await fetch(`${BRIDGE_BASE_URL}/api/datasets/validate?kind=${encodeURIComponent(kind)}`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
