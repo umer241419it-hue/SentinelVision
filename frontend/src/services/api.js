@@ -153,7 +153,27 @@ export async function getSystemHealth() {
     await delay();
     return SYSTEM_HEALTH;
   }
-  return bridgeFetch('/health');
+  const raw = await bridgeFetch('/health');
+  if (raw?.services) return raw;
+  const subsystems = raw?.subsystems || {};
+  const services = Object.entries(subsystems).map(([name, value]) => {
+    const statusMap = { ONLINE: 'PASS', ACTIVE: 'PASS', HEALTHY: 'PASS', READY: 'PASS', OPERATIONAL: 'PASS', STANDBY: 'WARNING' };
+    const status = statusMap[String(value?.status || '').toUpperCase()] || 'WARNING';
+    return {
+      name,
+      status,
+      detail: value?.device || value?.framework || value?.storageEngine || value?.channel || `status=${value?.status || 'UNKNOWN'}`,
+      uptime: raw.timestamp ? new Date(raw.timestamp).toLocaleTimeString() : '—'
+    };
+  });
+  const score = services.length ? Math.round((services.filter(s => s.status === 'PASS').length / services.length) * 100) : 0;
+  return {
+    ...raw,
+    score,
+    overall: score === 100 ? 'PASS' : score >= 75 ? 'WARNING' : 'FAIL',
+    services,
+    history: [{ time: new Date(raw.timestamp || Date.now()).toLocaleTimeString(), score }]
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -180,7 +200,15 @@ export async function getOverview() {
     await delay(180);
     return { kpis: OVERVIEW_KPIS, threats: THREAT_OVERVIEW };
   }
-  return bridgeFetch('/overview');
+  const data = await bridgeFetch('/overview');
+  return {
+    ...data,
+    threats: (data.threats || []).map((t) => ({
+      ...t,
+      level: t.level || t.severity || 'INFO',
+      color: t.color || (String(t.severity).toUpperCase() === 'CRITICAL' ? '#ef4444' : String(t.severity).toUpperCase() === 'HIGH' ? '#f97316' : '#60a5fa')
+    }))
+  };
 }
 
 export async function getActivitySeries(range) {
@@ -188,5 +216,10 @@ export async function getActivitySeries(range) {
     await delay(140);
     return buildActivitySeries(range);
   }
-  return bridgeFetch(`/overview/activity?range=${encodeURIComponent(range)}`);
+  const points = await bridgeFetch(`/overview/activity?range=${encodeURIComponent(range)}`);
+  return (points || []).map((p) => ({
+    ...p,
+    dataIntegrity: p.dataIntegrity ?? p.data ?? 0,
+    modelIntegrity: p.modelIntegrity ?? p.model ?? 0
+  }));
 }
