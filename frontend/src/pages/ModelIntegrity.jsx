@@ -107,7 +107,7 @@ export default function ModelIntegrity() {
     { label: 'Validation Status', value: summary.validationStatus },
     {
       label: 'Model Fleet',
-      value: `${signals.filter(s => s.ok).length} corroborated · ${signals.length} signals`
+      value: `${signals.filter(s => ['PASS','OK','CORROBORATED','EVALUATED'].includes(String(s.status || '').toUpperCase())).length} corroborated · ${signals.length} signals`
     }
   ];
 
@@ -142,7 +142,7 @@ export default function ModelIntegrity() {
               <div key={s.name || s.signal} className={`signal-row ${['PASS','OK','CORROBORATED','EVALUATED'].includes(String(s.status || '').toUpperCase()) ? 'ok' : 'flagged'}`}>
                 <span className={`signal-dot ${['PASS','OK','CORROBORATED','EVALUATED'].includes(String(s.status || '').toUpperCase()) ? 'ok' : 'flagged'}`} />
                 <div className="signal-info">
-                  <div className="signal-name">{s.name}</div>
+                  <div className="signal-name">{s.name || s.signal}</div>
                   <div className="signal-detail">{s.detail || s.interpretation || s.value || 'No detail available'}</div>
                 </div>
                 <StatusBadge status={s.status || 'UNKNOWN'} />
