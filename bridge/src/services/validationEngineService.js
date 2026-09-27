@@ -84,8 +84,8 @@ async function runDatasetIntegrityEngine({ validationId, kind, files, workspaceD
     const suspiciousMarkers = ['backdoor', 'trojan', 'poison', 'poisoned', 'label_flip', 'labelflip', 'trigger', 'malicious', 'tamper', 'attack'];
     const suspiciousPaths = allNames.filter(name => suspiciousMarkers.some(marker => name.includes(marker)));
 
-    const labelFiles = normalized.filter(f => /\\.txt$/i.test(f.filename) && !/classes?\\.txt$/i.test(f.filename));
-    const jsonFiles = normalized.filter(f => /\\.json$/i.test(f.filename));
+    const labelFiles = normalized.filter(f => /\.txt$/i.test(f.filename) && !/classes?\\.txt$/i.test(f.filename));
+    const jsonFiles = normalized.filter(f => /\.json$/i.test(f.filename));
     const hasAnnotations = kind === 'coco'
         ? jsonFiles.some(f => { try { const d = JSON.parse(f.buffer.toString('utf8')); return Array.isArray(d.annotations); } catch { return false; } })
         : labelFiles.length > 0;
