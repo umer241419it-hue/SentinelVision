@@ -319,14 +319,14 @@ export default function DatasetValidation({ notify }) {
         </div>
         <DataTable
           columns={[
-            { key: 'uploadId', label: 'ID', render: (r) => <span className="mono dv-hid">{r.uploadId}</span> },
-            { key: 'datasetFormat', label: 'Format', render: (r) => <span className="mono">{r.datasetFormat}</span> },
-            { key: 'originalName', label: 'File' },
+            { key: 'validationId', label: 'ID', render: (r) => <span className="mono dv-hid">{r.validationId}</span> },
+            { key: 'format', label: 'Format', render: (r) => <span className="mono">{r.format}</span> },
+            { key: 'filename', label: 'File' },
             { key: 'contributorName', label: 'Contributor', render: (r) => <span className="dv-contributor-badge">{r.contributorName || 'Unassigned'}</span> },
             { key: 'sizeBytes', label: 'Size', render: (r) => fmtBytes(r.sizeBytes) },
             { key: 'sha256', label: 'SHA-256', render: (r) => <span className="hash-chip" title={r.sha256}>{r.sha256?.slice(0, 12)}…</span> },
-            { key: 'processingStatus', label: 'Verdict', render: () => <StatusBadge status="PASS" /> },
-            { key: 'createdAt', label: 'Time', render: (r) => fmtTime(r.createdAt) }
+            { key: 'status', label: 'Verdict', render: (r) => <StatusBadge status={r.status === 'valid' ? 'PASS' : r.status === 'warning' ? 'WARNING' : 'FAIL'} /> },
+            { key: 'timestamp', label: 'Time', render: (r) => fmtTime(r.timestamp) }
           ]}
           rows={history}
           emptyMessage="NO VALIDATED DATASET FILES YET"
