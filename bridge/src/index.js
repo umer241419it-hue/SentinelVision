@@ -10,6 +10,8 @@ const authService = require('./services/authService');
 const dataService = require('./services/dataService');
 const jobService = require('./services/jobService');
 const datasetValidationService = require('./services/datasetValidationService');
+const modelValidationService = require('./services/modelValidationService');
+const modelHookService = require('./services/modelHookService');
 
 let fabricGateway = null;
 try {
@@ -625,6 +627,63 @@ app.get('/api/contributors/:id/models', (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
+ // 5A. Model Validation & Monitoring Hooks
+ // ---------------------------------------------------------------------------
+ app.get('/api/models/validations', (req, res) => {
+     const limit = Math.max(1, Math.min(100, Number(req.query.limit) || 50));
+     res.json({ validations: modelValidationService.listValidations().slice(0, limit) });
+ });
+ 
+ app.post('/api/models/validate/:id', (req, res) => {
+     loadUploads();
+     loadContributors();
+     const model = uploads.find(u => u.kind === 'model' && u.uploadId === req.params.id);
+     if (!model) return res.status(404).json({ error: 'Model not found in asset registry' });
+     const contributor = contributors.find(c => c.id === model.contributorId);
+     const report = modelValidationService.validateModelAsset(
+         { ...model, id: model.uploadId },
+         contributor || null
+     );
+     res.status(report.status === 'VALID' ? 200 : 422).json({ ok: report.status === 'VALID', report });
+ });
+ 
+ app.get('/api/model-hooks', (req, res) => {
+     res.json({ hooks: modelHookService.listHooks() });
+ });
+ 
+ app.post('/api/model-hooks', (req, res) => {
+     try {
+         loadUploads();
+         loadContributors();
+         const { modelId, contributorId, driftMonitoring, inferenceProvenance } = req.body || {};
+         const model = uploads.find(u => u.kind === 'model' && u.uploadId === modelId);
+         if (!model) return res.status(404).json({ error: 'Model not found in asset registry' });
+         const contributor = contributors.find(c => c.id === (contributorId || model.contributorId));
+         if (!contributor) return res.status(400).json({ error: 'Contributor / Vendor is required' });
+         if (model.contributorId !== contributor.id) {
+             return res.status(400).json({ error: 'Selected contributor does not match the model attribution' });
+         }
+         const hook = modelHookService.upsertHook({
+             modelId: model.uploadId,
+             modelName: model.originalName,
+             contributorId: contributor.id,
+             contributorName: contributor.name,
+             driftMonitoring,
+             inferenceProvenance
+         });
+         res.status(201).json({ hook });
+     } catch (err) {
+         res.status(400).json({ error: err.message });
+     }
+ });
+ 
+ app.post('/api/model-hooks/:id/disable', (req, res) => {
+     const hook = modelHookService.disableHook(req.params.id);
+     if (!hook) return res.status(404).json({ error: 'Hook not found' });
+     res.json({ hook });
+ });
+ 
+ // ---------------------------------------------------------------------------
 // 5. Uploads (/api/uploads, /api/datasets/upload, /api/models/upload)
 // ---------------------------------------------------------------------------
 async function handleMultipleAssetUpload(req, res, kind) {
