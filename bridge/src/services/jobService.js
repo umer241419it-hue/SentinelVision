@@ -11,6 +11,7 @@ const JOBS_FILE = path.join(WORKSPACE_ROOT, 'data/jobs.json');
 const AUDIT_FILE = path.join(WORKSPACE_ROOT, 'data/audit_trail.json');
 const UPLOADS_META_FILE = path.join(WORKSPACE_ROOT, 'data/uploads_meta.json');
 const CONTRIBUTORS_FILE = path.join(WORKSPACE_ROOT, 'data/contributors.json');
+const modelHookService = require('./modelHookService');
 
 for (const dir of [RUN_LOGS_DIR, path.dirname(JOBS_FILE)]) {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -195,6 +196,15 @@ async function executeJob(job, normType, dataset, model, configId, logStream) {
 
     const dataConfig = resolveConfig(configId, path.join(WORKSPACE_ROOT, 'data-integrity/config.json'));
     const driftConfig = resolveConfig(configId === 'cfg-drift-default' ? configId : null, path.join(WORKSPACE_ROOT, 'drift-monitor/config.json'));
+    const activeHook = model?.uploadId ? modelHookService.listHooks().find(h => h.modelId === model.uploadId && h.status === 'ACTIVE') : null;
+    if (activeHook) {
+        job.modelHook = {
+            hookId: activeHook.hookId,
+            driftMonitoring: activeHook.driftMonitoring,
+            inferenceProvenance: activeHook.inferenceProvenance
+        };
+        saveState();
+    }
 
     const run = async (label, command, args, cwd) => {
         job.currentStep = label;
@@ -256,7 +266,7 @@ async function executeJob(job, normType, dataset, model, configId, logStream) {
         }
     }
 
-    if (normType === 'DISTRIBUTION_SHIFT' || normType === 'DATA_DRIFT' || normType === 'FULL_ASSURANCE' || normType === 'TRUST_CHECK') {
+    if (normType === 'DISTRIBUTION_SHIFT' || normType === 'DATA_DRIFT' || normType === 'FULL_ASSURANCE' || normType === 'TRUST_CHECK' || activeHook?.driftMonitoring) {
         if (!datasetPath || !fs.existsSync(datasetPath) || !fs.statSync(datasetPath).isDirectory()) {
             throw new Error('Selected dataset cannot be used as the drift input.');
         }
@@ -273,7 +283,7 @@ async function executeJob(job, normType, dataset, model, configId, logStream) {
         summarizeDrift(job, driftOutput);
     }
 
-    if (normType === 'INFERENCE_INTEGRITY' || normType === 'INFERENCE_SEAL' || normType === 'FULL_ASSURANCE' || normType === 'TRUST_CHECK') {
+    if (normType === 'INFERENCE_INTEGRITY' || normType === 'INFERENCE_SEAL' || normType === 'FULL_ASSURANCE' || normType === 'TRUST_CHECK' || activeHook?.inferenceProvenance) {
         await run('INFERENCE PROVENANCE', 'python3', ['inference-provenance/src/demo_verify_full.py'], WORKSPACE_ROOT);
         setCheck(job, 'INFERENCE_SEAL', 'PASS', 'Inference provenance verification completed.');
     }
