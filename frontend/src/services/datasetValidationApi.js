@@ -99,11 +99,12 @@ export async function clientValidateFile(file, kind) {
  * (status: valid|warning|invalid|rejected). HTTP 201/422/400 map to
  * {ok:true, report}, the report itself carries the verdict.
  */
-export async function uploadAndValidateDataset(kind, files) {
+export async function uploadAndValidateDataset(kind, files, contributorId) {
   const token = localStorage.getItem('sv-token');
   const fd = new FormData();
+  fd.append('contributorId', contributorId || '');
   for (const f of files) fd.append('files', f);
-  const res = await fetch(`${BRIDGE_BASE_URL}/api/uploads/dataset-validate/${kind}`, {
+  const res = await fetch(`${BRIDGE_BASE_URL}/api/datasets/validate?kind=${encodeURIComponent(kind)}`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
     body: fd
@@ -116,5 +117,5 @@ export async function uploadAndValidateDataset(kind, files) {
 }
 
 export function listDatasetValidations(limit = 50) {
-  return authFetch(`/api/uploads/dataset-validate/history?limit=${limit}`).then((d) => d.validations || []);
+  return authFetch(`/api/datasets/validations?limit=${limit}`).then((d) => d.validations || []);
 }
