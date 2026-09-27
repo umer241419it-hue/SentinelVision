@@ -44,23 +44,16 @@ export function getContributorModels(id) {
 // ---------------------------------------------------------------------------
 // Analyst — uploads (multipart single & multiple)
 // ---------------------------------------------------------------------------
-export async function uploadAsset(kind, file, contributorId = 'unassigned') {
-  const token = localStorage.getItem('sv-token');
-  const fd = new FormData();
-  fd.append('file', file);
-  fd.append('contributorId', contributorId);
-  const res = await fetch(`${BRIDGE_BASE_URL}/api/uploads/${kind}`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
-    body: fd
-  });
-  const body = await res.json().catch(() => null);
-  if (!res.ok) {
-    const err = new Error(body?.details || body?.error || `Upload failed: ${res.status}`);
-    err.status = res.status;
-    throw err;
+export async function uploadAsset(kind, file, contributorId = '') {
+  if (!contributorId || contributorId === 'unassigned') {
+    throw new Error(`Select the contributor who provided this ${kind}.`);
   }
-  return body.upload;
+  const result = await uploadMultipleAssets(kind, [file], contributorId);
+  const first = result?.results?.[0];
+  if (!first || !['SUCCESS', 'EXISTS'].includes(first.status)) {
+    throw new Error(first?.error || `Upload failed for ${file?.name || kind}`);
+  }
+  return first;
 }
 
 export async function uploadMultipleAssets(kind, files, contributorId = 'unassigned') {
