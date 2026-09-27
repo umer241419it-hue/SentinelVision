@@ -332,7 +332,21 @@ function startJob({ testType = 'FULL_ASSURANCE', datasetId, modelId, configId, u
     const dataset = resolveAsset(datasetId, 'dataset');
     const model = resolveAsset(modelId, 'model');
 
-    const contributorId = explicitContribId || dataset?.contributorId || model?.contributorId || 'unassigned';
+    const assetContributorIds = [dataset?.contributorId, model?.contributorId]
+        .filter(Boolean)
+        .filter(id => id !== 'unassigned');
+    const uniqueAssetContributorIds = [...new Set(assetContributorIds)];
+
+    if (uniqueAssetContributorIds.length > 1) {
+        throw new Error('Selected dataset and model belong to different contributors. Select assets from the same contributor for this assurance run.');
+    }
+
+    const assetContributorId = uniqueAssetContributorIds[0] || null;
+    if (explicitContribId && assetContributorId && explicitContribId !== assetContributorId) {
+        throw new Error('Selected contributor does not match the contributor recorded on the selected asset.');
+    }
+
+    const contributorId = explicitContribId || assetContributorId || 'unassigned';
     let contributorName = explicitContribName || dataset?.contributorName || model?.contributorName;
     if (!contributorName || contributorName === 'Unassigned') {
         const contribList = loadContributors();
