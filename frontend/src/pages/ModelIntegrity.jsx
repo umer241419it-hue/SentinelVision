@@ -139,13 +139,13 @@ export default function ModelIntegrity() {
           </div>
           <div className="signal-list">
             {signals.map((s) => (
-              <div key={s.name} className={`signal-row ${s.ok ? 'ok' : 'flagged'}`}>
-                <span className={`signal-dot ${s.ok ? 'ok' : 'flagged'}`} />
+              <div key={s.name || s.signal} className={`signal-row ${['PASS','OK','CORROBORATED','EVALUATED'].includes(String(s.status || '').toUpperCase()) ? 'ok' : 'flagged'}`}>
+                <span className={`signal-dot ${['PASS','OK','CORROBORATED','EVALUATED'].includes(String(s.status || '').toUpperCase()) ? 'ok' : 'flagged'}`} />
                 <div className="signal-info">
                   <div className="signal-name">{s.name}</div>
-                  <div className="signal-detail">{s.detail}</div>
+                  <div className="signal-detail">{s.detail || s.interpretation || s.value || 'No detail available'}</div>
                 </div>
-                <StatusBadge status={s.status} />
+                <StatusBadge status={s.status || 'UNKNOWN'} />
               </div>
             ))}
           </div>
