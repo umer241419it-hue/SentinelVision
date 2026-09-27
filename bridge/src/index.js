@@ -1137,7 +1137,7 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
         for (const file of files) {
             const rawName = String(file.filename || 'unnamed');
             const relativeName = rawName
-                .replace(/\\\\/g, '/')
+                .replace(/\\/g, '/')
                 .replace(/^[/\\]+/, '')
                 .split('/')
                 .filter(part => part && part !== '.' && part !== '..')
