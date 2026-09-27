@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BadgeCheck, FileCheck2, Link2, Loader2, RefreshCw, ShieldCheck, Upload, XCircle } from 'lucide-react';
+import { BadgeCheck, FileCheck2, Link2, Loader2, RefreshCw, ShieldCheck, XCircle } from 'lucide-react';
 import GlassCard from '../components/GlassCard';
 import { listContributors, getContributorModels } from '../services/workflowApi';
 import { runInferenceProvenance, getInferenceRun, listInferenceEvidence } from '../services/inferenceProvenanceApi';
@@ -48,17 +48,25 @@ export default function InferenceProvenance({ notify }) {
     try {
       const started = await runInferenceProvenance({ contributorId, modelId });
       let current = started?.test || started;
+      const normalizeRun = (value) => ({
+        ...value,
+        runId: value?.runId || value?.run_id || value?.testId || value?.id || '',
+        status: String(value?.status || 'RUNNING').toUpperCase(),
+        checks: Array.isArray(value?.checks) ? value.checks : []
+      });
+      current = normalizeRun(current);
       setRun(current);
 
-      const terminal = new Set(['COMPLETED', 'FAILED', 'ERROR']);
-      for (let i = 0; i < 180 && !terminal.has(String(current?.status || '').toUpperCase()); i += 1) {
+      const terminal = new Set(['COMPLETED', 'FAILED', 'ERROR', 'CANCELLED']);
+      for (let i = 0; i < 180 && !terminal.has(current.status); i += 1) {
+        if (!current.runId) break;
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        current = await getInferenceRun(current.runId || current.testId || current.id);
+        current = normalizeRun(await getInferenceRun(current.runId));
         setRun(current);
       }
 
       await refresh();
-      if (String(current?.status || '').toUpperCase() === 'COMPLETED') {
+      if (current.status === 'COMPLETED') {
         notify?.('Inference provenance verification completed.', 'success');
       } else {
         notify?.('Inference provenance verification did not complete successfully.', 'error');
@@ -117,8 +125,8 @@ export default function InferenceProvenance({ notify }) {
               <span className="ip-run-id">{run.runId || run.testId || run.id}</span>
             </div>
             <div className="ip-checks">
-              {(run.checks || []).map((check) => (
-                <div className="ip-check" key={check.name}>
+              {(Array.isArray(run.checks) ? run.checks : []).map((check, index) => (
+                <div className="ip-check" key={check.name || index}>
                   {String(check.status).toUpperCase() === 'PASS' ? <BadgeCheck size={15} /> : <XCircle size={15} />}
                   <span><b>{check.name}</b><small>{check.message || check.detail || check.status}</small></span>
                 </div>
