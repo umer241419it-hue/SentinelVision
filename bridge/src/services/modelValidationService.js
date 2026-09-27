@@ -99,10 +99,18 @@ function validateModelAsset(model, contributor) {
     return report;
 }
 
+function updateValidation(validationId, patch) {
+    const index = history.findIndex(v => v.validationId === validationId);
+    if (index < 0) return null;
+    history[index] = { ...history[index], ...patch };
+    saveHistory();
+    return history[index];
+}
+
 function listValidations() {
     return history;
 }
 
 loadHistory();
 
-module.exports = { validateModelAsset, listValidations, ALLOWED_EXTENSIONS };
+module.exports = { validateModelAsset, updateValidation, listValidations, ALLOWED_EXTENSIONS };
