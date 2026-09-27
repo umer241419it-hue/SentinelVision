@@ -6,7 +6,7 @@ import {
 import GlassCard from '../components/GlassCard';
 import { StatusBadge } from '../components/Badges';
 import {
-  uploadAsset, listUploads, runTrustCheck, listMyTests, submitForQuarantine
+  uploadAsset, listUploads, runTrustCheck, listMyTests, getTestDetail, submitForQuarantine
 } from '../services/workflowApi';
 import './AnalystWorkspace.css';
 
@@ -105,7 +105,7 @@ export default function AnalystWorkspace({ notify }) {
       const deadline = Date.now() + 30 * 60 * 1000;
       while (current && ['QUEUED', 'RUNNING'].includes(current.status) && Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, 1500));
-        current = await (await import('../services/workflowApi')).getTestDetail(data.test.testId);
+        current = await getTestDetail(data.test.testId);
         setLastTest(current);
       }
 
