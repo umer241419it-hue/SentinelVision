@@ -644,7 +644,7 @@ app.get('/api/contributors/:id/models', (req, res) => {
          { ...model, id: model.uploadId },
          contributor || null
      );
-     res.status(report.status === 'VALID' ? 200 : 422).json({ ok: report.status === 'VALID', report });
+     res.status(200).json({ ok: report.status === 'VALID', report });
  });
  
  app.get('/api/model-hooks', (req, res) => {
