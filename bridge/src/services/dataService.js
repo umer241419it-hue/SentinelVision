@@ -342,53 +342,62 @@ function getOverview() {
     const findings = getAllFindings();
     const criticals = findings.filter(f => f.severity === 'CRITICAL').length;
     const highs = findings.filter(f => f.severity === 'HIGH').length;
-    const mediums = findings.filter(f => f.severity === 'MEDIUM').length;
-    const lows = findings.filter(f => f.severity === 'LOW').length;
-
     const driftEvents = findings.filter(f => f.moduleName === 'DriftMonitor').length;
-    const integrityAlerts = findings.filter(f => ['DataIntegrity', 'ModelIntegrity'].includes(f.moduleName) && ['CRITICAL', 'HIGH'].includes(f.severity)).length;
+    const integrityAlerts = findings.filter(
+        f => ['DataIntegrity', 'ModelIntegrity'].includes(f.moduleName) &&
+             ['CRITICAL', 'HIGH'].includes(f.severity)
+    ).length;
     const ledgerTx = findings.filter(f => f.ledgerStatus === 'COMMITTED').length;
 
     const kpis = {
-        systemHealth: { value: '99.8%', trend: '+0.2%', up: true },
-        activeFindings: { value: findings.length, trend: '+2', up: false },
-        driftEvents: { value: driftEvents, trend: '+1', up: false },
-        integrityAlerts: { value: integrityAlerts, trend: '-3', up: true },
-        ledgerTx: { value: ledgerTx, trend: '+5', up: true }
+        systemHealth: { value: findings.length ? 'OPERATIONAL' : 'NO FINDINGS', trend: '', up: true },
+        activeFindings: { value: findings.length, trend: '', up: findings.length === 0 },
+        driftEvents: { value: driftEvents, trend: '', up: driftEvents === 0 },
+        integrityAlerts: { value: integrityAlerts, trend: '', up: integrityAlerts === 0 },
+        ledgerTx: { value: ledgerTx, trend: '', up: true }
     };
 
-    const threats = [
-        { category: 'Label Flip Attacks', count: 8, severity: 'HIGH', trend: '+2' },
-        { category: 'Trigger/Backdoor Injections', count: criticals, severity: 'CRITICAL', trend: 'STABLE' },
-        { category: 'Distribution Shift (MMD)', count: driftEvents, severity: 'HIGH', trend: '+1' },
-        { category: 'Near-Duplicate Flooding', count: 20, severity: 'MEDIUM', trend: 'RESOLVED' },
-        { category: 'Out-Of-Distribution (OOD)', count: 9, severity: 'MEDIUM', trend: 'MONITORING' }
-    ];
+    const grouped = new Map();
+    for (const f of findings) {
+        const key = f.moduleName || 'Unknown';
+        grouped.set(key, (grouped.get(key) || 0) + 1);
+    }
+    const threats = [...grouped.entries()].map(([category, count]) => {
+        const moduleFindings = findings.filter(f => (f.moduleName || 'Unknown') === category);
+        const severity = moduleFindings.some(f => f.severity === 'CRITICAL') ? 'CRITICAL'
+            : moduleFindings.some(f => f.severity === 'HIGH') ? 'HIGH'
+            : moduleFindings.some(f => f.severity === 'MEDIUM') ? 'MEDIUM' : 'LOW';
+        return { category, count, severity, trend: '' };
+    });
 
     return { kpis, threats };
 }
 
 function getActivitySeries(range = '24H') {
     const count = range === '7D' ? 7 : range === '30D' ? 30 : 24;
-    const points = [];
     const now = Date.now();
-    const stepMs = (range === '7D' ? 7 * 86400000 : range === '30D' ? 30 * 86400000 : 86400000) / count;
+    const windowMs = range === '7D' ? 7 * 86400000 : range === '30D' ? 30 * 86400000 : 86400000;
+    const bucketMs = windowMs / count;
+    const points = Array.from({ length: count }, (_, i) => ({
+        time: range === '24H'
+            ? new Date(now - (count - 1 - i) * bucketMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : new Date(now - (count - 1 - i) * bucketMs).toLocaleDateString([], { month: 'numeric', day: 'numeric' }),
+        drift: 0,
+        data: 0,
+        model: 0,
+        findings: 0
+    }));
 
-    for (let i = 0; i < count; i++) {
-        const t = new Date(now - (count - 1 - i) * stepMs);
-        const label = range === '24H'
-            ? `${String(t.getHours()).padStart(2, '0')}:00`
-            : `${t.getMonth() + 1}/${t.getDate()}`;
-
-        points.push({
-            time: label,
-            drift: Math.max(1, Math.round(2 + Math.sin(i * 0.8) * 2)),
-            data: Math.max(2, Math.round(5 + Math.cos(i * 0.5) * 3)),
-            model: Math.max(0, Math.round(1 + Math.sin(i * 1.2))),
-            findings: Math.max(1, Math.round(3 + Math.sin(i * 0.4) * 2))
-        });
+    const findings = getAllFindings();
+    for (const finding of findings) {
+        const t = new Date(finding.timestamp).getTime();
+        if (!Number.isFinite(t) || t < now - windowMs) continue;
+        const idx = Math.min(count - 1, Math.floor((t - (now - windowMs)) / bucketMs));
+        points[idx].findings += 1;
+        if (finding.moduleName === 'DriftMonitor') points[idx].drift += 1;
+        if (finding.moduleName === 'DataIntegrity') points[idx].data += 1;
+        if (finding.moduleName === 'ModelIntegrity') points[idx].model += 1;
     }
-
     return points;
 }
 
