@@ -335,3 +335,5 @@
   .dv-contributor-row { grid-template-columns: 1fr; }
   .dv-field-help { grid-column: 1; }
 }
+
+.dv-pick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.dv-folder-drop{border-style:dashed}.dv-folder-drop span{max-width:34ch}@media(max-width:900px){.dv-pick-grid{grid-template-columns:1fr}}
