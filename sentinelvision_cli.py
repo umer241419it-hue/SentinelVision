@@ -371,7 +371,7 @@ def cmd_integrity_scan(args):
     print(f"[OK] Scan complete: {len(sample_findings)} anomalous samples, {len(group_analysis['group_findings'])} group anomalies.")
 
     # Save scan outputs
-    results_dir = os.path.join(WORKSPACE_ROOT, "datasets", "sentinelvision_voc2012", "results")
+    results_dir = os.path.abspath(args.output_dir or os.path.join(WORKSPACE_ROOT, "datasets", "sentinelvision_voc2012", "results"))
     os.makedirs(results_dir, exist_ok=True)
     scan_output_path = os.path.join(results_dir, "scan_findings.json")
     with open(scan_output_path, "w", encoding="utf-8") as f:
@@ -630,6 +630,7 @@ def main():
     p_scan.add_argument("--dataset", required=True, help="Path to dataset directory")
     p_scan.add_argument("--config", default=None, help="Configuration file")
     p_scan.add_argument("--limit", type=int, default=None, help="Sample limit")
+    p_scan.add_argument("--output-dir", default=None, help="Directory for this scan's scan_findings.json")
     p_scan.set_defaults(func=cmd_integrity_scan)
 
     p_eval = p_int_sub.add_parser("evaluate", help="Evaluate scan against attack manifest")
