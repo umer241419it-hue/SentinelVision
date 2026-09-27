@@ -159,8 +159,8 @@ function summarizeModel(job, resultPath = null) {
     }
 }
 
-function summarizeDrift(job) {
-    const p = path.join(WORKSPACE_ROOT, 'drift-monitor/results/drift_results.json');
+function summarizeDrift(job, resultPath = null) {
+    const p = resultPath || path.join(WORKSPACE_ROOT, 'drift-monitor/results/drift_results.json');
     if (!fs.existsSync(p)) return;
     try {
         const r = JSON.parse(fs.readFileSync(p, 'utf-8'));
@@ -249,12 +249,17 @@ async function executeJob(job, normType, dataset, model, configId, logStream) {
         if (!datasetPath || !fs.existsSync(datasetPath) || !fs.statSync(datasetPath).isDirectory()) {
             throw new Error('Selected dataset cannot be used as the drift input.');
         }
+        const driftOutput = path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'drift-monitor', 'drift_results.json');
+        fs.mkdirSync(path.dirname(driftOutput), { recursive: true });
         await run('DISTRIBUTION SHIFT', 'python3', [
             '-m', 'src.run_drift_monitor',
             '--config', driftConfig,
-            '--input', datasetPath
+            '--input', datasetPath,
+            '--run-id', job.run_id,
+            '--output', driftOutput
         ], path.join(WORKSPACE_ROOT, 'drift-monitor'));
-        summarizeDrift(job);
+        job.driftResultsPath = driftOutput;
+        summarizeDrift(job, driftOutput);
     }
 
     if (normType === 'INFERENCE_INTEGRITY' || normType === 'INFERENCE_SEAL' || normType === 'FULL_ASSURANCE' || normType === 'TRUST_CHECK') {
