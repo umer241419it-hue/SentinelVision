@@ -14,6 +14,7 @@ const http = require('http');
 
 const PORT = 3000;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
+const REQUEST_TIMEOUT_MS = 15000;
 
 function request(method, path, body = null, headers = {}) {
   return new Promise((resolve, reject) => {
@@ -50,7 +51,14 @@ function request(method, path, body = null, headers = {}) {
       });
     });
 
-    req.on('error', reject);
+    const timeout = setTimeout(() => {
+      req.destroy(new Error(`Request timed out after ${REQUEST_TIMEOUT_MS}ms: ${method} ${path}`));
+    }, REQUEST_TIMEOUT_MS);
+    req.on('error', (err) => {
+      clearTimeout(timeout);
+      reject(err);
+    });
+    req.on('close', () => clearTimeout(timeout));
     if (payload) req.write(payload);
     req.end();
   });
@@ -180,8 +188,11 @@ async function runTests() {
     const allAlpha = res9.body.datasets.every(d => d.contributorId === 'vendor-alpha');
     assert(allAlpha, 'All returned datasets belong to vendor-alpha');
 
-    // 10. Start assurance run and verify contributor context
+    // 10. Start assurance run and verify contributor context.
+    // Use a lightweight job type so this integration test does not launch the
+    // full GPU/assurance pipeline and hang while waiting for a long-running job.
     const res10 = await request('POST', '/api/trust/run', {
+      testType: 'MODEL_INTEGRITY',
       datasetId: 'dataset-voc2012-clean',
       modelId: 'model-clean-res50-0028',
       contributorId: 'vendor-alpha',
