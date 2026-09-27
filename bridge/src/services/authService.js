@@ -106,6 +106,7 @@ function verifyJwt(token, secret = JWT_SECRET) {
 
 // In-memory user cache pre-seeded with analyst & auditor
 let users = {};
+let sessions = [];
 
 function initUsers() {
     if (fs.existsSync(USERS_FILE)) {
@@ -177,6 +178,19 @@ function login(email, password) {
     };
     const token = signJwt(tokenPayload);
 
+    sessions.push({
+        sessionId: `sess-${crypto.randomBytes(6).toString('hex')}`,
+        userId: user.id,
+        userName: user.fullName,
+        userRole: user.role,
+        loginAt: new Date().toISOString(),
+        lastActivityAt: new Date().toISOString(),
+        logoutAt: null,
+        status: 'ACTIVE',
+        ip: null,
+        device: 'Electron Desktop'
+    });
+
     return {
         token,
         user: {
@@ -211,6 +225,7 @@ function register({ fullName, email, password, role = 'ANALYST' }) {
         email: cleanEmail,
         fullName: fullName.trim(),
         role: assignedRole,
+        accountStatus: 'ACTIVE',
         passwordHash: hashPassword(password),
         createdAt: new Date().toISOString()
     };
@@ -225,9 +240,33 @@ function register({ fullName, email, password, role = 'ANALYST' }) {
             id: newUser.id,
             email: newUser.email,
             fullName: newUser.fullName,
-            role: newUser.role
+            role: newUser.role,
+            accountStatus: newUser.accountStatus
         }
     };
+}
+
+function listUsers() {
+    return Object.values(users).map(({ passwordHash, ...user }) => ({
+        ...user,
+        accountStatus: user.accountStatus || 'ACTIVE'
+    }));
+}
+
+function setUserStatus(userId, status) {
+    const user = Object.values(users).find((u) => u.id === userId);
+    if (!user) { const err = new Error('User not found'); err.status = 404; throw err; }
+    user.accountStatus = ['ACTIVE', 'SUSPENDED', 'PENDING'].includes(status) ? status : 'ACTIVE';
+    saveUsers();
+    return { ...user, passwordHash: undefined };
+}
+
+function approvePendingUser(userId) {
+    return setUserStatus(userId, 'ACTIVE');
+}
+
+function listSessions() {
+    return sessions.slice().reverse();
 }
 
 function requireAuth(req, res, next) {
@@ -263,5 +302,9 @@ module.exports = {
     register,
     verifyJwt,
     requireAuth,
-    requireRole
+    requireRole,
+    listUsers,
+    setUserStatus,
+    approvePendingUser,
+    listSessions
 };
