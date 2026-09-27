@@ -213,11 +213,11 @@ export default function ModelIntegrity() {
           </div>
           <div className="meta-grid">
             <div><span className="meta-k">Architecture</span><span className="meta-v">{metadata.architecture}</span></div>
-            <div><span className="meta-k">Input</span><span className="meta-v mono">{metadata.inputShape}</span></div>
+            <div><span className="meta-k">Input</span><span className="meta-v mono">{metadata.inputShape || metadata.inputDimensions || '—'}</span></div>
             <div><span className="meta-k">Classes</span><span className="meta-v">{metadata.classes}</span></div>
-            <div><span className="meta-k">Parameters</span><span className="meta-v">{metadata.parameters}</span></div>
-            <div><span className="meta-k">Checkpoint</span><span className="meta-v mono">{metadata.checkpoint}</span></div>
-            <div><span className="meta-k">Trained</span><span className="meta-v">{fmtTime(metadata.trainedAt)}</span></div>
+            <div><span className="meta-k">Parameters</span><span className="meta-v">{metadata.parameters || '—'}</span></div>
+            <div><span className="meta-k">Checkpoint</span><span className="meta-v mono">{metadata.checkpoint || metadata.weightsDigest || '—'}</span></div>
+            <div><span className="meta-k">Trained</span><span className="meta-v">{metadata.trainedAt ? fmtTime(metadata.trainedAt) : '—'}</span></div>
           </div>
         </GlassCard>
       </div>
