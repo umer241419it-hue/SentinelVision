@@ -183,23 +183,40 @@ export default function DatasetValidation({ notify }) {
           </button>
         </div>
 
-        <button className="dv-drop" disabled={busy} onClick={() => inputRef.current?.click()}>
-          <Package size={20} />
-          <strong>SELECT FILES</strong>
-          <span>
-            {kind === 'yolo'
-              ? 'Annotation .txt files and dataset .yaml/.yml config'
-              : 'COCO annotation .json (images / annotations / categories)'}
-          </span>
-          <span className="dv-allowed mono">ALLOWED: {ALLOWED_EXTENSIONS.join(' · ')} — MAX 20 MB / FILE</span>
-        </button>
+        <div className="dv-pick-grid">
+          <button className="dv-drop" disabled={busy} onClick={() => inputRef.current?.click()}>
+            <Package size={20} />
+            <strong>SELECT FILES</strong>
+            <span>
+              {kind === 'yolo'
+                ? 'Annotation .txt files and dataset .yaml/.yml config'
+                : 'COCO annotation .json (images / annotations / categories)'}
+            </span>
+            <span className="dv-allowed mono">ALLOWED: {ALLOWED_EXTENSIONS.join(' · ')} — MAX 20 MB / FILE</span>
+          </button>
+          <button className="dv-drop dv-folder-drop" disabled={busy} onClick={() => folderInputRef.current?.click()}>
+            <Package size={20} />
+            <strong>SELECT DATASET FOLDER</strong>
+            <span>Upload the complete folder containing images, annotations and config files.</span>
+            <span className="dv-allowed mono">FOLDER STRUCTURE IS PRESERVED</span>
+          </button>
+        </div>
         <input
           ref={inputRef}
           type="file"
           accept={rules.accept}
           multiple
           hidden
-          onChange={(e) => pickFiles(e.target.files)}
+          onChange={(e) => pickFiles(e.target.files, false)}
+        />
+        <input
+          ref={folderInputRef}
+          type="file"
+          multiple
+          hidden
+          webkitdirectory="true"
+          directory="true"
+          onChange={(e) => pickFiles(e.target.files, true)}
         />
 
         {precheck.length > 0 && (
@@ -217,7 +234,7 @@ export default function DatasetValidation({ notify }) {
 
         <button
           className="auth-submit dv-validate"
-          disabled={busy || files.length === 0 || !contributorId || precheck.some((p) => !p.ok)}
+          disabled={busy || files.length === 0 || !contributorId || (!folderMode && precheck.some((p) => !p.ok))}
           onClick={doValidate}
         >
           {busy
