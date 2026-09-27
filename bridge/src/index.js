@@ -649,7 +649,7 @@ app.get('/api/contributors/:id/models', (req, res) => {
      // The registry/file checks above are only the ingestion gate. For a
      // calibrated SentinelVision model, execute the real Model Integrity engine
      // (STRIP + live SHA-256 verification) against this exact model file.
-     if (report.status !== 'INVALID' && report.computedSha256 && (model.filePath || model.weightsPath)) {
+     if (report.status !== 'INVALID' && (model.filePath || model.weightsPath)) {
          const modelPath = model.filePath || model.weightsPath;
          const rawName = model.originalName || path.basename(modelPath);
          const modelId = path.parse(rawName).name;
