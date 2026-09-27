@@ -262,11 +262,11 @@ function validateYoloBundle(files, errors, warnings) {
     const yaml = yamlFiles[0];
     if (yaml) {
         const yamlText = yaml.fileBuffer.toString('utf8');
-        const namesMatch = yamlText.match(/(?:^|\\n)\\s*names\\s*:\\s*(?:\\[(.*?)\\]|\\n((?:\\s+-\\s+.*\\n?)+))/is);
+        const namesMatch = yamlText.match(/(?:^|\n)\s*names\s*:\s*(?:\[(.*?)\]|\n((?:\s+-\s+.*\n?)+))/is);
         if (namesMatch) {
             const inline = namesMatch[1];
             if (inline) classNames = inline.split(',').map(x => x.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
-            else classNames = (namesMatch[2] || '').split(/\\r?\\n/).map(x => x.replace(/^\\s*-\\s*/, '').trim()).filter(Boolean);
+            else classNames = (namesMatch[2] || '').split(/\r?\n/).map(x => x.replace(/^\s*-\s*/, '').trim()).filter(Boolean);
         }
     }
     if (classNames.length) {
