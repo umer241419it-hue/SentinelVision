@@ -1,0 +1,215 @@
+/* ============================================================
+   SentinelVision — HUD / Sci-Fi FUI design tokens
+   Same variable names as the previous glass theme (components
+   keep working); values retuned for the mission-control look.
+   ============================================================ */
+
+:root {
+  /* ---------- LIGHT THEME (default values) ---------- */
+
+  /* Page background: light paper with faint technical grid */
+  --grad-page:
+    linear-gradient(rgba(9, 30, 66, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(9, 30, 66, 0.045) 1px, transparent 1px),
+    radial-gradient(900px 420px at 10% -6%, rgba(8, 145, 178, 0.07), transparent 60%),
+    radial-gradient(800px 420px at 105% 8%, rgba(124, 58, 237, 0.05), transparent 55%),
+    linear-gradient(180deg, #f2f5fa 0%, #e9eef6 100%);
+  --grid-bg-size: 34px 34px, 34px 34px, auto, auto, auto;
+
+  /* Surfaces */
+  --bg-base: #f2f5fa;
+  --bg-deep: #e9eef6;
+  --surface-0: rgba(255, 255, 255, 0.72);
+  --surface-1: rgba(250, 252, 255, 0.86);
+  --surface-2: rgba(255, 255, 255, 0.95);
+  --surface-solid: #ffffff;
+  --surface-hover: rgba(8, 145, 178, 0.06);
+
+  /* Borders: thin technical cyan-navy lines */
+  --border-soft: rgba(9, 42, 96, 0.1);
+  --border-medium: rgba(9, 42, 96, 0.16);
+  --border-strong: rgba(8, 145, 178, 0.38);
+
+  /* Text */
+  --text-primary: #16263c;
+  --text-secondary: #44586f;
+  --text-muted: #64788d;
+  --text-faint: #93a4b5;
+
+  /* Accents */
+  --accent-cyan: #0e7490;
+  --accent-cyan-soft: rgba(14, 116, 144, 0.07);
+  --accent-violet: #6d28d9;
+  --accent-violet-soft: rgba(109, 40, 217, 0.06);
+  --accent-blue: #1d4ed8;
+  --accent-blue-soft: rgba(29, 78, 216, 0.06);
+
+  /* Status */
+  --success: #047857;
+  --success-soft: rgba(4, 120, 87, 0.09);
+  --warning: #b45309;
+  --warning-soft: rgba(180, 83, 9, 0.1);
+  --critical: #dc2626;
+  --critical-soft: rgba(220, 38, 38, 0.08);
+  --info: #1d4ed8;
+  --info-soft: rgba(29, 78, 216, 0.08);
+
+  /* Gradients */
+  --grad-accent: linear-gradient(135deg, #0e7490 0%, #4338ca 60%, #6d28d9 100%);
+  --grad-danger: linear-gradient(135deg, #dc2626 0%, #ea580c 100%);
+  --grad-success: linear-gradient(135deg, #047857 0%, #0e7490 100%);
+
+  /* Radius: soft, friendly */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+
+  /* Shadows: soft elevation */
+  --shadow-1: 0 1px 2px rgba(15, 40, 80, 0.05), 0 4px 14px rgba(15, 40, 80, 0.06);
+  --shadow-2: 0 2px 6px rgba(15, 40, 80, 0.07), 0 10px 28px rgba(15, 40, 80, 0.09);
+  --shadow-glow-cyan: 0 0 0 3px rgba(14, 116, 144, 0.1);
+  --shadow-glow-violet: 0 0 0 3px rgba(109, 40, 217, 0.09);
+
+  /* Layout */
+  --sidebar-w: 244px;
+  --topbar-h: 64px;
+
+  /* Fonts */
+  --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+}
+
+/* ============================================================
+   ACCENT COLOR VARIANTS
+   Each [data-accent] redefines the accent variables for the dark
+   theme; the light-theme block below darkens them for contrast.
+   ============================================================ */
+[data-accent='cyan'] {
+  --accent-cyan: #22d3ee;
+  --accent-cyan-soft: rgba(34, 211, 238, 0.1);
+  --accent-violet: #a78bfa;
+  --accent-violet-soft: rgba(167, 139, 250, 0.12);
+}
+[data-accent='violet'] {
+  --accent-cyan: #a78bfa;
+  --accent-cyan-soft: rgba(167, 139, 250, 0.12);
+  --accent-violet: #22d3ee;
+  --accent-violet-soft: rgba(34, 211, 238, 0.1);
+}
+[data-accent='blue'] {
+  --accent-cyan: #60a5fa;
+  --accent-cyan-soft: rgba(96, 165, 250, 0.12);
+  --accent-violet: #a78bfa;
+  --accent-violet-soft: rgba(167, 139, 250, 0.12);
+}
+[data-accent='green'] {
+  --accent-cyan: #34d399;
+  --accent-cyan-soft: rgba(52, 211, 153, 0.11);
+  --accent-violet: #60a5fa;
+  --accent-violet-soft: rgba(96, 165, 250, 0.12);
+}
+[data-accent='amber'] {
+  --accent-cyan: #fbbf24;
+  --accent-cyan-soft: rgba(251, 191, 36, 0.12);
+  --accent-violet: #fb923c;
+  --accent-violet-soft: rgba(251, 146, 60, 0.12);
+}
+[data-accent='rose'] {
+  --accent-cyan: #fb7185;
+  --accent-cyan-soft: rgba(251, 113, 133, 0.12);
+  --accent-violet: #f472b6;
+  --accent-violet-soft: rgba(244, 114, 182, 0.12);
+}
+
+/* Light-theme accents (darker shades for contrast on light surfaces) */
+[data-theme='light'][data-accent='cyan'] {
+  --accent-cyan: #0e7490;
+  --accent-cyan-soft: rgba(14, 116, 144, 0.08);
+  --accent-violet: #6d28d9;
+  --accent-violet-soft: rgba(109, 40, 217, 0.07);
+}
+[data-theme='light'][data-accent='violet'] {
+  --accent-cyan: #6d28d9;
+  --accent-cyan-soft: rgba(109, 40, 217, 0.08);
+  --accent-violet: #0e7490;
+  --accent-violet-soft: rgba(14, 116, 144, 0.08);
+}
+[data-theme='light'][data-accent='blue'] {
+  --accent-cyan: #1d4ed8;
+  --accent-cyan-soft: rgba(29, 78, 216, 0.08);
+  --accent-violet: #6d28d9;
+  --accent-violet-soft: rgba(109, 40, 217, 0.07);
+}
+[data-theme='light'][data-accent='green'] {
+  --accent-cyan: #047857;
+  --accent-cyan-soft: rgba(4, 120, 87, 0.09);
+  --accent-violet: #1d4ed8;
+  --accent-violet-soft: rgba(29, 78, 216, 0.08);
+}
+[data-theme='light'][data-accent='amber'] {
+  --accent-cyan: #b45309;
+  --accent-cyan-soft: rgba(180, 83, 9, 0.09);
+  --accent-violet: #c2410c;
+  --accent-violet-soft: rgba(194, 65, 12, 0.08);
+}
+[data-theme='light'][data-accent='rose'] {
+  --accent-cyan: #be123c;
+  --accent-cyan-soft: rgba(190, 18, 60, 0.08);
+  --accent-violet: #9d174d;
+  --accent-violet-soft: rgba(157, 23, 77, 0.08);
+}
+
+/* ================= DARK THEME ================= */
+[data-theme='dark'] {
+  /* Page background: deep space grid */
+  --grad-page:
+    linear-gradient(rgba(56, 189, 248, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.035) 1px, transparent 1px),
+    radial-gradient(1000px 480px at 12% -8%, rgba(14, 165, 233, 0.1), transparent 60%),
+    radial-gradient(850px 460px at 105% 10%, rgba(139, 92, 246, 0.08), transparent 55%),
+    linear-gradient(180deg, #04070e 0%, #020409 100%);
+  --grid-bg-size: 34px 34px, 34px 34px, auto, auto, auto;
+
+  --bg-base: #04070e;
+  --bg-deep: #020409;
+  --surface-0: rgba(8, 16, 32, 0.55);
+  --surface-1: rgba(7, 14, 28, 0.78);
+  --surface-2: rgba(10, 20, 40, 0.92);
+  --surface-solid: #060c1a;
+  --surface-hover: rgba(34, 211, 238, 0.06);
+
+  --border-soft: rgba(56, 189, 248, 0.1);
+  --border-medium: rgba(56, 189, 248, 0.18);
+  --border-strong: rgba(34, 211, 238, 0.42);
+
+  --text-primary: #e6f1f7;
+  --text-secondary: #9db8ca;
+  --text-muted: #5f7b90;
+  --text-faint: #3d5568;
+
+  --accent-cyan: #22d3ee;
+  --accent-cyan-soft: rgba(34, 211, 238, 0.12);
+  --accent-violet: #a78bfa;
+  --accent-violet-soft: rgba(167, 139, 250, 0.12);
+  --accent-blue: #60a5fa;
+  --accent-blue-soft: rgba(96, 165, 250, 0.12);
+
+  --success: #2dd4a7;
+  --success-soft: rgba(45, 212, 167, 0.1);
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.1);
+  --critical: #fb5f5f;
+  --critical-soft: rgba(251, 95, 95, 0.1);
+  --info: #60a5fa;
+  --info-soft: rgba(96, 165, 250, 0.1);
+
+  --grad-accent: linear-gradient(135deg, #22d3ee 0%, #6366f1 60%, #a78bfa 100%);
+  --grad-danger: linear-gradient(135deg, #fb5f5f 0%, #fb923c 100%);
+  --grad-success: linear-gradient(135deg, #2dd4a7 0%, #22d3ee 100%);
+
+  --shadow-1: 0 1px 0 rgba(0, 0, 0, 0.4), 0 6px 18px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 2px 4px rgba(0, 0, 0, 0.5), 0 14px 36px rgba(0, 0, 0, 0.5);
+  --shadow-glow-cyan: 0 0 0 1px rgba(34, 211, 238, 0.35), 0 0 24px rgba(34, 211, 238, 0.14);
+  --shadow-glow-violet: 0 0 0 1px rgba(167, 139, 250, 0.32), 0 0 24px rgba(167, 139, 250, 0.12);
+}

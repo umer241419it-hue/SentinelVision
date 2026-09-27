@@ -1,0 +1,214 @@
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-1);
+  border-right: 1px solid var(--border-soft);
+  padding: 18px 12px 14px;
+  position: relative;
+}
+/* Vertical HUD edge strip */
+.sidebar::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--accent-cyan) 18%,
+    transparent 40%,
+    transparent 62%,
+    var(--accent-violet) 84%,
+    transparent
+  );
+  opacity: 0.5;
+}
+
+/* ---------- Logo block ---------- */
+.sb-logo {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 2px 8px 16px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.sb-logo-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 3px;
+  background: var(--grad-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #02131a;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.3);
+}
+[data-theme='light'] .sb-logo-mark {
+  color: #fff;
+  box-shadow: 0 0 14px rgba(14, 116, 144, 0.25);
+}
+.sb-logo-name {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+  display: block;
+}
+.sb-logo-sub {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+}
+
+/* ---------- Section labels ---------- */
+.sb-section-label {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  padding: 12px 10px 6px;
+}
+
+/* ---------- Nav items ---------- */
+.sb-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  overflow-y: auto;
+}
+.sb-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 550;
+  border: 1px solid transparent;
+  border-left: 2px solid transparent;
+  transition: all 0.15s ease;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+}
+.sb-item-code {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  width: 38px;
+  flex-shrink: 0;
+}
+.sb-item-label {
+  letter-spacing: 0.04em;
+}
+.sb-item-bracket {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid transparent;
+  border-top: 1.5px solid transparent;
+  transform: translateY(-50%) rotate(45deg);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.sb-item:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+.sb-item:hover .sb-item-bracket {
+  opacity: 0.4;
+  border-color: var(--accent-cyan);
+}
+.sb-item.active {
+  background: var(--accent-cyan-soft);
+  border-left-color: var(--accent-cyan);
+  border-color: transparent;
+  color: var(--text-primary);
+}
+.sb-item.active svg {
+  color: var(--accent-cyan);
+  filter: drop-shadow(0 0 5px var(--accent-cyan-soft));
+}
+.sb-item.active .sb-item-code {
+  color: var(--accent-cyan);
+}
+.sb-item.active .sb-item-bracket {
+  opacity: 1;
+  border-color: var(--accent-cyan);
+}
+
+/* ---------- Footer ---------- */
+.sb-footer {
+  border-top: 1px solid var(--border-soft);
+}
+.sb-status {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--surface-0);
+  border: 1px solid var(--border-soft);
+  border-radius: 2px;
+  padding: 9px 11px;
+  font-family: var(--font-mono);
+}
+.sb-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+}
+.sb-status-label {
+  color: var(--text-muted);
+  flex: 1;
+}
+.sb-status-val {
+  font-size: 9px;
+  font-weight: 750;
+  color: var(--success);
+}
+.sb-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 4px 0;
+}
+.sb-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 2px;
+  background: var(--accent-violet-soft);
+  border: 1px solid var(--accent-violet);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 750;
+  color: var(--accent-violet);
+}
+.sb-user-name {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.sb-user-role {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 0.01em;
+  color: var(--text-muted);
+}

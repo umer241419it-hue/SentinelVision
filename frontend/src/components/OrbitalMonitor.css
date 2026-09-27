@@ -1,0 +1,115 @@
+.orbital {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 100%;
+}
+.orbital-svg {
+  width: min(100%, 380px);
+  height: auto;
+  flex-shrink: 1;
+}
+
+.spin-cw {
+  animation: rotateCW linear infinite;
+}
+.spin-ccw {
+  animation: rotateCCW linear infinite;
+}
+.orbital-still .spin-cw,
+.orbital-still .spin-ccw {
+  animation: none;
+}
+
+.orb-ring-label {
+  fill: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 7.5px;
+  letter-spacing: 0.2em;
+}
+.orb-core-icon {
+  color: var(--accent-cyan);
+  filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.5));
+}
+[data-theme='light'] .orb-core-icon {
+  filter: none;
+}
+.orb-core-label {
+  fill: var(--accent-cyan);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.26em;
+  font-weight: 750;
+}
+.orb-marker circle {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* ---------- Side legend ---------- */
+.orbital-side {
+  flex: 1;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.orbital-status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 11px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-0);
+  border-radius: 2px;
+}
+.orbital-status-text {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+  color: var(--text-primary);
+}
+.orbital-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.orbital-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-mono);
+}
+.orbital-legend-dot {
+  width: 8px;
+  height: 8px;
+  transform: rotate(45deg);
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+.orbital-legend-label {
+  flex: 1;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--text-secondary);
+}
+.orbital-legend-count {
+  font-size: 12px;
+  font-weight: 750;
+  color: var(--text-primary);
+}
+.orbital-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 10px;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: var(--text-muted);
+}
+.orbital-total b {
+  font-size: 19px;
+  color: var(--accent-cyan);
+}

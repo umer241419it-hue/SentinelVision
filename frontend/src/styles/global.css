@@ -1,0 +1,359 @@
+@import './tokens.css';
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-base);
+  background-image: var(--grad-page);
+  background-size: var(--grid-bg-size);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 1px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+/* ---------- Typography helpers ---------- */
+.page-title {
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.page-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+.section-title {
+  font-size: 12.5px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+.text-muted {
+  color: var(--text-muted);
+}
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+/* ============================================================
+   PANEL — soft rounded card
+   ============================================================ */
+.hud-panel {
+  position: relative;
+  background: var(--surface-1);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+/* Filled backing behind the clipped corners so they don't show page grid */
+.hud-panel::before {
+  content: none;
+}
+.hud-panel.padded {
+  padding: 18px 20px;
+}
+.hud-panel.clickable {
+  cursor: pointer;
+}
+.hud-panel.clickable:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-glow-cyan);
+}
+
+/* Corner brackets (decorative, non-interactive) */
+.hud-corners::after {
+  content: none;
+}
+
+/* Panel header strip */
+.hud-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.hud-head h3 {
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hud-head h3::before {
+  content: none;
+}
+.hud-head .hdr-icon {
+  color: var(--accent-cyan);
+}
+.hud-head .hdr-action {
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: color 0.15s;
+}
+.hud-head .hdr-action:hover {
+  color: var(--accent-cyan);
+}
+.hud-head .hdr-meta {
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  color: var(--text-faint);
+  font-family: var(--font-sans);
+}
+
+/* ============================================================
+   HUD BUTTON — technical flat control with clipped corner
+   ============================================================ */
+.hud-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-medium);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 550;
+  letter-spacing: 0.01em;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all 0.16s ease;
+  user-select: none;
+}
+.hud-btn:hover {
+  color: var(--accent-cyan);
+  border-color: var(--border-strong);
+  background: var(--accent-cyan-soft);
+}
+.hud-btn:active {
+  transform: translateY(1px);
+}
+.hud-btn.primary {
+  background: var(--grad-accent);
+  border: none;
+  color: #02131a;
+  font-weight: 650;
+}
+[data-theme='light'] .hud-btn.primary {
+  color: #ffffff;
+}
+.hud-btn.primary:hover {
+  filter: brightness(1.08);
+  box-shadow: var(--shadow-glow-cyan);
+}
+.hud-btn.ghost {
+  background: transparent;
+  border-color: transparent;
+}
+.hud-btn.ghost:hover {
+  border-color: var(--border-soft);
+  box-shadow: none;
+}
+.hud-btn.icon-only {
+  width: 32px;
+  padding: 0;
+}
+.hud-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ============================================================
+   HUD STATUS DOT / INDICATOR
+   ============================================================ */
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.status-dot.ok {
+  background: var(--success);
+}
+.status-dot.warn {
+  background: var(--warning);
+}
+.status-dot.err {
+  background: var(--critical);
+  animation: hudPulse 2.4s ease-in-out infinite;
+}
+.status-dot.info {
+  background: var(--info);
+}
+
+@keyframes hudPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInRight {
+  from { transform: translateX(40px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes scanline {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(320%); }
+}
+@keyframes radarSweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes hudBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.anim-rise {
+  animation: riseIn 0.3s ease both;
+}
+.anim-fade {
+  animation: fadeIn 0.22s ease both;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-medium);
+  border-top-color: var(--accent-cyan);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Rotating dashed ring (used by orbital monitor + radial gauges) */
+@keyframes rotateCW {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes rotateCCW {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+/* Legacy header class (used across pages) — same treatment as .hud-head */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.card-header h3 {
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-header h3::before {
+  content: none;
+}
+.card-header .hdr-icon {
+  color: var(--accent-cyan);
+}
+.card-header .hdr-action {
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: color 0.15s;
+}
+.card-header .hdr-action:hover {
+  color: var(--accent-cyan);
+}
+
+/* ---------- Misc ---------- */
+.divider {
+  height: 1px;
+  background: var(--border-soft);
+  margin: 13px 0;
+}
+
+.hash-chip {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  background: var(--accent-cyan-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: 5px;
+  padding: 2px 7px;
+  letter-spacing: 0.02em;
+}
+
+::selection {
+  background: var(--accent-cyan-soft);
+}

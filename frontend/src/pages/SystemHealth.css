@@ -1,0 +1,123 @@
+.sh-top {
+  display: grid;
+  grid-template-columns: 400px minmax(0, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+@media (max-width: 1180px) {
+  .sh-top {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sh-score-card {
+  padding: 20px;
+}
+.sh-score-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.sh-ring-num {
+  fill: var(--text-primary);
+  font-size: 25px;
+  font-weight: 720;
+  font-family: var(--font-mono);
+}
+.sh-ring-label {
+  fill: var(--text-muted);
+  font-size: 7px;
+  letter-spacing: 0.2em;
+  font-family: var(--font-mono);
+}
+.sh-overall {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+}
+.sh-passcount {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin: 5px 0 12px;
+}
+.sh-refresh {
+  height: 29px;
+  font-size: 9.5px;
+}
+.spin-icon {
+  animation: spin 0.9s linear infinite;
+}
+
+.sh-history-card {
+  display: flex;
+  flex-direction: column;
+}
+.sh-chart {
+  flex: 1;
+  min-height: 180px;
+}
+
+.sh-services {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 13px;
+}
+.sh-service {
+  border: 1px solid var(--border-soft);
+  border-radius: 2px;
+  background: var(--surface-0);
+  padding: 13px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  transition: all 0.16s;
+}
+.sh-service:hover {
+  border-color: var(--border-strong);
+}
+.sh-service.st-border-pass {
+  border-left: 3px solid var(--success);
+}
+.sh-service.st-border-warning {
+  border-left: 3px solid var(--warning);
+}
+.sh-service.st-border-error {
+  border-left: 3px solid var(--critical);
+}
+.sh-service-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.sh-service-name {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+.sh-service-detail {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  min-height: 32px;
+}
+.sh-service-foot {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  border-top: 1px solid var(--border-soft);
+  padding-top: 7px;
+  text-transform: uppercase;
+}

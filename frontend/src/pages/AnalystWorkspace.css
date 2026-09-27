@@ -1,0 +1,274 @@
+/* ============================================================
+   Analyst Workspace — UPLOAD → TRUST → PASS/QUARANTINE
+   ============================================================ */
+
+.aw-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 5fr) minmax(360px, 7fr);
+  gap: 14px;
+}
+.aw-upload { grid-column: 1; }
+.aw-trust { grid-column: 2; grid-row: 1 / span 2; }
+.aw-tests { grid-column: 1; }
+
+/* ---------- Upload drop buttons ---------- */
+.aw-drop-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.aw-drop {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px 10px;
+  color: var(--text-secondary);
+  background: var(--surface-0);
+  border: 1px dashed var(--border-medium);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  font-family: var(--font-sans);
+}
+.aw-drop:hover:not(:disabled) {
+  border-color: var(--accent-cyan);
+  background: var(--accent-cyan-soft);
+  color: var(--accent-cyan);
+}
+.aw-drop:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.aw-drop strong {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+.aw-drop span {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* ---------- Upload list ---------- */
+.aw-uplist {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.aw-uprow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--surface-0);
+  border: 1px solid var(--border-soft);
+}
+.aw-kind {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 2px 5px;
+  border: 1px solid var(--border-medium);
+  color: var(--text-secondary);
+}
+.aw-kind.model { color: var(--accent-violet); border-color: var(--accent-violet); }
+.aw-upname {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.aw-upid {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* ---------- Run row ---------- */
+.aw-pick-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.aw-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 150px;
+}
+.aw-pick span {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--text-secondary);
+}
+.aw-pick select {
+  height: 34px;
+  padding: 0 8px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-primary);
+  background: var(--surface-0);
+  border: 1px solid var(--border-medium);
+  outline: none;
+}
+.aw-pick select:focus {
+  border-color: var(--border-strong);
+}
+.aw-run {
+  flex: 0 0 auto;
+  padding: 0 18px;
+}
+
+/* ---------- Run progress ---------- */
+.aw-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  color: var(--text-secondary);
+  background: var(--accent-cyan-soft);
+  border: 1px solid var(--border-soft);
+}
+
+/* ---------- Result verdict ---------- */
+.aw-result {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.aw-verdict {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-0);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+.aw-verdict-label {
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.aw-verdict-val {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--accent-cyan);
+}
+.aw-verdict.v-quarantined .aw-verdict-val,
+.aw-verdict.v-failed .aw-verdict-val { color: var(--critical); }
+.aw-verdict.v-warning .aw-verdict-val { color: var(--warning); }
+.aw-verdict.v-pass .aw-verdict-val { color: var(--success); }
+.aw-verdict-id {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* ---------- Individual checks ---------- */
+.aw-checks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.aw-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--surface-0);
+  border: 1px solid var(--border-soft);
+  border-left: 2px solid var(--border-medium);
+  font-size: 11px;
+}
+.aw-check.st-pass { border-left-color: var(--success); color: var(--success); }
+.aw-check.st-fail { border-left-color: var(--critical); color: var(--critical); }
+.aw-check.st-warning { border-left-color: var(--warning); color: var(--warning); }
+.aw-check-name {
+  color: var(--text-secondary);
+  letter-spacing: 0.1em;
+  font-size: 10px;
+  font-weight: 700;
+}
+.aw-check-status {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+
+/* ---------- Quarantine submit ---------- */
+.aw-quar {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--critical);
+  border-color: var(--critical);
+}
+.aw-quar:hover {
+  background: var(--critical-soft);
+}
+
+/* ---------- Tests list ---------- */
+.aw-testlist {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.aw-testrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  background: var(--surface-0);
+  border: 1px solid var(--border-soft);
+}
+.aw-tid {
+  font-size: 10.5px;
+  color: var(--accent-cyan);
+}
+.aw-tname {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.aw-empty {
+  padding: 14px 8px;
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--text-faint);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1100px) {
+  .aw-grid {
+    grid-template-columns: 1fr;
+  }
+  .aw-upload, .aw-trust, .aw-tests {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .aw-checks {
+    grid-template-columns: 1fr;
+  }
+}

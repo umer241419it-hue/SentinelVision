@@ -1,0 +1,14 @@
+.hud-panel.glow-cyan {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-glow-cyan);
+}
+.hud-panel.glow-violet {
+  border-color: rgba(167, 139, 250, 0.45);
+  box-shadow: var(--shadow-glow-violet);
+}
+[data-theme='light'] .hud-panel.glow-cyan {
+  border-color: rgba(14, 116, 144, 0.4);
+}
+[data-theme='light'] .hud-panel.glow-violet {
+  border-color: rgba(109, 40, 217, 0.35);
+}

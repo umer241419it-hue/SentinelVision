@@ -1,0 +1,118 @@
+.find-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 13px;
+  flex-wrap: wrap;
+}
+.find-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 32px;
+  flex: 1;
+  min-width: 240px;
+  max-width: 400px;
+  padding: 0 11px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-0);
+  color: var(--text-muted);
+  transition: border-color 0.16s;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+}
+.find-search:focus-within {
+  border-color: var(--border-strong);
+  box-shadow: inset 0 0 12px var(--accent-cyan-soft);
+}
+.find-search input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+}
+.find-search input::placeholder {
+  color: var(--text-faint);
+}
+.find-clear {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  padding: 2px;
+}
+.find-clear:hover {
+  color: var(--text-primary);
+}
+
+.find-filters {
+  display: flex;
+  gap: 5px;
+}
+.filter-btn {
+  border: 1px solid var(--border-soft);
+  background: var(--surface-0);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 6px 14px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filter-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-medium);
+}
+.filter-btn.active {
+  background: var(--accent-cyan-soft);
+  color: var(--accent-cyan);
+  border-color: var(--border-strong);
+  box-shadow: inset 0 0 10px var(--accent-cyan-soft);
+}
+
+.find-id {
+  color: var(--accent-cyan);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+.module-chip {
+  font-size: 9px;
+  color: var(--text-secondary);
+  background: var(--surface-0);
+  border: 1px solid var(--border-soft);
+  padding: 2px 8px;
+  border-radius: 2px;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+}
+.find-reason {
+  display: inline-block;
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.ledger-status {
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+.ledger-status.ok {
+  color: var(--success);
+}
+.ledger-status.pending {
+  color: var(--warning);
+}
