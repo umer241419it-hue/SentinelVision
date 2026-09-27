@@ -94,7 +94,8 @@ def evaluate_model_strip(model_id: str,
                          manifest_entry: Dict[str, Any],
                          data_base_dir: str,
                          triggers_base_dir: str,
-                         device: torch.device) -> Tuple[Dict[str, str], List[Dict[str, Any]]]:
+                         device: torch.device,
+                         model_path_override: str = None) -> Tuple[Dict[str, str], List[Dict[str, Any]]]:
     """
     Executes STRIP evaluation for all classes of a single model.
     Treats model as QUERY-ONLY (no gradients, model.eval(), torch.no_grad()).
@@ -103,7 +104,7 @@ def evaluate_model_strip(model_id: str,
         results_rows: list of dicts for each class
     """
     model_dir = os.path.join(data_base_dir, model_id)
-    model_path = os.path.join(model_dir, "model.pt")
+    model_path = os.path.abspath(model_path_override) if model_path_override else os.path.join(model_dir, "model.pt")
     ex_data_dir = os.path.join(model_dir, "example_data")
     csv_path = os.path.join(ex_data_dir, "data.csv")
     channel_order = manifest_entry.get("chosen_channel_order", "BGR")
@@ -246,39 +247,20 @@ def main():
         if not os.path.isfile(model_path):
             raise FileNotFoundError(f"Selected model file not found: {model_path}")
         mid = args.model_id or os.path.splitext(os.path.basename(model_path))[0]
-
-        # The STRIP protocol requires the calibrated model metadata, donor
-        # images, and reconstructed trigger tensors. Never silently substitute
-        # another model from the manifest.
         entry = next((x for x in manifest if str(x.get("model_id")) == str(mid)), None)
         if entry is None:
             raise RuntimeError(
                 f"No calibration_manifest entry exists for selected model '{mid}'. "
-                "STRIP cannot safely evaluate this model without calibrated channel order and trigger artifacts."
+                "The current STRIP protocol is calibrated only for registered model IDs; "
+                "it will not silently analyze a different model."
             )
-
-        expected = os.path.abspath(os.path.join(data_dir, mid, "model.pt"))
-        if os.path.realpath(expected) != os.path.realpath(model_path):
-            # Single-model uploads can live outside the repository, but the
-            # detector still needs the model's example_data directory.
-            model_root = os.path.dirname(model_path)
-            if not os.path.isdir(os.path.join(model_root, "example_data")):
-                raise RuntimeError(
-                    "Selected model has no sibling example_data directory. "
-                    "STRIP requires donor examples for query-only evaluation."
-                )
-            # evaluate_model_strip currently resolves model.pt from data_dir/model_id.
-            # Materialize a temporary symlink-free compatibility layout by using
-            # the model's parent as data root and its basename as the ID.
-            data_dir = os.path.dirname(model_root)
-            mid = os.path.basename(model_root)
-            if mid != entry.get("model_id"):
-                raise RuntimeError(
-                    f"Selected model directory '{mid}' does not match calibrated model_id '{entry.get('model_id')}'."
-                )
-
+        registered_model_dir = os.path.join(data_dir, mid)
+        if not os.path.isdir(os.path.join(registered_model_dir, "example_data")):
+            raise RuntimeError(f"Registered STRIP assets for '{mid}' are incomplete: example_data is missing.")
         print(f"[1/1] Evaluating selected model {mid}...")
-        hashes, rows = evaluate_model_strip(mid, entry, data_dir, triggers_dir, device)
+        hashes, rows = evaluate_model_strip(
+            mid, entry, data_dir, triggers_dir, device, model_path_override=model_path
+        )
         all_table_rows = rows
         all_hash_pairs = {mid: hashes}
         print(f"  -> Completed {len(rows)} class evaluations. SHA-256 verified: {hashes['after'][:16]}...")
