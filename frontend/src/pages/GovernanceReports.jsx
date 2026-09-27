@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { FileDown, FileText, Loader2 } from 'lucide-react';
+import { ExternalLink, FileDown, FileText, Loader2, X } from 'lucide-react';
 import GlassCard from '../components/GlassCard';
 import { listReports, downloadGovernanceReport } from '../services/workflowApi';
 import './AuditorPages.css';
@@ -12,7 +12,7 @@ export default function GovernanceReports({ notify }) {
   const [reports, setReports] = useState([]);
   const [periodDays, setPeriodDays] = useState(30);
   const [busy, setBusy] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);\n  const [reportUrl, setReportUrl] = useState(null);\n  const [reportTitle, setReportTitle] = useState('Report');
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -28,6 +28,34 @@ export default function GovernanceReports({ notify }) {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  async function openReport(report) {
+    try {
+      const token = localStorage.getItem('sv-token');
+      const id = encodeURIComponent(report.reportId || report._id || '');
+      const res = await fetch(
+        `${BRIDGE_BASE_URL}/api/auditor/reports/${id}/download?view=1`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (!res.ok) throw new Error(`Report open failed: ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      setReportUrl((old) => {
+        if (old) URL.revokeObjectURL(old);
+        return url;
+      });
+      setReportTitle(report.reportId || 'Governance Report');
+    } catch (err) {
+      notify?.(err.message, 'error');
+    }
+  }
+
+  function closeReport() {
+    setReportUrl((old) => {
+      if (old) URL.revokeObjectURL(old);
+      return null;
+    });
+  }
 
   async function download() {
     setBusy(true);
@@ -87,7 +115,7 @@ export default function GovernanceReports({ notify }) {
                 <th>Report ID</th>
                 <th>Generated</th>
                 <th>Period</th>
-                <th>Auditor</th>
+                <th>Auditor</th>\n                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -100,9 +128,9 @@ export default function GovernanceReports({ notify }) {
                 </tr>
               ))}
               {!loading && reports.length === 0 && (
-                <tr><td colSpan={4} className="aw-empty">NO REPORTS GENERATED YET</td></tr>
+                <tr><td colSpan={5} className="aw-empty">NO REPORTS GENERATED YET</td></tr>
               )}
-              {loading && <tr><td colSpan={4} className="aw-empty">LOADING…</td></tr>}
+              {loading && <tr><td colSpan={5} className="aw-empty">LOADING…</td></tr>}
             </tbody>
           </table>
         </div>
