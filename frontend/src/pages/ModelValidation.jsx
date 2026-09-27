@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CheckCircle2, XCircle, Loader2, RefreshCw, ShieldCheck, ScanLine } from 'lucide-react';
 import GlassCard from '../components/GlassCard';
 import { StatusBadge } from '../components/Badges';
 import DataTable from '../components/DataTable';
 import { listContributors } from '../services/workflowApi';
 import { listModels, validateModel, listModelValidations } from '../services/modelValidationApi';
+import { uploadMultipleAssets } from '../services/workflowApi';
 import './ModelValidation.css';
 
 function fmtBytes(n) {
@@ -27,6 +28,8 @@ export default function ModelValidation({ notify }) {
   const [modelId, setModelId] = useState('');
   const [report, setReport] = useState(null);
   const [busy, setBusy] = useState(false);
+  const uploadRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
 
   async function load() {
     try {
@@ -50,6 +53,32 @@ export default function ModelValidation({ notify }) {
   }, [contributorId]);
 
   const selectedModel = useMemo(() => models.find((m) => m.id === modelId), [models, modelId]);
+
+  async function uploadModel(event) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!contributorId) {
+      notify?.('Select the contributor / vendor before uploading the model.', 'error');
+      return;
+    }
+    setUploading(true);
+    try {
+      const result = await uploadMultipleAssets('model', [file], contributorId);
+      const first = result?.results?.[0];
+      if (!first || !['SUCCESS', 'EXISTS'].includes(first.status)) {
+        throw new Error(first?.error || 'Model upload failed');
+      }
+      const nextModels = await listModels(contributorId);
+      setModels(nextModels);
+      setModelId(first.uploadId);
+      notify?.(`Model ${file.name} uploaded and registered. Run VALIDATE MODEL to perform a fresh check.`, 'success');
+    } catch (err) {
+      notify?.(err.message, 'error');
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function runValidation() {
     if (!contributorId || !modelId) {
@@ -86,10 +115,24 @@ export default function ModelValidation({ notify }) {
         <div className="mv-help">Only models attributed to the selected provider are shown.</div>
 
         <label className="mv-label">MODEL *</label>
-        <select className="mv-selectbox" value={modelId} onChange={(e) => setModelId(e.target.value)} disabled={busy || !contributorId}>
+        <select className="mv-selectbox" value={modelId} onChange={(e) => setModelId(e.target.value)} disabled={busy || uploading || !contributorId}>
           <option value="">SELECT REGISTERED MODEL</option>
           {models.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
         </select>
+
+        <div className="mv-upload-row">
+          <button type="button" className="hud-btn mv-upload-btn" onClick={() => uploadRef.current?.click()} disabled={busy || uploading || !contributorId}>
+            {uploading ? <><Loader2 size={13} className="spin" /> UPLOADING…</> : <><ScanLine size={13} /> UPLOAD MODEL FILE</>}
+          </button>
+          <span>Upload a real .pt, .pth, .onnx, .h5, .keras, .tflite, .ckpt or .bin file.</span>
+          <input
+            ref={uploadRef}
+            type="file"
+            hidden
+            accept=".pt,.pth,.onnx,.bin,.h5,.keras,.tflite,.ckpt,.tar,.gz"
+            onChange={uploadModel}
+          />
+        </div>
 
         {selectedModel && (
           <div className="mv-asset">
@@ -100,7 +143,7 @@ export default function ModelValidation({ notify }) {
           </div>
         )}
 
-        <button className="auth-submit mv-action" disabled={busy || !modelId} onClick={runValidation}>
+        <button className="auth-submit mv-action" disabled={busy || uploading || !modelId} onClick={runValidation}>
           {busy ? <><Loader2 size={14} className="spin" /> VALIDATING…</> : <><ShieldCheck size={14} /> VALIDATE MODEL</>}
         </button>
       </GlassCard>
