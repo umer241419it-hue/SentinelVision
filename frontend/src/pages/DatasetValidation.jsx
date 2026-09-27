@@ -125,6 +125,7 @@ export default function DatasetValidation({ notify }) {
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = '';
+      if (folderInputRef.current) folderInputRef.current.value = '';
     }
   }
 
