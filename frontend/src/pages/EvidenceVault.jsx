@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Vault, ShieldCheck, Fingerprint, Lock, Search } from 'lucide-react';
 import GlassCard from '../components/GlassCard';
 import { StatusBadge } from '../components/Badges';
-import { getEvidence } from '../services/api';
+import { getEvidence, verifyEvidence } from '../services/api';
 import './EvidenceVault.css';
 
 function fmtTime(iso) {
@@ -29,11 +29,20 @@ export default function EvidenceVault({ notify }) {
 
   const verify = async (ev) => {
     setVerifying((v) => ({ ...v, [ev.evidenceId]: true }));
-    // Simulated verification: recompute digest and compare (mock).
-    await new Promise((r) => setTimeout(r, 900));
-    setVerifying((v) => ({ ...v, [ev.evidenceId]: false }));
-    setVerified((s) => ({ ...s, [ev.evidenceId]: true }));
-    notify?.(`Evidence ${ev.evidenceId.slice(0, 10)}… re-hash verified — record intact`, 'success');
+    try {
+      const result = await verifyEvidence(ev.evidenceId);
+      setVerified((s) => ({ ...s, [ev.evidenceId]: Boolean(result.verified) }));
+      notify?.(
+        result.verified
+          ? `Evidence ${ev.evidenceId.slice(0, 10)}… SHA-256 verified — record intact`
+          : `Evidence ${ev.evidenceId.slice(0, 10)}… FAILED SHA-256 verification — possible tampering`,
+        result.verified ? 'success' : 'error'
+      );
+    } catch (err) {
+      notify?.(`Evidence verification failed: ${err.message}`, 'error');
+    } finally {
+      setVerifying((v) => ({ ...v, [ev.evidenceId]: false }));
+    }
   };
 
   const q = query.trim().toLowerCase();
