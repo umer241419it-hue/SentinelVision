@@ -1233,7 +1233,14 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
             workspaceDir: engineWorkspace
         });
 
-        if (report.engine.status === 'FAILED') {
+        if (report.engine.status === 'COMPLETED' && report.engine?.findings?.length) {
+            report.status = 'invalid';
+            report.errors = (report.errors || 0) + report.engine.findings.length;
+            report.error_details = [
+                ...(report.error_details || []),
+                ...report.engine.findings.map(f => ({ type: f.type || 'ENGINE_FINDING', message: f.message, file: f.file, severity: f.severity }))
+            ];
+        } else if (report.engine.status === 'FAILED') {
             report.status = 'ENGINE_FAILED';
             report.error_details = [
                 ...(report.error_details || []),
