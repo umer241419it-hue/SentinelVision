@@ -114,8 +114,8 @@ function setCheck(job, key, status, details) {
     saveState();
 }
 
-function summarizeData(job) {
-    const p = path.join(WORKSPACE_ROOT, 'data-integrity/results/integrity_results.json');
+function summarizeData(job, resultPath = null) {
+    const p = resultPath || path.join(WORKSPACE_ROOT, 'data-integrity/results/integrity_results.json');
     if (!fs.existsSync(p)) return;
     try {
         const r = JSON.parse(fs.readFileSync(p, 'utf-8'));
@@ -191,14 +191,30 @@ async function executeJob(job, normType, dataset, model, configId, logStream) {
         if (!fs.existsSync(labels)) {
             throw new Error(`No label_key.json found for selected dataset: ${datasetPath}`);
         }
-        await run('DATA INTEGRITY', 'python3', [
-            '-m', 'src.run_data_integrity',
-            '--config', dataConfig,
-            '--input', datasetPath,
-            '--labels', labels,
-            '--run-id', job.run_id
-        ], path.join(WORKSPACE_ROOT, 'data-integrity'));
-        summarizeData(job);
+        const isUnifiedDataset = fs.existsSync(path.join(datasetPath, 'JPEGImages')) &&
+            fs.existsSync(path.join(datasetPath, 'Annotations'));
+        if (isUnifiedDataset) {
+            const scanOutputDir = path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'data-integrity');
+            fs.mkdirSync(scanOutputDir, { recursive: true });
+            await run('DATA INTEGRITY', 'python3', [
+                'sentinelvision_cli.py', 'integrity', 'scan',
+                '--dataset', datasetPath,
+                '--config', dataConfig,
+                '--output-dir', scanOutputDir
+            ], WORKSPACE_ROOT);
+            job.dataResultsPath = path.join(scanOutputDir, 'scan_findings.json');
+            summarizeData(job, job.dataResultsPath);
+        } else {
+            await run('DATA INTEGRITY', 'python3', [
+                '-m', 'src.run_data_integrity',
+                '--config', dataConfig,
+                '--input', datasetPath,
+                '--labels', labels,
+                '--checks', 'duplicate,ood,label_flip,trigger',
+                '--run-id', job.run_id
+            ], path.join(WORKSPACE_ROOT, 'data-integrity'));
+            summarizeData(job);
+        }
     }
 
     if (normType === 'MODEL_INTEGRITY' || normType === 'FULL_ASSURANCE' || normType === 'TRUST_CHECK') {
@@ -206,7 +222,13 @@ async function executeJob(job, normType, dataset, model, configId, logStream) {
             if (normType === 'MODEL_INTEGRITY') throw new Error('A model must be selected for MODEL_INTEGRITY.');
             setCheck(job, 'MODEL_INTEGRITY', 'SKIPPED', 'No model was selected.');
         } else {
-            await run('MODEL INTEGRITY', 'python3', ['src/strip_detector.py'], path.join(WORKSPACE_ROOT, 'model-integrity'));
+            await run('MODEL INTEGRITY', 'python3', [
+                'src/strip_detector.py',
+                '--model-path', model.resolvedPath,
+                '--model-id', path.basename(path.dirname(model.resolvedPath)),
+                '--output', path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'model-integrity', 'strip_results.json'),
+                '--hashes-output', path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'model-integrity', 'strip_hashes.json')
+            ], path.join(WORKSPACE_ROOT, 'model-integrity'));
             summarizeModel(job);
         }
     }
