@@ -406,7 +406,7 @@ function validateDatasetBundle(kind, files, contributor = null) {
             annotations_without_images: stats.annotations_without_images || 0,
             empty_annotation_files: normalized.filter(f => f.fileBuffer.length === 0).length,
             invalid_files: errors.length,
-            duplicate_files: [...seenPaths].length - normalized.length,
+            duplicate_files: Math.max(0, normalized.length - seenPaths.size),
             unknown_class_ids: 0,
             out_of_bounds_boxes: stats.malformed_annotations || 0
         },
