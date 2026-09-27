@@ -119,13 +119,23 @@ function summarizeData(job, resultPath = null) {
     if (!fs.existsSync(p)) return;
     try {
         const r = JSON.parse(fs.readFileSync(p, 'utf-8'));
-        const s = r.summary || {};
-        const n = Number(s.images_flagged || 0);
-        job.findingsCount = n;
-        job.trustStatus = n > 0 ? 'WARNING' : 'PASS';
-        job.disposition = n > 0 ? 'REVIEW' : 'ACCEPT';
-        setCheck(job, 'DATA_INTEGRITY', job.trustStatus === 'PASS' ? 'PASS' : 'WARNING',
-            `${n} findings across ${s.images_checked || 0} samples; checks: ${(s.checks_run || []).join(', ')}`);
+        if (Array.isArray(r.sample_findings)) {
+            const n = r.sample_findings.length;
+            const groups = Array.isArray(r.group_analysis?.group_findings) ? r.group_analysis.group_findings.length : 0;
+            job.findingsCount = n + groups;
+            job.trustStatus = n > 0 || groups > 0 ? 'WARNING' : 'PASS';
+            job.disposition = n > 0 || groups > 0 ? 'REVIEW' : 'ACCEPT';
+            setCheck(job, 'DATA_INTEGRITY', job.trustStatus === 'PASS' ? 'PASS' : 'WARNING',
+                `${n} sample findings and ${groups} group-level findings from the unified integrity scan.`);
+        } else {
+            const s = r.summary || {};
+            const n = Number(s.images_flagged || 0);
+            job.findingsCount = n;
+            job.trustStatus = n > 0 ? 'WARNING' : 'PASS';
+            job.disposition = n > 0 ? 'REVIEW' : 'ACCEPT';
+            setCheck(job, 'DATA_INTEGRITY', job.trustStatus === 'PASS' ? 'PASS' : 'WARNING',
+                `${n} findings across ${s.images_checked || 0} samples; checks: ${(s.checks_run || []).join(', ')}`);
+        }
     } catch (err) {
         setCheck(job, 'DATA_INTEGRITY', 'FAIL', `Could not parse integrity results: ${err.message}`);
     }
@@ -230,7 +240,8 @@ async function executeJob(job, normType, dataset, model, configId, logStream) {
                 '--output', path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'model-integrity', 'strip_results.json'),
                 '--hashes-output', path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'model-integrity', 'strip_hashes.json')
             ], path.join(WORKSPACE_ROOT, 'model-integrity'));
-            summarizeModel(job, path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'model-integrity', 'strip_results.json'));
+            job.modelResultsPath = path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'model-integrity', 'strip_results.json');
+            summarizeModel(job, job.modelResultsPath);
         }
     }
 
@@ -256,9 +267,9 @@ async function executeJob(job, normType, dataset, model, configId, logStream) {
         fs.mkdirSync(reportOutputDir, { recursive: true });
         await run('GOVERNANCE REPORT', 'python3', [
             '-m', 'governance.cli', 'assess',
-            '--data-results', path.join(WORKSPACE_ROOT, 'data-integrity/results/integrity_results.json'),
-            '--model-findings', path.join(WORKSPACE_ROOT, 'model-integrity/findings.json'),
-            '--drift-results', path.join(WORKSPACE_ROOT, 'drift-monitor/results/drift_results.json'),
+            '--data-results', job.dataResultsPath || path.join(WORKSPACE_ROOT, 'data-integrity/results/integrity_results.json'),
+            '--model-findings', job.modelResultsPath || path.join(WORKSPACE_ROOT, 'model-integrity/findings.json'),
+            '--drift-results', job.driftResultsPath || path.join(WORKSPACE_ROOT, 'drift-monitor/results/drift_results.json'),
             '--inference-records', path.join(WORKSPACE_ROOT, 'inference-provenance/seal_coverage_results.json'),
             '--output', reportOutputDir
         ], WORKSPACE_ROOT);
