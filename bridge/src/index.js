@@ -629,12 +629,12 @@ app.get('/api/contributors/:id/models', (req, res) => {
 // ---------------------------------------------------------------------------
  // 5A. Model Validation & Monitoring Hooks
  // ---------------------------------------------------------------------------
- app.get('/api/models/validations', (req, res) => {
+ app.get('/api/models/validations', authService.requireAuth, authService.requireRole(['ANALYST']), (req, res) => {
      const limit = Math.max(1, Math.min(100, Number(req.query.limit) || 50));
      res.json({ validations: modelValidationService.listValidations().slice(0, limit) });
  });
  
- app.post('/api/models/validate/:id', (req, res) => {
+ app.post('/api/models/validate/:id', authService.requireAuth, authService.requireRole(['ANALYST']), (req, res) => {
      loadUploads();
      loadContributors();
      const model = uploads.find(u => u.kind === 'model' && u.uploadId === req.params.id);
@@ -647,11 +647,11 @@ app.get('/api/contributors/:id/models', (req, res) => {
      res.status(200).json({ ok: report.status === 'VALID', report });
  });
  
- app.get('/api/model-hooks', (req, res) => {
+ app.get('/api/model-hooks', authService.requireAuth, authService.requireRole(['ANALYST']), (req, res) => {
      res.json({ hooks: modelHookService.listHooks() });
  });
  
- app.post('/api/model-hooks', (req, res) => {
+ app.post('/api/model-hooks', authService.requireAuth, authService.requireRole(['ANALYST']), (req, res) => {
      try {
          loadUploads();
          loadContributors();
@@ -677,7 +677,7 @@ app.get('/api/contributors/:id/models', (req, res) => {
      }
  });
  
- app.post('/api/model-hooks/:id/disable', (req, res) => {
+ app.post('/api/model-hooks/:id/disable', authService.requireAuth, authService.requireRole(['ANALYST']), (req, res) => {
      const hook = modelHookService.disableHook(req.params.id);
      if (!hook) return res.status(404).json({ error: 'Hook not found' });
      res.json({ hook });
@@ -1071,7 +1071,7 @@ app.post('/api/trust/tests/:testId/quarantine', (req, res) => {
 // ---------------------------------------------------------------------------
 // 7. Dataset Validation Gate (/api/datasets/validate)
 // ---------------------------------------------------------------------------
-app.get('/api/datasets/validations', (req, res) => {
+app.get('/api/datasets/validations', authService.requireAuth, authService.requireRole(['ANALYST']), (req, res) => {
     const limit = Math.max(1, Math.min(100, Number(req.query.limit) || 50));
     const validations = datasetValidationService.listValidations()
         .filter(v => !req.query.contributorId || req.query.contributorId === 'all' || (v.contributorId || 'unassigned') === req.query.contributorId)
@@ -1079,7 +1079,7 @@ app.get('/api/datasets/validations', (req, res) => {
     res.json({ validations });
 });
 
-app.post('/api/datasets/validate', async (req, res) => {
+app.post('/api/datasets/validate', authService.requireAuth, authService.requireRole(['ANALYST']), async (req, res) => {
     try {
         let files = [];
         let contributorId = '';
