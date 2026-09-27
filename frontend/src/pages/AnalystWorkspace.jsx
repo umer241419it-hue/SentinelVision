@@ -50,6 +50,7 @@ export default function AnalystWorkspace({ notify }) {
   const datasetYoloRef = useRef(null);
   const modelRef = useRef(null);
   const datasetRef = useRef({ datasetId: '' });
+  const modelSelectionRef = useRef({ modelId: '' });
 
   const refresh = useCallback(async () => {
     try {
@@ -94,10 +95,27 @@ export default function AnalystWorkspace({ notify }) {
     setRunning(true);
     setLastTest(null);
     try {
-      const model = modelRef.current?.datasetId || null;
+      const model = modelSelectionRef.current?.modelId || null;
       const data = await runTrustCheck({ datasetId: ds, modelId: model });
-      setLastTest(data.test);
-      notify?.(`Trust check complete · ${data.test.testId} → ${data.test.trustStatus}`, data.test.trustStatus === 'PASS' ? 'success' : 'warning');
+      let current = data.test;
+      setLastTest(current);
+
+      // The bridge returns immediately with QUEUED/RUNNING. Poll the same job
+      // until the real SentinelVision subprocess finishes.
+      const deadline = Date.now() + 30 * 60 * 1000;
+      while (current && ['QUEUED', 'RUNNING'].includes(current.status) && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        current = await (await import('../services/workflowApi')).getTestDetail(data.test.testId);
+        setLastTest(current);
+      }
+
+      if (current?.status === 'COMPLETED') {
+        notify?.(`Trust check complete · ${current.testId} → ${current.trustStatus}`, current.trustStatus === 'PASS' ? 'success' : 'warning');
+      } else if (current?.status === 'FAILED') {
+        notify?.(`Trust check failed · ${current.error || 'see execution log'}`, 'error');
+      } else {
+        notify?.('Trust check timed out while the backend job was still running.', 'warning');
+      }
       await refresh();
     } catch (err) {
       notify?.(err.message, 'error');
@@ -195,7 +213,7 @@ export default function AnalystWorkspace({ notify }) {
             <span>MODEL (OPTIONAL)</span>
             <select
               defaultValue=""
-              onChange={(e) => { if (modelRef.current) modelRef.current.datasetId = e.target.value; }}
+              onChange={(e) => { modelSelectionRef.current.modelId = e.target.value; }}
             >
               <option value="">— none —</option>
               {models.map((m) => (
