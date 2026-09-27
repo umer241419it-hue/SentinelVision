@@ -63,6 +63,8 @@ loadHistory();
 
 function validateDatasetFile(kind, fileBuffer, originalName, contributor = null) {
     const ext = path.extname(originalName).toLowerCase();
+    const sha256 = crypto.createHash('sha256').update(fileBuffer).digest('hex');
+    const sizeBytes = fileBuffer?.length || 0;
     const errors = [];
     const warnings = [];
 
@@ -74,7 +76,9 @@ function validateDatasetFile(kind, fileBuffer, originalName, contributor = null)
             format: kind.toUpperCase(),
             errors: [`Blocked file extension '${ext}'`],
             warnings: [],
-            timestamp: new Date().toISOString()
+            sizeBytes,
+            sha256,
+            timestamp: new Date().toISOString(),
         };
     }
 
@@ -165,6 +169,8 @@ function validateDatasetFile(kind, fileBuffer, originalName, contributor = null)
         categoryCount: stats.categoryCount,
         errors,
         warnings,
+        sizeBytes,
+        sha256,
         timestamp: new Date().toISOString(),
         contributorId: contributor?.id || 'unassigned',
         contributorName: contributor?.name || 'Unassigned'
