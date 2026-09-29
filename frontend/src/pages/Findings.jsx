@@ -8,11 +8,8 @@ import { getFindings } from '../services/api';
 import './Findings.css';
 
 function fmtTime(iso) {
-  try {
-    return new Date(iso).toLocaleString();
-  } catch {
-    return iso;
-  }
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString();
 }
 
 const FILTERS = ['All', 'Critical', 'High', 'Medium', 'Low'];
@@ -80,7 +77,7 @@ export default function Findings({ onOpenFinding }) {
       label: 'Contributor',
       render: (r) => (
         <span className="vendor-chip" title={r.contributorId}>
-          {r.contributorName || r.contributorId || 'Unassigned'}
+          {r.contributorName || r.contributorId || 'Vendor Alpha'}
         </span>
       )
     },
