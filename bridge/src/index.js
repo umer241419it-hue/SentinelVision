@@ -1169,11 +1169,13 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
         let files = [];
         let contributorId = '';
         let modelId = '';
+        let datasetId = '';
 
         if (req.headers['content-type']?.includes('multipart/form-data')) {
             const parsed = await parseMultipartData(req);
             files = parsed.files || [];
             contributorId = String(parsed.fields.contributorId || '').trim();
+            modelId = String(parsed.fields.modelId || '').trim();
             datasetId = String(parsed.fields.datasetId || '').trim();
             if (datasetId && files.length === 0) {
                 loadUploads();
@@ -1204,6 +1206,7 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
                 fileBuffer: Buffer.from(req.body.fileContent, 'utf-8')
             }];
             contributorId = String(req.body.contributorId || '').trim();
+            modelId = String(req.body.modelId || '').trim();
             datasetId = String(req.body.datasetId || '').trim();
         } else {
             files = [{
@@ -1211,6 +1214,7 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
                 fileBuffer: Buffer.from(JSON.stringify(req.body || {}), 'utf-8')
             }];
             contributorId = String(req.body?.contributorId || '').trim();
+            modelId = String(req.body?.modelId || '').trim();
             datasetId = String(req.body?.datasetId || '').trim();
         }
 
@@ -1308,6 +1312,7 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
         report.datasetName = registryRecord.datasetName;
         report.datasetPath = datasetDir;
         report.registered = true;
+        report.modelId = modelId || null;
 
         // IMPORTANT: structural validation above is only the ingestion gate.
         // Run the actual Data Integrity engine against the uploaded bytes before
