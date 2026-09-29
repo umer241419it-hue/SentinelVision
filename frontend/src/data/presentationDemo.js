@@ -105,3 +105,18 @@ export const DEMO_DATASETS = [
   { id: 'dataset-alpha-voc2012-500', name: 'VOC2012 BorderWatch · 500-image intake', contributorId: 'vendor-alpha', format: 'YOLO', samples: 500, size: '186.4 MB' },
   { id: 'dataset-beta-integrity-120', name: 'CV Integrity Attack Benchmark · 120 images', contributorId: 'vendor-beta', format: 'COCO', samples: 120, size: '74.8 MB' }
 ];
+
+export const DEMO_DATASET_VALIDATION_HISTORY = [
+  {
+    validationId: 'DVAL-2026-0929-014', format: 'YOLO', filename: 'borderwatch-intake-v3.zip',
+    contributorName: 'Vendor Alpha', datasetName: 'VOC2012 BorderWatch · 500-image intake', sizeBytes: 195454566,
+    sha256: 'd4f91a8b3e6c2075f1a9d8c4b6e2f7a1039d5c8b2e6f1a7c4d9b0e3f6a8c2d5',
+    status: 'valid', timestamp: '2026-09-29T09:02:14+05:30'
+  },
+  {
+    validationId: 'DVAL-2026-0928-031', format: 'COCO', filename: 'integrity-benchmark-120.json',
+    contributorName: 'Vendor Beta', datasetName: 'CV Integrity Attack Benchmark · 120 images', sizeBytes: 78433421,
+    sha256: 'b2c7e1a9f4d6038c5a1e7b0d9f2c6a4e8b3d1f7c5a9e2b6d0c4f8a1e5b7d3c9',
+    status: 'warning', timestamp: '2026-09-28T16:17:32+05:30'
+  }
+];
