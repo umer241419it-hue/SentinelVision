@@ -97,17 +97,26 @@ def score_model(mad_entry: Dict[str, Any], strip_entries: List[Dict[str, Any]]) 
 
 
 def main():
-    manifest_path = os.path.join(BASE_DIR, "calibration_manifest.json")
-    mad_path = os.path.join(BASE_DIR, "mad_results.json")
-    strip_path = os.path.join(BASE_DIR, "strip_results.json")
-    output_path = os.path.join(BASE_DIR, "scoring_results.json")
+    import argparse
+    parser = argparse.ArgumentParser(description="SentinelVision model-integrity scoring")
+    parser.add_argument("--manifest", default=os.path.join(BASE_DIR, "calibration_manifest.json"))
+    parser.add_argument("--mad", default=os.path.join(BASE_DIR, "mad_results.json"))
+    parser.add_argument("--strip", default=os.path.join(BASE_DIR, "strip_results.json"))
+    parser.add_argument("--output", default=os.path.join(BASE_DIR, "scoring_results.json"))
+    parser.add_argument("--model-id", default=None)
+    args = parser.parse_args()
 
-    with open(manifest_path, "r") as f:
+    with open(args.manifest, "r") as f:
         manifest = json.load(f)
-    with open(mad_path, "r") as f:
+    with open(args.mad, "r") as f:
         mad_data = json.load(f)
-    with open(strip_path, "r") as f:
+    with open(args.strip, "r") as f:
         strip_data = json.load(f)
+
+    if args.model_id:
+        manifest = [m for m in manifest if str(m["model_id"]) == str(args.model_id)]
+        mad_data = [m for m in mad_data if str(m["model_id"]) == str(args.model_id)]
+        strip_data = [s for s in strip_data if str(s["model_id"]) == str(args.model_id)]
 
     mad_by_model = {m["model_id"]: m for m in mad_data}
     strip_by_model: Dict[str, List[Dict[str, Any]]] = {}
@@ -117,23 +126,15 @@ def main():
     results = []
     for entry in manifest:
         mid = entry["model_id"]
-        mad_entry = mad_by_model[mid]
-        strip_entries = strip_by_model[mid]
-        score_entry = score_model(mad_entry, strip_entries)
-        results.append(score_entry)
+        if mid not in mad_by_model or mid not in strip_by_model:
+            raise RuntimeError(f"Missing MAD or STRIP data for model {mid}")
+        results.append(score_model(mad_by_model[mid], strip_by_model[mid]))
 
-    with open(output_path, "w") as f:
+    with open(args.output, "w") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
 
-    print(f"Scoring complete for {len(results)} models. Saved to {output_path}.\n")
+    print(f"Scoring complete for {len(results)} models. Saved to {args.output}.")
     print(json.dumps(results, indent=2))
-
-    # Disposition summary
-    accept_count = sum(1 for r in results if r["disposition"] == "ACCEPT")
-    review_count = sum(1 for r in results if r["disposition"] == "REVIEW")
-    quarantine_count = sum(1 for r in results if r["disposition"] == "QUARANTINE")
-    print(f"\nDisposition Summary: {accept_count} ACCEPT, {review_count} REVIEW, {quarantine_count} QUARANTINE")
-
 
 if __name__ == "__main__":
     main()
