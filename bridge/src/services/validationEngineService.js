@@ -67,131 +67,118 @@ function parseCocoLabels(files) {
     return labels;
 }
 
-async function runDatasetIntegrityEngine({ validationId, kind, files, workspaceDir, datasetId = null, datasetName = null }) {
-    // Demo assurance mode: keep the validation workflow deterministic and usable
-    // on an air-gapped demo machine even when the heavyweight Python engines are
-    // unavailable. The result is derived from the uploaded bytes/paths, never
-    // replayed from a stored result.
-    const engineRoot = path.join(workspaceDir, 'data-engine');
-    mkdirp(engineRoot);
+function safeName(name) {
+    return path.basename(String(name || 'file')).replace(/[^a-zA-Z0-9._-]/g, '_');
+}
 
-    const normalized = (files || []).map(f => ({
-        filename: String(f.filename || ''),
-        buffer: f.fileBuffer || Buffer.alloc(0)
-    }));
+function writeLabel(labelMapPath, labels) { writeJson(labelMapPath, labels); }
+
+function parseYoloLabelsForEngine(files) {
+    const yaml = files.find(f => /\.(ya?ml)$/i.test(f.filename));
+    let classNames = [];
+    if (yaml) {
+        const text = yaml.fileBuffer.toString('utf8');
+        const m = text.match(/(?:^|\n)\s*names\s*:\s*(?:\[(.*?)\]|\n((?:\s+-\s+.*\n?)+))/is);
+        if (m && m[1]) classNames = m[1].split(',').map(x => x.trim().replace(/^['\"]|['\"]$/g, '')).filter(Boolean);
+        else if (m && m[2]) classNames = m[2].split(/\r?\n/).map(x => x.replace(/^\s*-\s*/, '').trim()).filter(Boolean);
+    }
+    const labels = {};
+    for (const f of files.filter(x => /\.txt$/i.test(x.filename) && !/classes?\.txt$/i.test(x.filename))) {
+        const line = f.fileBuffer.toString('utf8').split(/\r?\n/).map(x => x.trim()).find(Boolean);
+        if (!line) continue;
+        const id = Number(line.split(/\s+/)[0]);
+        if (!Number.isInteger(id) || id < 0) continue;
+        labels[baseName(f.filename)] = classNames[id] || String(id);
+    }
+    return { labels, classNames };
+}
+
+function prepareEngineDataset(files, kind, workspaceDir) {
+    const inputDir = path.join(workspaceDir, 'engine-input');
+    mkdirp(inputDir);
+    const normalized = (files || []).map(f => ({ filename: String(f.filename || ''), fileBuffer: f.fileBuffer || Buffer.alloc(0) }));
     const imageFiles = normalized.filter(f => imageName(f.filename));
-    const allNames = normalized.map(f => f.filename.toLowerCase());
-    const suspiciousMarkers = ['backdoor', 'trojan', 'poison', 'poisoned', 'label_flip', 'labelflip', 'trigger', 'malicious', 'tamper', 'attack'];
-    const suspiciousPaths = allNames.filter(name => suspiciousMarkers.some(marker => name.includes(marker)));
-
-    const labelFiles = normalized.filter(f => /\.txt$/i.test(f.filename) && !/classes?\\.txt$/i.test(f.filename));
-    const jsonFiles = normalized.filter(f => /\.json$/i.test(f.filename));
-    const hasAnnotations = kind === 'coco'
-        ? jsonFiles.some(f => { try { const d = JSON.parse(f.buffer.toString('utf8')); return Array.isArray(d.annotations); } catch { return false; } })
-        : labelFiles.length > 0;
-
-    const verdict = suspiciousPaths.length ? 'FAIL' : 'PASS';
-    const findings = suspiciousPaths.map(name => ({
-        type: 'SUSPICIOUS_ASSET_MARKER',
-        file: name,
-        severity: 'HIGH',
-        message: 'Demo assurance rules detected an attack-indicative dataset path/name marker.'
-    }));
-
-    const output = {
-        verdict,
-        mode: 'DEMO_SIMULATION',
-        checks_run: ['duplicate', 'ood', 'label_flip'],
-        images_flagged: findings.length,
-        images_scanned: imageFiles.length,
-        annotation_files: kind === 'coco' ? jsonFiles.length : labelFiles.length,
-        findings,
-        summary: {
-            verdict,
-            images_scanned: imageFiles.length,
-            images_flagged: findings.length,
-            annotation_files: kind === 'coco' ? jsonFiles.length : labelFiles.length,
-            annotations_available: hasAnnotations,
-            dataset_id: datasetId || null,
-            dataset_name: datasetName || null
+    if (!imageFiles.length) throw new Error('The real Data Integrity engine requires image files. Include images with annotations.');
+    const labels = {};
+    const usedNames = new Set();
+    const originalToFlat = new Map();
+    const uniqueImageName = filename => {
+        const base = safeName(filename);
+        if (!usedNames.has(base)) { usedNames.add(base); return base; }
+        const stem = path.parse(base).name, ext = path.extname(base);
+        let i = 2, next = stem + '_' + i + ext;
+        while (usedNames.has(next)) { i++; next = stem + '_' + i + ext; }
+        usedNames.add(next); return next;
+    };
+    for (const file of imageFiles) {
+        const flat = uniqueImageName(file.filename);
+        fs.writeFileSync(path.join(inputDir, flat), file.fileBuffer);
+        originalToFlat.set(baseName(file.filename), flat);
+    }
+    if (kind === 'yolo') {
+        const parsed = parseYoloLabelsForEngine(normalized);
+        for (const [base, label] of Object.entries(parsed.labels)) {
+            const flat = originalToFlat.get(base);
+            if (flat) labels[flat] = label;
         }
-    };
+    } else {
+        const json = normalized.find(f => {
+            if (!/\.json$/i.test(f.filename)) return false;
+            try { const d = JSON.parse(f.fileBuffer.toString('utf8')); return Array.isArray(d.images) || Array.isArray(d.annotations); } catch { return false; }
+        });
+        if (json) {
+            const d = JSON.parse(json.fileBuffer.toString('utf8'));
+            const categories = new Map((d.categories || []).map(c => [c.id, c.name || String(c.id)]));
+            const imageById = new Map((d.images || []).map(i => [i.id, path.basename(i.file_name || '')]));
+            const firstLabel = new Map();
+            for (const ann of d.annotations || []) if (!firstLabel.has(ann.image_id)) firstLabel.set(ann.image_id, categories.get(ann.category_id) || String(ann.category_id));
+            for (const [imageId, originalName] of imageById.entries()) {
+                const flat = originalToFlat.get(baseName(originalName));
+                if (flat) labels[flat] = firstLabel.get(imageId) || 'background';
+            }
+        }
+    }
+    const missing = [...originalToFlat.values()].filter(name => !labels[name]);
+    if (missing.length) throw new Error('The real Data Integrity engine requires exactly one label per image. Missing labels for ' + missing.length + ' image(s), e.g. ' + missing.slice(0, 3).join(', '));
+    const labelPath = path.join(inputDir, 'label_key.json');
+    writeLabel(labelPath, labels);
+    return { inputDir, labelPath, imageCount: imageFiles.length };
+}
 
-    const outputPath = path.join(engineRoot, 'integrity_results.json');
-    writeJson(outputPath, output);
-
-    return {
-        engine: 'SentinelVision Data Integrity Assurance (Demo)',
-        status: 'COMPLETED',
-        simulated: true,
-        exitCode: 0,
-        imagesPresentedToEngine: imageFiles.length,
-        datasetId: datasetId || null,
-        datasetName: datasetName || null,
-        output: output.summary,
-        findings: output.findings,
-        resultsPath: outputPath,
-        stdout: 'Demo assurance engine completed locally from uploaded dataset contents.',
-        stderr: '',
-        error: null
-    };
+async function runDatasetIntegrityEngine({ validationId, kind, files, workspaceDir, datasetId = null, datasetName = null }) {
+    const engineRoot = path.join(workspaceDir, 'data-engine'); mkdirp(engineRoot);
+    let prepared;
+    try { prepared = prepareEngineDataset(files, kind, engineRoot); } catch (err) {
+        return { engine: 'SentinelVision Data Integrity Assurance (Python)', status: 'FAILED', simulated: false, exitCode: -1, datasetId, datasetName, resultsPath: null, stdout: '', stderr: err.message, error: err.message, findings: [] };
+    }
+    const configPath = path.join(DATA_INTEGRITY_ROOT, 'config.json');
+    const result = await runProcess(process.env.PYTHON || 'python3', ['-m', 'src.run_data_integrity', '--config', configPath, '--input', prepared.inputDir, '--labels', prepared.labelPath, '--checks', 'duplicate,ood,label_flip', '--run-id', validationId], DATA_INTEGRITY_ROOT, pythonEnv());
+    const resultsPath = path.join(DATA_INTEGRITY_ROOT, 'results', 'integrity_results.json');
+    let parsed = null;
+    try { if (fs.existsSync(resultsPath)) parsed = JSON.parse(fs.readFileSync(resultsPath, 'utf8')); } catch (err) { parsed = null; }
+    if (result.code !== 0 || !parsed) return { engine: 'SentinelVision Data Integrity Assurance (Python)', status: 'FAILED', simulated: false, exitCode: result.code, datasetId, datasetName, resultsPath, stdout: result.stdout, stderr: result.stderr, error: result.error || 'Data Integrity engine exited with code ' + result.code, findings: [] };
+    const findings = Array.isArray(parsed.results) ? parsed.results.map(entry => ({ type: 'DATA_INTEGRITY_FINDING', file: entry.image_id, severity: entry.severity, confidence: entry.confidence, message: entry.reason, evidenceHash: entry.evidence_hash, disposition: entry.disposition })) : [];
+    return { engine: 'SentinelVision Data Integrity Assurance (Python)', status: 'COMPLETED', simulated: false, exitCode: result.code, datasetId, datasetName, imagesPresentedToEngine: prepared.imageCount, output: parsed.summary || {}, findings, resultsPath, stdout: result.stdout, stderr: result.stderr, error: null };
 }
 
 async function runModelIntegrityEngine({ modelId, modelPath, outputDir }) {
-    mkdirp(outputDir);
-
-    const id = String(modelId || '').toLowerCase();
-    const filename = path.basename(modelPath || '').toLowerCase();
-    const suspicious = /trojan|backdoor|poison|malicious|trigger|attack/.test(id) ||
-        /trojan|backdoor|poison|malicious|trigger|attack/.test(filename) ||
-        /id-00000112|id-00000664/.test(id);
-
-    const findings = suspicious ? [
-        {
-            class: 'backdoor',
-            severity: 'CRITICAL',
-            confidence: 0.98,
-            reason: 'Backdoor/Trojan indicator detected by the demo behavioral fingerprint.'
-        },
-        {
-            class: 'trigger-response',
-            severity: 'HIGH',
-            confidence: 0.96,
-            reason: 'Trigger-associated behavior is inconsistent with the clean reference profile.'
-        }
-    ] : [];
-
-    const verdict = suspicious ? 'FAIL' : 'PASS';
-    const output = {
-        verdict,
-        mode: 'DEMO_SIMULATION',
-        model_id: modelId,
-        findings,
-        confidence: suspicious ? 0.98 : 0.95,
-        summary: suspicious
-            ? 'Model exhibits demo indicators consistent with a backdoor/Trojan model.'
-            : 'Model matches the clean demo reference profile; no demo backdoor indicators detected.'
-    };
-
+    mkdirp(outputDir); const resolvedModel = path.resolve(modelPath);
+    if (!fs.existsSync(resolvedModel)) return { engine: 'SentinelVision Model Integrity Assurance (Python STRIP)', status: 'FAILED', simulated: false, exitCode: -1, modelId, output: null, resultsPath: null, stdout: '', stderr: 'Model file not found: ' + resolvedModel, error: 'Model file not found: ' + resolvedModel };
+    const modelRoot = MODEL_INTEGRITY_ROOT;
+    const manifestPath = path.join(modelRoot, 'calibration_manifest.json');
+    const dataDir = path.join(modelRoot, 'data', 'trojai_sample');
+    const triggersDir = path.join(modelRoot, 'triggers');
     const outputPath = path.join(outputDir, 'strip_results.json');
-    writeJson(outputPath, output);
-    writeJson(path.join(outputDir, 'strip_hashes.json'), {
-        modelId,
-        modelPath,
-        mode: 'DEMO_SIMULATION'
-    });
-
-    return {
-        engine: 'SentinelVision Model Integrity Assurance (Demo)',
-        status: 'COMPLETED',
-        simulated: true,
-        exitCode: 0,
-        modelId,
-        output,
-        resultsPath: outputPath,
-        stdout: 'Demo model-integrity assurance completed locally.',
-        stderr: '',
-        error: null
-    };
+    const hashesPath = path.join(outputDir, 'strip_hashes.json');
+    if (!fs.existsSync(manifestPath)) return { engine: 'SentinelVision Model Integrity Assurance (Python STRIP)', status: 'FAILED', simulated: false, exitCode: -1, modelId, output: null, resultsPath: outputPath, stdout: '', stderr: 'Model Integrity calibration_manifest.json is missing.', error: 'Model Integrity calibration_manifest.json is missing.' };
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    if (!manifest.find(item => String(item.model_id) === String(modelId))) return { engine: 'SentinelVision Model Integrity Assurance (Python STRIP)', status: 'UNSUPPORTED', simulated: false, exitCode: 2, modelId, output: null, resultsPath: outputPath, stdout: '', stderr: 'No calibration manifest entry exists for model ' + modelId + '. The real STRIP engine is calibrated only for registered model IDs.', error: 'Model is not calibrated for the real STRIP engine.' };
+    if (!fs.existsSync(path.join(dataDir, modelId, 'example_data'))) return { engine: 'SentinelVision Model Integrity Assurance (Python STRIP)', status: 'UNSUPPORTED', simulated: false, exitCode: 2, modelId, output: null, resultsPath: outputPath, stdout: '', stderr: 'Registered STRIP example_data is missing for model ' + modelId + '.', error: 'Registered STRIP example_data is missing.' };
+    const result = await runProcess(process.env.PYTHON || 'python3', ['src/strip_detector.py', '--model-path', resolvedModel, '--model-id', String(modelId), '--data-dir', dataDir, '--triggers-dir', triggersDir, '--manifest', manifestPath, '--output', outputPath, '--hashes-output', hashesPath], modelRoot, pythonEnv());
+    let rows = null; try { if (fs.existsSync(outputPath)) rows = JSON.parse(fs.readFileSync(outputPath, 'utf8')); } catch {}
+    if (result.code !== 0 || !Array.isArray(rows)) return { engine: 'SentinelVision Model Integrity Assurance (Python STRIP)', status: 'FAILED', simulated: false, exitCode: result.code, modelId, output: null, resultsPath: outputPath, stdout: result.stdout, stderr: result.stderr, error: result.error || 'STRIP engine exited with code ' + result.code, findings: [] };
+    const top = rows.length ? rows.reduce((a, b) => Number(b.entropy_deficit || 0) > Number(a.entropy_deficit || 0) ? b : a) : null;
+    return { engine: 'SentinelVision Model Integrity Assurance (Python STRIP)', status: 'COMPLETED', simulated: false, exitCode: result.code, modelId, output: { verdict: 'COMPLETED', model_id: modelId, classes_evaluated: rows.length, top_class: top ? top.class : null, max_entropy_deficit: top ? top.entropy_deficit : null, strip_results: rows }, resultsPath: outputPath, stdout: result.stdout, stderr: result.stderr, error: null };
 }
+
 module.exports = { runDatasetIntegrityEngine, runModelIntegrityEngine };
