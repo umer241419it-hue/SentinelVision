@@ -6,6 +6,7 @@ import DataTable from '../components/DataTable';
 import { listContributors } from '../services/workflowApi';
 import { listModels, validateModel, listModelValidations } from '../services/modelValidationApi';
 import { uploadMultipleAssets } from '../services/workflowApi';
+import { DEMO_UI_MODE, DEMO_CONTRIBUTORS, DEMO_MODEL_VALIDATION_HISTORY, demoModelsForContributor } from '../data/presentationDemo';
 import './ModelValidation.css';
 
 function fmtBytes(n) {
@@ -30,8 +31,14 @@ export default function ModelValidation({ notify }) {
   const [busy, setBusy] = useState(false);
   const uploadRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+  const demoDefaultContributor = DEMO_CONTRIBUTORS[0]?.id || '';
 
   async function load() {
+    if (DEMO_UI_MODE) {
+      setContributors(DEMO_CONTRIBUTORS);
+      setHistory(DEMO_MODEL_VALIDATION_HISTORY);
+      return;
+    }
     try {
       const [cs, hs] = await Promise.all([listContributors(), listModelValidations()]);
       setContributors(cs);
@@ -41,12 +48,19 @@ export default function ModelValidation({ notify }) {
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    if (DEMO_UI_MODE) setContributorId(demoDefaultContributor);
+  }, []);
 
   useEffect(() => {
     setModelId('');
     if (!contributorId) {
       setModels([]);
+      return;
+    }
+    if (DEMO_UI_MODE) {
+      setModels(demoModelsForContributor(contributorId));
       return;
     }
     listModels(contributorId).then(setModels).catch((err) => notify?.(err.message, 'error'));
@@ -88,6 +102,27 @@ export default function ModelValidation({ notify }) {
     setBusy(true);
     setReport(null);
     try {
+      if (DEMO_UI_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 900));
+        const model = models.find((m) => m.id === modelId);
+        const historyRow = DEMO_MODEL_VALIDATION_HISTORY.find((h) => h.computedSha256 === model?.sha256) || DEMO_MODEL_VALIDATION_HISTORY[0];
+        setReport({
+          status: 'VALID',
+          modelName: model?.name || historyRow.modelName,
+          contributorName: model?.contributorName || historyRow.contributorName,
+          framework: model?.framework || historyRow.framework,
+          sizeBytes: model?.size || 0,
+          extension: model?.name?.split('.').pop() || 'pt',
+          registeredSha256: model?.sha256 || historyRow.computedSha256,
+          computedSha256: model?.sha256 || historyRow.computedSha256,
+          errors: [],
+          warnings: ['Artifact validation confirms file presence, format, SHA-256 and contributor attribution. Behavioral backdoor analysis is handled by Model Integrity.'],
+          engine: { status: 'COMPLETED', engine: 'SentinelVision Artifact Integrity Validator', modelId: model?.id || historyRow.id, output: { verdict: 'ARTIFACT_VALID', findings: [] } },
+          validatedAt: new Date().toISOString()
+        });
+        notify?.('Model artifact validation completed.', 'success');
+        return;
+      }
       const r = await validateModel(modelId);
       setReport(r);
       await load();
@@ -103,7 +138,7 @@ export default function ModelValidation({ notify }) {
     <div className="anim-fade mv-grid">
       <GlassCard className="mv-select">
         <div className="card-header">
-          <h3>01 · SELECT MODEL</h3>
+          <h3>01 · SELECT MODEL</h3><span className="text-muted" style={{fontSize: 10}}>UPLOADED DEMO ASSET</span>
           <button className="hud-btn icon-only" onClick={load} title="Refresh"><RefreshCw size={13} /></button>
         </div>
 
@@ -112,7 +147,7 @@ export default function ModelValidation({ notify }) {
           <option value="">SELECT CONTRIBUTOR / VENDOR</option>
           {contributors.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
-        <div className="mv-help">Only models attributed to the selected provider are shown.</div>
+        <div className="mv-help">Only models attributed to the selected provider are shown. The presentation session starts with registered local assets.</div>
 
         <label className="mv-label">MODEL *</label>
         <select className="mv-selectbox" value={modelId} onChange={(e) => setModelId(e.target.value)} disabled={busy || uploading || !contributorId}>
@@ -170,8 +205,8 @@ export default function ModelValidation({ notify }) {
             {report.warnings?.length > 0 && <div className="mv-errors warn">{report.warnings.map((e, i) => <div key={i}><ScanLine size={12} />{e}</div>)}</div>}
             {report.engine && (
               <div className={`mv-engine ${report.engine.status === 'COMPLETED' ? 'ok' : 'bad'}`}>
-                <div className="mv-engine-title"><ScanLine size={13} /> MODEL INTEGRITY ASSURANCE (DEMO): {report.engine.status}</div>
-                <div className="mono mv-engine-meta">ENGINE: {report.engine.engine || 'SentinelVision Model Integrity Assurance (Demo)'} · MODEL ID: {report.engine.modelId}</div>
+                <div className="mv-engine-title"><ScanLine size={13} /> ARTIFACT ASSURANCE: {report.engine.status}</div>
+                <div className="mono mv-engine-meta">ENGINE: {report.engine.engine || 'SentinelVision Artifact Integrity Validator'} · MODEL ID: {report.engine.modelId}</div>
                 {report.engine.output && <div className="mono mv-engine-meta">VERDICT: {report.engine.output.verdict || '—'} · FINDINGS: {(report.engine.output.findings || []).length}</div>}
                 {report.engine.stderr && report.engine.status !== 'COMPLETED' && <pre className="mv-engine-log">{report.engine.stderr.slice(-3000)}</pre>}
               </div>
@@ -181,19 +216,20 @@ export default function ModelValidation({ notify }) {
       </GlassCard>
 
       <GlassCard className="mv-history">
-        <div className="card-header"><h3>03 · VALIDATION HISTORY</h3></div>
+        <div className="card-header"><h3>03 · VALIDATION HISTORY</h3><span className="text-muted" style={{fontSize: 10}}>FILE / FORMAT / HASH / ATTRIBUTION</span></div>
         <DataTable
           columns={[
             { key: 'modelName', label: 'Model' },
             { key: 'contributorName', label: 'Contributor' },
             { key: 'framework', label: 'Framework' },
-            { key: 'status', label: 'Verdict', render: (r) => <StatusBadge status={r.status === 'VALID' ? 'PASS' : 'FAIL'} /> },
+            { key: 'status', label: 'Artifact Check', render: (r) => <StatusBadge status={r.status === 'VALID' ? 'PASS' : 'FAIL'} /> },
             { key: 'computedSha256', label: 'SHA-256', render: (r) => <span className="mono">{r.computedSha256?.slice(0, 12)}…</span> },
             { key: 'validatedAt', label: 'Time', render: (r) => fmtTime(r.validatedAt) }
           ]}
           rows={history}
           emptyMessage="NO MODEL VALIDATIONS YET"
         />
+        <div className="mv-help" style={{marginTop: 10}}>Model Validation verifies the supplied artifact. Backdoor and behavioural analysis is shown separately under Model Integrity.</div>
       </GlassCard>
     </div>
   );
