@@ -6,11 +6,8 @@ import { getModelIntegrityResults } from '../services/api';
 import './ModelIntegrity.css';
 
 function fmtTime(iso) {
-  try {
-    return new Date(iso).toLocaleString();
-  } catch {
-    return iso;
-  }
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString();
 }
 
 function RadialGauge({ value }) {
@@ -62,10 +59,10 @@ function RadialGauge({ value }) {
           {value}%
         </text>
         <text x="100" y="112" textAnchor="middle" className="gauge-label">
-          MODEL INTEGRITY
+          ASSURANCE CONFIDENCE
         </text>
         <text x="100" y="130" textAnchor="middle" className="gauge-sub">
-          Neural Cleanse + MAD · STRIP
+          Model Integrity · NC + MAD · STRIP
         </text>
       </svg>
     </div>
@@ -98,6 +95,7 @@ export default function ModelIntegrity() {
     );
 
   const { summary, signals, metadata } = data;
+  const confidence = summary.integrityConfidence ?? (Number(summary.integrityScore) / 100);
 
   const statusCards = [
     { label: 'Model Status', value: <StatusBadge status={summary.modelStatus} /> },
@@ -115,7 +113,7 @@ export default function ModelIntegrity() {
     <div className="anim-fade">
       <div className="mi-top">
         <GlassCard className="mi-gauge-card" glow="violet">
-          <RadialGauge value={summary.integrityScore} />
+          <RadialGauge value={Math.round(confidence * 100)} />
         </GlassCard>
 
         <div className="mi-status-grid">
