@@ -661,20 +661,22 @@ app.get('/api/contributors/:id/models', (req, res) => {
          });
          if (report.engine.status === 'COMPLETED') {
              report.engineVerdict = 'ENGINE_COMPLETED';
-             if (report.engine?.output?.verdict === 'FAIL') {
+             const verdict = String(report.engine?.output?.verdict || 'REVIEW').toUpperCase();
+             if (verdict === 'QUARANTINE') {
                  report.status = 'INVALID';
-                 report.errors = [
-                     ...(report.errors || []),
-                     ...(report.engine.output.findings || []).map(f => f.reason || 'Model integrity assurance detected a suspicious model behavior.')
-                 ];
-             } else {
+                 const reason = report.engine?.output?.scoring?.reason || 'Model Integrity scoring produced a QUARANTINE disposition.';
+                 report.errors = [...(report.errors || []), reason];
+             } else if (verdict === 'ACCEPT') {
                  report.status = 'VALID';
+             } else {
+                 report.status = 'WARNING';
+                 report.warnings = [...(report.warnings || []), report.engine?.output?.scoring?.reason || 'Model Integrity completed with a REVIEW disposition.'];
              }
          } else {
-             report.engineVerdict = 'ENGINE_FAILED_OR_UNSUPPORTED';
+             report.engineVerdict = report.engine.status === 'UNSUPPORTED' ? 'ENGINE_UNSUPPORTED' : 'ENGINE_FAILED_OR_UNSUPPORTED';
              report.warnings = [
                  ...(report.warnings || []),
-                 'The structural model validation completed, but the Model Integrity engine could not complete. This is not treated as a clean model result.'
+                 'The structural model validation completed, but the real Model Integrity engine could not complete or does not support this model. This is not treated as a clean model result.'
              ];
          }
      } else {
