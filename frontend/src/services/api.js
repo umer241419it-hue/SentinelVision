@@ -32,7 +32,7 @@ import {
   THREAT_OVERVIEW
 } from '../data/mockData';
 
-export const MOCK_MODE = false;
+export const MOCK_MODE = import.meta.env.VITE_DEMO_UI !== 'false';
 
 // Bridge base URL — same Express service as bridge/src/index.js (default port 3000).
 const BRIDGE_BASE_URL = import.meta.env.VITE_BRIDGE_URL || 'http://127.0.0.1:3000';
