@@ -222,7 +222,7 @@ export const MODEL_METADATA = {
   checkpoint: 'id-00000112/best.pt',
   weightsDigest: '7b9c4d2e1a6f83c2…d1a8b2',
   trainingOrigin: 'Vendor Beta · benchmark intake 2026-09-28',
-  defenseActive: 'Reference battery + STRIP + MAD'
+  defenseActive: 'Reference battery + STRIP + MAD',
   trainedAt: new Date(Date.UTC(2026, 7, 11, 7, 30, 0)).toISOString()
 };
 
