@@ -197,10 +197,10 @@ export const MODEL_INTEGRITY_SUMMARY = {
   modelStatus: 'QUARANTINE_RECOMMENDED',
   integrityScore: 92,
   integrityConfidence: 0.92,
-  poisoningRisk: 'MEDIUM',
+  poisoningRisk: 'HIGH',
   triggerDetection: 'FLAGGED (class 2, anomaly index 3.13)',
   activationAnomaly: 'DETECTED — STRIP entropy suppression corroborated',
-  validationStatus: 'PASSED (dual-direction MMD proof)',
+  validationStatus: 'ASSESSMENT COMPLETE · QUARANTINE RECOMMENDED',
   cleanModels: 7,
   reviewModels: 5,
   quarantinedModels: 3
