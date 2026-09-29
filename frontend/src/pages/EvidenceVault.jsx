@@ -6,11 +6,8 @@ import { getEvidence, verifyEvidence } from '../services/api';
 import './EvidenceVault.css';
 
 function fmtTime(iso) {
-  try {
-    return new Date(iso).toLocaleString();
-  } catch {
-    return iso;
-  }
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString();
 }
 
 export default function EvidenceVault({ notify }) {
