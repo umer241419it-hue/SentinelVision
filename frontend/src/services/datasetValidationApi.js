@@ -10,16 +10,16 @@ import { authFetch, BRIDGE_BASE_URL } from './authApi';
 // ---------------------------------------------------------------------------
 // Shared constants (kept in sync with bridge/src/services/datasetValidationService.js)
 // ---------------------------------------------------------------------------
-export const ALLOWED_EXTENSIONS = ['.json', '.txt', '.yaml', '.yml'];
+export const ALLOWED_EXTENSIONS = ['.json', '.txt', '.yaml', '.yml', '.jpg', '.jpeg', '.png', '.webp', '.bmp'];
 
 export const BLOCKED_EXTENSIONS = [
-  '.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.mp4', '.avi', '.zip',
+  '.gif', '.mp4', '.avi', '.zip',
   '.rar', '.tar', '.py', '.pt', '.pth', '.onnx', '.h5', '.pkl', '.exe'
 ];
 
 export const KIND_RULES = {
-  coco: { label: 'COCO', extensions: ['.json'], accept: '.json' },
-  yolo: { label: 'YOLO', extensions: ['.txt', '.yaml', '.yml'], accept: '.txt,.yaml,.yml' }
+  coco: { label: 'COCO', extensions: ['.json', '.jpg', '.jpeg', '.png', '.webp', '.bmp'], accept: '.json,.jpg,.jpeg,.png,.webp,.bmp' },
+  yolo: { label: 'YOLO', extensions: ['.txt', '.yaml', '.yml', '.jpg', '.jpeg', '.png', '.webp', '.bmp'], accept: '.txt,.yaml,.yml,.jpg,.jpeg,.png,.webp,.bmp' }
 };
 
 const MAX_FILE_MB = 20;
