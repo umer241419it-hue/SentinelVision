@@ -44,7 +44,9 @@ export default function InferenceProvenance({ notify }) {
       return;
     }
     if (DEMO_UI_MODE) {
-      setModels(demoModelsForContributor(contributorId));
+      const demoModels = demoModelsForContributor(contributorId);
+      setModels(demoModels);
+      setModelId(demoModels[0]?.id || '');
       return;
     }
     getContributorModels(contributorId)
