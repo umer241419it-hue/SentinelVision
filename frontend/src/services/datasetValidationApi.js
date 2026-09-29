@@ -79,6 +79,11 @@ export async function clientValidateFile(file, kind) {
   if (file.size > MAX_FILE_MB * 1024 * 1024) {
     return { ok: false, reason: `File exceeds the ${MAX_FILE_MB}MB limit` };
   }
+  // Images are required inputs to the real Data Integrity engine. Their binary
+  // signatures are expected and must not be rejected by the text-file gate.
+  const imageExts = ['.jpg', '.jpeg', '.png', '.webp', '.bmp'];
+  if (imageExts.includes(ext)) return { ok: true, reason: 'image input accepted for integrity engine' };
+
   const buf = new Uint8Array(await file.slice(0, 8192).arrayBuffer());
   const magic = detectBinaryMagic(buf);
   if (magic) {
