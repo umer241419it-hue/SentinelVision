@@ -28,7 +28,7 @@ function hex(len) {
   return s;
 }
 
-const NOW = Date.UTC(2026, 8, 23, 6, 12, 0); // fixed "now" for deterministic mock data
+const NOW = Date.UTC(2026, 8, 29, 9, 28, 0); // presentation session timestamp
 const minutesAgo = (m) => new Date(NOW - m * 60000).toISOString();
 const hoursAgo = (h) => new Date(NOW - h * 3600000).toISOString();
 
@@ -87,6 +87,8 @@ function buildFindings(count = 42) {
       severity,
       disposition: dispositionFor(severity),
       timestamp: minutesAgo(i * 37 + 3),
+      contributorId: ['vendor-alpha', 'vendor-beta', 'vendor-gamma'][i % 3],
+      contributorName: ['Vendor Alpha', 'Vendor Beta', 'Vendor Gamma'][i % 3],
       ledgerStatus: i % 7 === 3 ? 'PENDING' : 'COMMITTED',
       txId: i % 7 === 3 ? null : hex(64)
     });
@@ -194,6 +196,7 @@ export const MODEL_INTEGRITY_SUMMARY = {
   modelId: 'id-00000112',
   modelStatus: 'QUARANTINE_RECOMMENDED',
   integrityScore: 92,
+  integrityConfidence: 0.92,
   poisoningRisk: 'MEDIUM',
   triggerDetection: 'FLAGGED (class 2, anomaly index 3.13)',
   activationAnomaly: 'DETECTED — STRIP entropy suppression corroborated',
@@ -217,7 +220,7 @@ export const MODEL_METADATA = {
   classes: 5,
   parameters: '11.2M',
   checkpoint: 'id-00000112/best.pt',
-  trainedAt: hoursAgo(4382)
+  trainedAt: new Date(Date.UTC(2026, 7, 11, 7, 30, 0)).toISOString()
 };
 
 // ---------------------------------------------------------------------------
@@ -341,8 +344,7 @@ export const OVERVIEW_KPIS = {
 };
 
 export const THREAT_OVERVIEW = [
-  { level: 'Critical', count: 4, color: '#f87171' },
-  { level: 'High', count: 7, color: '#fb923c' },
-  { level: 'Medium', count: 15, color: '#fbbf24' },
-  { level: 'Low', count: 9, color: '#60a5fa' }
+  { level: 'Critical', count: 15, color: '#f87171' },
+  { level: 'High', count: 37, color: '#fb923c' },
+  { level: 'Medium', count: 1, color: '#fbbf24' }
 ];
