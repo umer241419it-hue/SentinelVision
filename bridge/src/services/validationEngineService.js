@@ -178,6 +178,47 @@ async function runModelIntegrityEngine({ modelId, modelPath, outputDir }) {
     let rows = null; try { if (fs.existsSync(outputPath)) rows = JSON.parse(fs.readFileSync(outputPath, 'utf8')); } catch {}
     if (result.code !== 0 || !Array.isArray(rows)) return { engine: 'SentinelVision Model Integrity Assurance (Python STRIP)', status: 'FAILED', simulated: false, exitCode: result.code, modelId, output: null, resultsPath: outputPath, stdout: result.stdout, stderr: result.stderr, error: result.error || 'STRIP engine exited with code ' + result.code, findings: [] };
     const top = rows.length ? rows.reduce((a, b) => Number(b.entropy_deficit || 0) > Number(a.entropy_deficit || 0) ? b : a) : null;
+
+    // The real project verdict is produced by scoring.py, which combines the
+    // live STRIP result with the calibrated Neural Cleanse/MAD result.
+    const madPath = path.join(modelRoot, 'mad_results.json');
+    let score = null;
+    if (fs.existsSync(madPath)) {
+        const madAll = JSON.parse(fs.readFileSync(madPath, 'utf8'));
+        const madEntry = madAll.find(item => String(item.model_id) === String(modelId));
+        if (madEntry) {
+            const scoreDir = path.join(outputDir, 'scoring');
+            mkdirp(scoreDir);
+            const scoreManifest = path.join(scoreDir, 'calibration_manifest.json');
+            const scoreMad = path.join(scoreDir, 'mad_results.json');
+            const scoreStrip = path.join(scoreDir, 'strip_results.json');
+            const scoreOutput = path.join(scoreDir, 'scoring_results.json');
+            writeJson(scoreManifest, [entry]);
+            writeJson(scoreMad, [madEntry]);
+            writeJson(scoreStrip, rows);
+            const scoreRun = await runProcess(
+                process.env.PYTHON || 'python3',
+                ['src/scoring.py', '--manifest', scoreManifest, '--mad', scoreMad, '--strip', scoreStrip, '--output', scoreOutput, '--model-id', String(modelId)],
+                modelRoot,
+                pythonEnv()
+            );
+            if (scoreRun.code === 0 && fs.existsSync(scoreOutput)) {
+                const scored = JSON.parse(fs.readFileSync(scoreOutput, 'utf8'));
+                score = Array.isArray(scored) ? scored[0] : null;
+            }
+        }
+    }
+
+    const output = {
+        verdict: score?.disposition || 'REVIEW',
+        model_id: modelId,
+        classes_evaluated: rows.length,
+        top_class: top ? top.class : null,
+        max_entropy_deficit: top ? top.entropy_deficit : null,
+        strip_results: rows,
+        scoring: score,
+        verdict_source: score ? 'Neural Cleanse/MAD + live STRIP scoring.py' : 'live STRIP only; calibrated MAD result unavailable'
+    };
     return { engine: 'SentinelVision Model Integrity Assurance (Python STRIP)', status: 'COMPLETED', simulated: false, exitCode: result.code, modelId, output: { verdict: 'COMPLETED', model_id: modelId, classes_evaluated: rows.length, top_class: top ? top.class : null, max_entropy_deficit: top ? top.entropy_deficit : null, strip_results: rows }, resultsPath: outputPath, stdout: result.stdout, stderr: result.stderr, error: null };
 }
 
