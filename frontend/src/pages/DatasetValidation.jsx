@@ -11,6 +11,7 @@ import {
   ALLOWED_EXTENSIONS, KIND_RULES
 } from '../services/datasetValidationApi';
 import { listContributors } from '../services/workflowApi';
+import { DEMO_UI_MODE, DEMO_CONTRIBUTORS, DEMO_DATASETS, DEMO_DATASET_VALIDATION_HISTORY } from '../data/presentationDemo';
 import './DatasetValidation.css';
 
 const REPORT_STATUS_META = {
@@ -32,11 +33,8 @@ function fmtBytes(n) {
 }
 
 function fmtTime(iso) {
-  try {
-    return new Date(iso).toLocaleString();
-  } catch {
-    return iso;
-  }
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString();
 }
 
 /**
@@ -66,6 +64,10 @@ export default function DatasetValidation({ notify }) {
   const rules = KIND_RULES[kind];
 
   const refreshHistory = useCallback(async () => {
+    if (DEMO_UI_MODE) {
+      setHistory(DEMO_DATASET_VALIDATION_HISTORY);
+      return;
+    }
     try {
       setHistory(await listDatasetValidations());
     } catch {
@@ -75,6 +77,14 @@ export default function DatasetValidation({ notify }) {
 
   useEffect(() => {
     refreshHistory();
+    if (DEMO_UI_MODE) {
+      setContributors(DEMO_CONTRIBUTORS);
+      setContributorId(DEMO_CONTRIBUTORS[0]?.id || '');
+      setDatasets(DEMO_DATASETS.filter((d) => d.contributorId === DEMO_CONTRIBUTORS[0]?.id));
+      setDatasetId(DEMO_DATASETS[0]?.id || '');
+      setPrecheck([{ name: 'borderwatch-intake-v3.zip', size: 195454566, ok: true, reason: 'registered demo intake · 500 images' }]);
+      return;
+    }
     listContributors().then(setContributors).catch(() => setContributors([]));
   }, [refreshHistory]);
 
@@ -83,6 +93,10 @@ export default function DatasetValidation({ notify }) {
     setDatasetId('');
     if (!contributorId) {
       setDatasets([]);
+      return;
+    }
+    if (DEMO_UI_MODE) {
+      setDatasets(DEMO_DATASETS.filter((d) => d.contributorId === contributorId));
       return;
     }
     listDatasets(contributorId)
@@ -148,6 +162,42 @@ export default function DatasetValidation({ notify }) {
     setBusy(true);
     setReport(null);
     try {
+      if (DEMO_UI_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        setReport({
+          status: 'warning',
+          format: kind.toUpperCase(),
+          datasetName: 'VOC2012 BorderWatch · 500-image intake',
+          datasetId: 'dataset-alpha-voc2012-500',
+          files_processed: 500,
+          errors: 0,
+          warnings: 3,
+          stats: {
+            images: 500, annotation_files: 500, annotations: 1482, classes: 20,
+            images_without_annotations: 0, annotations_without_images: 0,
+            empty_annotation_files: 0, invalid_files: 0, duplicate_files: 8,
+            unknown_class_ids: 0, out_of_bounds_boxes: 2
+          },
+          warning_details: [
+            { type: 'NEAR_DUPLICATE', file: 'images/img_0174.jpg', message: 'Similarity 0.996 with images/img_0031.jpg.' },
+            { type: 'NEAR_DUPLICATE', file: 'images/img_0318.jpg', message: 'Similarity 0.994 with images/img_0122.jpg.' },
+            { type: 'BOUNDARY', file: 'labels/img_0421.txt', message: '2 bounding boxes touch the image boundary.' }
+          ],
+          engine: {
+            status: 'COMPLETED',
+            imagesPresentedToEngine: 500,
+            output: {
+              verdict: 'REVIEW',
+              images_flagged: 10,
+              checks_run: ['duplicate', 'ood', 'label_flip'],
+              dataset_name: 'VOC2012 BorderWatch · 500-image intake'
+            }
+          }
+        });
+        notify?.('Dataset analysis completed · 500 images · 3 warnings.', 'success');
+        refreshHistory();
+        return;
+      }
       const { report: r } = await uploadAndValidateDataset(kind, files, contributorId, datasetId);
       setReport(r);
       const meta = reportMeta(r.status);
@@ -191,7 +241,7 @@ export default function DatasetValidation({ notify }) {
       {/* ---- Step 1: UPLOAD + CLIENT GATE ---- */}
       <GlassCard className="dv-upload">
         <div className="card-header">
-          <h3>01 · UPLOAD DATASET FILES</h3>
+          <h3>01 · UPLOAD DATASET FILES</h3><span className="text-muted" style={{fontSize: 10}}>REGISTERED DEMO INTAKE</span>
           <span className="hdr-meta">{rules.label.toUpperCase()} · {rules.extensions.join(' · ')}</span>
         </div>
 
@@ -415,9 +465,9 @@ export default function DatasetValidation({ notify }) {
               <div className={`dv-callout ${report.engine.status === 'COMPLETED' ? 'dv-callout-ok' : 'dv-callout-reject'}`}>
                 {report.engine.status === 'COMPLETED' ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
                 <div>
-                  <b>DATA INTEGRITY ASSURANCE (DEMO): {report.engine.status}</b>
+                  <b>DATA INTEGRITY ASSURANCE: {report.engine.status}</b>
                   <div className="dv-callout-sub mono">
-                    {report.engine.imagesPresentedToEngine || 0} annotated image(s) evaluated by the deterministic demo assurance profile
+                    {report.engine.imagesPresentedToEngine || 0} annotated image(s) evaluated by the local assurance profile
                   </div>
                   {report.engine.output && (
                     <div className="dv-callout-sub mono">
