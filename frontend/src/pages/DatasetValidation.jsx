@@ -96,7 +96,9 @@ export default function DatasetValidation({ notify }) {
       return;
     }
     if (DEMO_UI_MODE) {
-      setDatasets(DEMO_DATASETS.filter((d) => d.contributorId === contributorId));
+      const demoDatasets = DEMO_DATASETS.filter((d) => d.contributorId === contributorId);
+      setDatasets(demoDatasets);
+      setDatasetId(demoDatasets[0]?.id || '');
       return;
     }
     listDatasets(contributorId)
