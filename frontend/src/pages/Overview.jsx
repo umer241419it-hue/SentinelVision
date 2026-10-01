@@ -11,8 +11,19 @@ import OrbitalMonitor from '../components/OrbitalMonitor';
 import { SeverityBadge, StatusBadge } from '../components/Badges';
 import { useTheme } from '../context/ThemeContext';
 import { getOverview, getActivitySeries, getFindings } from '../services/api';
-import { buildSparkline } from '../data/mockData';
 import './Overview.css';
+
+function buildSparkline(seed, n = 12) {
+  let x = seed >>> 0;
+  const out = [];
+  let v = 50;
+  for (let i = 0; i < n; i += 1) {
+    x = (Math.imul(1664525, x) + 1013904223) >>> 0;
+    v = Math.max(6, Math.min(96, v + (((x / 4294967296) - 0.5) * 18)));
+    out.push(Math.round(v));
+  }
+  return out;
+}
 
 function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
