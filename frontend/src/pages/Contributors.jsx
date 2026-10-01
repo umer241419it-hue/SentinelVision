@@ -21,7 +21,7 @@ export default function Contributors({ notify }) {
   // Form state
   const [formName, setFormName] = useState('');
   const [formId, setFormId] = useState('');
-  const [formType, setFormType] = useState('DEMO_VENDOR');
+  const [formType, setFormType] = useState('VENDOR');
   const [formDesc, setFormDesc] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -338,7 +338,6 @@ export default function Contributors({ notify }) {
                 <div className="contrib-field">
                   <label>Type</label>
                   <select value={formType} onChange={(e) => setFormType(e.target.value)}>
-                    <option value="DEMO_VENDOR">Demo Vendor</option>
                     <option value="CERTIFIED_VENDOR">Certified Vendor</option>
                     <option value="ACADEMIC_RESEARCH">Academic / Research</option>
                     <option value="THIRD_PARTY">Third Party External</option>
