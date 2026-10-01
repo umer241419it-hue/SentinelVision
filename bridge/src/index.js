@@ -1567,11 +1567,6 @@ app.get('/api/auditor/reports/:id/download', (req, res) => {
     let targetHtml = path.join(reportsDir, id, 'assurance_report.html');
     let targetJson = path.join(reportsDir, id, 'assurance_report.json');
 
-    if (!fs.existsSync(targetHtml)) {
-        targetHtml = path.join(reportsDir, 'demo_report', 'assurance_report.html');
-        targetJson = path.join(reportsDir, 'demo_report', 'assurance_report.json');
-    }
-
     if (req.query.format === 'json' && fs.existsSync(targetJson)) {
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Content-Disposition', `attachment; filename="assurance_report_${id}.json"`);
