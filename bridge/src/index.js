@@ -55,54 +55,7 @@ function loadUploads() {
     if (fs.existsSync(UPLOADS_META_FILE)) {
         try { uploads = JSON.parse(fs.readFileSync(UPLOADS_META_FILE, 'utf-8')); } catch { uploads = []; }
     } else {
-        // Seed default benchmark datasets and models so the selector is populated immediately
-        uploads = [
-            {
-                uploadId: 'dataset-voc2012-benchmark',
-                originalName: 'PASCAL VOC2012 Multi-Attack Benchmark',
-                kind: 'dataset',
-                sha256: 'b3f4c892801adfe9745a993710db44ac9c81912f7105d15a99c9b1392fa940e1',
-                size: 142000000,
-                createdAt: '2026-09-26T12:00:00Z',
-                datasetPath: 'datasets/sentinelvision_voc2012/mixed_attack'
-            },
-            {
-                uploadId: 'dataset-integrity-test',
-                originalName: 'Controlled Integrity Test Suite (Duplicates, OOD, Flips)',
-                kind: 'dataset',
-                sha256: '4c718a22199bdf01a719c228fa8913b82910fa88921a9183cc919bda7710c812',
-                size: 28400000,
-                createdAt: '2026-09-26T14:30:00Z',
-                datasetPath: 'data/integrity-test'
-            },
-            {
-                uploadId: 'dataset-voc2012-clean',
-                originalName: 'VOC2012 Clean Baseline (120 Images)',
-                kind: 'dataset',
-                sha256: '992a818c772bda9184acb0129a88cfa918b918a2281a8b99182390abdf1918a2',
-                size: 32000000,
-                createdAt: '2026-09-26T10:00:00Z',
-                datasetPath: 'datasets/sentinelvision_voc2012/clean'
-            },
-            {
-                uploadId: 'model-trojai-res50-0112',
-                originalName: 'id-00000112 (ResNet50 Trojan Injected)',
-                kind: 'model',
-                sha256: 'cd88076498c5c79fce68bffef38102f3394ef5c9f6691dc2f0efc48bf51f3e0b',
-                size: 98000000,
-                createdAt: '2026-09-22T11:00:00Z',
-                weightsPath: 'model-integrity/triggers/id-00000112_class2_pattern.pt'
-            },
-            {
-                uploadId: 'model-clean-res50-0028',
-                originalName: 'id-00000028 (ResNet50 Baseline Clean)',
-                kind: 'model',
-                sha256: 'cd88076498c5c79fce68bffef38102f3394ef5c9f6691dc2f0efc48bf51f3e0b',
-                size: 98000000,
-                createdAt: '2026-09-22T09:00:00Z',
-                weightsPath: 'model-integrity/triggers/id-00000028_class0_pattern.pt'
-            }
-        ];
+        uploads = [];
         saveUploads();
     }
 }
