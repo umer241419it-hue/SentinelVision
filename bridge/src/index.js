@@ -710,6 +710,74 @@ async function handleMultipleAssetUpload(req, res, kind) {
         const results = [];
         loadUploads();
 
+        // A dataset selected from the analyst UI is a logical bundle, not a
+        // collection of unrelated one-file assets. Persist multi-file uploads
+        // as one directory so the trust runner can execute the real engine.
+        if (kind === 'dataset' && items.length > 1) {
+            const hash = crypto.createHash('sha256');
+            for (const item of items) {
+                hash.update(String(item.filename || ''));
+                hash.update(Buffer.from(item.buffer || Buffer.alloc(0)));
+            }
+            const datasetId = `dataset-${hash.digest('hex').slice(0, 10)}`;
+            const datasetDir = path.join(UPLOADS_DIR, datasetId);
+            fs.mkdirSync(datasetDir, { recursive: true });
+
+            for (const item of items) {
+                const relative = String(item.filename || 'file')
+                    .replace(/\\\\/g, '/')
+                    .replace(/^[/\\\\]+/, '')
+                    .split('/')
+                    .filter(part => part && part !== '.' && part !== '..')
+                    .join('/');
+                const target = path.join(datasetDir, relative || `file-${Date.now()}`);
+                if (!target.startsWith(datasetDir + path.sep)) {
+                    return res.status(400).json({ error: 'Unsafe dataset path rejected' });
+                }
+                fs.mkdirSync(path.dirname(target), { recursive: true });
+                fs.writeFileSync(target, item.buffer);
+            }
+
+            const now = new Date().toISOString();
+            const registryRecord = {
+                uploadId: datasetId,
+                filename: datasetId,
+                originalName: `Dataset bundle (${items.length} files)`,
+                kind: 'dataset',
+                type: 'dataset',
+                sha256: crypto.createHash('sha256').update(items.map(x => String(x.filename) + ':' + crypto.createHash('sha256').update(x.buffer).digest('hex')).sort().join('|')).digest('hex'),
+                size: items.reduce((n, x) => n + x.buffer.length, 0),
+                createdAt: now,
+                uploadedAt: now,
+                filePath: datasetDir,
+                storagePath: datasetDir,
+                datasetPath: datasetDir,
+                contributorId,
+                contributorName,
+                format: items.some(x => /\\.json$/i.test(x.filename)) ? 'COCO' : 'YOLO'
+            };
+            uploads.unshift(registryRecord);
+            saveUploads();
+
+            return res.status(201).json({
+                success: true,
+                contributor: { id: contributorId, name: contributorName },
+                total: items.length,
+                successful: 1,
+                failed: 0,
+                results: [{
+                    filename: registryRecord.originalName,
+                    uploadId: datasetId,
+                    status: 'SUCCESS',
+                    size: registryRecord.size,
+                    sha256: registryRecord.sha256,
+                    contributorId,
+                    contributorName,
+                    bundledFiles: items.length
+                }]
+            });
+        }
+
         for (const item of items) {
             try {
                 const { filename, buffer } = item;
