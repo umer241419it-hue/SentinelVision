@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { BadgeCheck, FileCheck2, Link2, Loader2, RefreshCw, ShieldCheck, XCircle } from 'lucide-react';
 import GlassCard from '../components/GlassCard';
 import { listContributors, getContributorModels } from '../services/workflowApi';
-import { DEMO_UI_MODE, DEMO_CONTRIBUTORS, DEMO_PROVENANCE_RUN, DEMO_INFERENCE_RECORDS, demoModelsForContributor } from '../data/presentationDemo';
 import { runInferenceProvenance, getInferenceRun, listInferenceEvidence } from '../services/inferenceProvenanceApi';
 import './InferenceProvenance.css';
 
@@ -14,14 +13,8 @@ export default function InferenceProvenance({ notify }) {
   const [modelId, setModelId] = useState('');
   const [run, setRun] = useState(null);
   const [busy, setBusy] = useState(false);
-  const demoDefaultContributor = DEMO_CONTRIBUTORS[0]?.id || '';
 
   async function refresh() {
-    if (DEMO_UI_MODE) {
-      setContributors(DEMO_CONTRIBUTORS);
-      setRecords(DEMO_INFERENCE_RECORDS);
-      return;
-    }
     try {
       const [cs, rs] = await Promise.all([listContributors(), listInferenceEvidence()]);
       setContributors(cs);
@@ -33,7 +26,6 @@ export default function InferenceProvenance({ notify }) {
 
   useEffect(() => {
     refresh();
-    if (DEMO_UI_MODE) setContributorId(demoDefaultContributor);
   }, []);
 
   useEffect(() => {
@@ -41,12 +33,6 @@ export default function InferenceProvenance({ notify }) {
     setRun(null);
     if (!contributorId) {
       setModels([]);
-      return;
-    }
-    if (DEMO_UI_MODE) {
-      const demoModels = demoModelsForContributor(contributorId);
-      setModels(demoModels);
-      setModelId(demoModels[0]?.id || '');
       return;
     }
     getContributorModels(contributorId)
@@ -62,21 +48,6 @@ export default function InferenceProvenance({ notify }) {
     setBusy(true);
     setRun(null);
     try {
-      if (DEMO_UI_MODE) {
-        await new Promise((resolve) => setTimeout(resolve, 1100));
-        const model = models.find((m) => m.id === modelId);
-        const demoRun = {
-          ...DEMO_PROVENANCE_RUN,
-          runId: `RUN-INF-2026-0929-${String(Math.floor(Math.random() * 900) + 100)}`,
-          modelId: model?.id,
-          modelName: model?.name
-        };
-        setRun(demoRun);
-        const record = DEMO_INFERENCE_RECORDS[0];
-        setRecords([{ ...record, sealID: `SEAL-2026-0929-${String(Math.floor(Math.random() * 90000) + 10000)}`, timestamp: new Date().toISOString(), modelAssetId: model?.id || record.modelAssetId, modelId: model?.id || record.modelId }, ...DEMO_INFERENCE_RECORDS].slice(0, 12));
-        notify?.('Inference provenance verification completed and seal recorded.', 'success');
-        return;
-      }
       const started = await runInferenceProvenance({ contributorId, modelId });
       let current = started?.test || started;
       const normalizeRun = (value) => ({
@@ -113,7 +84,7 @@ export default function InferenceProvenance({ notify }) {
     <div className="anim-fade ip-grid">
       <GlassCard className="ip-config">
         <div className="card-header">
-          <h3>01 · INFERENCE PROVENANCE</h3><span className="text-muted" style={{fontSize: 10}}>SEALED DEMO SESSION</span>
+          <h3>01 · INFERENCE PROVENANCE</h3<span className="text-muted" style={{fontSize: 10}}>LIVE LOCAL VERIFICATION</span>
           <button className="hud-btn icon-only" onClick={refresh} title="Refresh"><RefreshCw size={13} /></button>
         </div>
 
