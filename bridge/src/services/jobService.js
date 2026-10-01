@@ -299,8 +299,26 @@ async function executeJob(job, normType, dataset, model, configId, logStream) {
     }
 
     if (normType === 'INFERENCE_INTEGRITY' || normType === 'INFERENCE_SEAL' || normType === 'FULL_ASSURANCE' || normType === 'TRUST_CHECK' || activeHook?.inferenceProvenance) {
-        await run('INFERENCE PROVENANCE', 'python3', ['inference-provenance/src/demo_verify_full.py'], WORKSPACE_ROOT);
-        setCheck(job, 'INFERENCE_SEAL', 'PASS', 'Inference provenance verification completed.');
+        job.currentStep = 'INFERENCE PROVENANCE · local seal verification';
+        saveState();
+        const outputPath = path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'inference-provenance', 'verification.json');
+        fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+        const args = ['inference-provenance/src/run_local_verification.py', '--output', outputPath];
+        if (job.modelId) args.push('--model-id', job.modelId);
+        const result = await runCommand('python3', args, WORKSPACE_ROOT, env, logStream);
+        if (result.code === 0) {
+            setCheck(job, 'INFERENCE_SEAL', 'PASS', 'Verified existing local inference seal records with cryptographic hash/signature checks.');
+            job.inferenceResultsPath = outputPath;
+        } else if (result.code === 3) {
+            setCheck(job, 'INFERENCE_SEAL', 'SKIPPED', 'No sealed inference record exists for the selected model.');
+            job.inferenceResultsPath = outputPath;
+        } else if (result.code === 2) {
+            setCheck(job, 'INFERENCE_SEAL', 'FAIL', 'One or more existing inference seal records failed verification.');
+            job.inferenceResultsPath = outputPath;
+            if (normType === 'INFERENCE_SEAL') throw new Error('Inference seal verification failed.');
+        } else {
+            throw new Error('Inference seal verification process failed.');
+        }
     }
 
     if (normType === 'FULL_ASSURANCE' || normType === 'TRUST_CHECK') {
