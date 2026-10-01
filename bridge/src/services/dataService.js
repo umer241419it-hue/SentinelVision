@@ -20,6 +20,29 @@ const EVIDENCE_DIRS = [
 ];
 const UPLOADS_META_FILE = path.join(WORKSPACE_ROOT, 'data/uploads_meta.json');
 const CONTRIBUTORS_FILE = path.join(WORKSPACE_ROOT, 'data/contributors.json');
+const SUBMITTED_FINDINGS_FILE = path.join(WORKSPACE_ROOT, 'data/submitted_findings.json');
+
+function saveSubmittedFinding(finding) {
+    const list = readJsonSafe(SUBMITTED_FINDINGS_FILE, []);
+    const existingIndex = list.findIndex(f => f.assetID === finding.assetID || (f.evidenceHash && f.evidenceHash === finding.evidenceHash));
+    const enriched = {
+        ...finding,
+        id: finding.id || `FIND-SUBM-${String(list.length + 1).padStart(4, '0')}`,
+        ledgerStatus: 'COMMITTED',
+        txId: finding.signature ? `tx-${finding.signature.slice(0, 16)}` : `tx-${(finding.evidenceHash || '').slice(0, 16)}`
+    };
+    if (existingIndex >= 0) {
+        list[existingIndex] = enriched;
+    } else {
+        list.push(enriched);
+    }
+    try {
+        fs.writeFileSync(SUBMITTED_FINDINGS_FILE, JSON.stringify(list, null, 2), 'utf8');
+    } catch (err) {
+        console.error('Failed to save submitted finding:', err.message);
+    }
+    return enriched;
+}
 
 function readJsonSafe(filePath, fallback = null) {
     if (!fs.existsSync(filePath)) return fallback;
@@ -98,6 +121,27 @@ function getAllFindings() {
                 timestamp: driftData.run?.run_timestamp || new Date().toISOString(),
                 ledgerStatus: 'COMMITTED',
                 txId: `tx-drift-${idx}`
+            });
+        });
+    }
+
+    // 4. Submitted findings (Inference seals, live engine outputs)
+    const submitted = readJsonSafe(SUBMITTED_FINDINGS_FILE, []);
+    if (Array.isArray(submitted)) {
+        submitted.forEach((sf) => {
+            all.push({
+                id: sf.id,
+                assetID: sf.assetID,
+                moduleName: sf.moduleName || 'InferenceProvenance',
+                reason: sf.reason,
+                evidenceHash: sf.evidenceHash || '',
+                confidence: sf.confidence != null ? String(sf.confidence) : '1.0',
+                severity: sf.severity || 'LOW',
+                disposition: sf.disposition || 'ACCEPT',
+                timestamp: sf.timestamp || new Date().toISOString(),
+                ledgerStatus: sf.ledgerStatus || 'COMMITTED',
+                txId: sf.txId || (sf.signature ? `tx-${sf.signature.slice(0, 16)}` : null),
+                signature: sf.signature
             });
         });
     }
@@ -255,42 +299,39 @@ function getDriftResults() {
     }
 
     const run = driftData.run || {};
-    const res = (driftData.results && driftData.results[0]) || {};
-    const mmdVal = res.mmd?.mmd_estimate ?? 0.045;
-    const threshold = run.threshold_value || 0.009023;
+    const resultsList = Array.isArray(driftData.results) ? driftData.results : [];
+    const res = resultsList[0] || {};
+    const mmdVal = res.mmd?.mmd ?? res.mmd?.mmd_estimate ?? 0;
+    const threshold = res.threshold?.value ?? run.threshold_value ?? 0;
 
     const summary = {
         currentScore: mmdVal,
         threshold: threshold,
-        referenceDataset: `${run.reference_id || 'reference-v1'} (${run.embedding_backbone || 'pixelstat'}, dim=${run.embedding_dim || 734})`,
-        monitoringWindow: `${res.window_id || 'window-000000'} · ${run.live_image_count || 100} live images`,
+        referenceDataset: `${run.reference_id || 'reference'} (${run.embedding_backbone || 'pixelstat'}, dim=${run.embedding_dim || '—'})`,
+        monitoringWindow: `${res.window_id || 'window-0'} · ${run.live_image_count || resultsList.length} live images`,
         detectionStatus: res.assessment || (mmdVal > threshold ? 'SHIFT_DETECTED' : 'STABLE'),
         calibrationId: run.calibration_id || 'threshold-calibrated',
         lastChecked: run.run_timestamp || new Date().toISOString()
     };
 
-    // Synthesize 24-point series around actual MMD evaluation
-    const series = [];
-    const base = threshold * 0.4;
-    for (let i = 0; i < 24; i++) {
-        const timeStr = `${String((i + 6) % 24).padStart(2, '0')}:00`;
-        const isCurrent = i === 23;
-        const score = isCurrent ? mmdVal : base + (Math.sin(i * 0.5) * 0.002);
-        series.push({
-            time: timeStr,
-            drift: Math.max(0, Math.round(score * 10000) / 10000),
-            anomaly: score > threshold,
-            score: Math.max(0, Math.round(score * 10000) / 10000)
-        });
-    }
+    const windows = resultsList.map((w, idx) => {
+        const wMmd = w.mmd?.mmd ?? w.mmd?.mmd_estimate ?? 0;
+        const wThreshold = w.threshold?.value ?? threshold;
+        return {
+            window: w.window_id || `window-${String(idx).padStart(6, '0')}`,
+            mmdScore: Math.round(wMmd * 1000000) / 1000000,
+            threshold: wThreshold,
+            confidence: typeof w.policy?.confidence === 'number' ? w.policy.confidence : (w.assessment === 'STABLE' ? 0.95 : 0.85),
+            status: w.assessment || (wMmd > wThreshold ? 'ALERT' : 'OK'),
+            timestamp: run.run_timestamp || new Date().toISOString()
+        };
+    });
 
-    const windows = (driftData.results || []).map((w, idx) => ({
-        window: w.window_id || `window-${String(idx).padStart(6, '0')}`,
-        mmdScore: w.mmd?.mmd_estimate ? Math.round(w.mmd.mmd_estimate * 1000000) / 1000000 : 0.045,
-        threshold: threshold,
-        confidence: w.assessment === 'OPERATIONAL_SHIFT_LIKELY' ? 0.92 : 0.75,
-        status: w.assessment || (w.mmd?.mmd_estimate > threshold ? 'ALERT' : 'OK'),
-        timestamp: run.run_timestamp || new Date().toISOString()
+    const series = windows.map((w, idx) => ({
+        time: w.window.length > 15 ? w.window.slice(0, 15) : w.window,
+        drift: w.mmdScore,
+        anomaly: w.mmdScore > w.threshold,
+        score: w.mmdScore
     }));
 
     return { summary, series, windows };
@@ -478,5 +519,6 @@ module.exports = {
     getOverview,
     getActivitySeries,
     getLedgerTransactions,
-    getSystemHealth
+    getSystemHealth,
+    saveSubmittedFinding
 };

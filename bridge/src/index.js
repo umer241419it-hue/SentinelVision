@@ -72,6 +72,7 @@ function loadQuarantine() {
     } else {
         quarantineRegistry = [];
         saveQuarantine();
+    }
 }
 function saveQuarantine() {
     try { fs.writeFileSync(QUARANTINE_FILE, JSON.stringify(quarantineRegistry, null, 2), 'utf-8'); } catch (err) { console.error('Error saving quarantine:', err.message); }
@@ -284,8 +285,9 @@ app.post('/findings', async (req, res) => {
         console.log('Fabric Gateway submit notice:', err.message);
     }
 
+    const saved = dataService.saveSubmittedFinding(finding);
     jobService.recordAuditEvent('FINDING_SUBMITTED', { assetID: finding.assetID, module: finding.moduleName });
-    res.status(201).json({ success: true, message: 'Finding recorded', data: finding });
+    res.status(201).json({ success: true, message: 'Finding recorded', data: saved });
 });
 
 app.get('/integrity/results', (req, res) => {
@@ -573,7 +575,8 @@ app.get('/api/contributors/:id/models', (req, res) => {
      if (report.status !== 'INVALID' && (model.filePath || model.weightsPath)) {
          const modelPath = model.filePath || model.weightsPath;
          const rawName = model.originalName || path.basename(modelPath);
-         const modelId = path.parse(rawName).name;
+         const m = String(rawName).match(/id-\d{8}/) || String(model.uploadId).match(/id-\d{8}/) || String(modelPath).match(/id-\d{8}/);
+         const modelId = m ? m[0] : path.parse(rawName).name;
          const engineWorkspace = path.join(WORKSPACE_ROOT, 'reports', report.validationId, 'model-integrity');
          report.engine = await validationEngineService.runModelIntegrityEngine({
              modelId,

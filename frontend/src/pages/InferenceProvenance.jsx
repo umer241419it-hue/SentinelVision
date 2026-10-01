@@ -84,7 +84,7 @@ export default function InferenceProvenance({ notify }) {
     <div className="anim-fade ip-grid">
       <GlassCard className="ip-config">
         <div className="card-header">
-          <h3>01 · INFERENCE PROVENANCE</h3<span className="text-muted" style={{fontSize: 10}}>LIVE LOCAL VERIFICATION</span>
+          <h3>01 · INFERENCE PROVENANCE</h3><span className="text-muted" style={{fontSize: 10}}>LIVE LOCAL VERIFICATION</span>
           <button className="hud-btn icon-only" onClick={refresh} title="Refresh"><RefreshCw size={13} /></button>
         </div>
 

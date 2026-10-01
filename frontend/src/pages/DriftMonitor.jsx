@@ -165,7 +165,7 @@ export default function DriftMonitor() {
                 stroke={colors.warn}
                 strokeDasharray="6 4"
                 label={{
-                  value: 'threshold 0.0289',
+                  value: `threshold ${summary.threshold}`,
                   fill: colors.warn,
                   fontSize: 10.5,
                   position: 'insideTopRight'

@@ -105,7 +105,7 @@ export default function ModelValidation({ notify }) {
     <div className="anim-fade mv-grid">
       <GlassCard className="mv-select">
         <div className="card-header">
-          <h3>01 · SELECT MODEL</h3<span className="text-muted" style={{fontSize: 10}}>REGISTERED LOCAL ASSET</span>
+          <h3>01 · SELECT MODEL</h3><span className="text-muted" style={{fontSize: 10}}>REGISTERED LOCAL ASSET</span>
           <button className="hud-btn icon-only" onClick={load} title="Refresh"><RefreshCw size={13} /></button>
         </div>
 

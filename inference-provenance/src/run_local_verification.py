@@ -3,6 +3,7 @@
 import argparse
 import json
 from pathlib import Path
+import re
 import sys
 
 ROOT = Path(__file__).resolve().parent.parent.parent
@@ -25,8 +26,15 @@ def main():
                 record = json.loads(p.read_text(encoding="utf-8"))
             except Exception:
                 continue
-            if args.model_id and str(record.get("modelAssetID", "")) not in {args.model_id, "model-" + args.model_id}:
-                continue
+            rec_id = str(record.get("modelAssetID", ""))
+            if args.model_id:
+                m_arg = re.search(r"id-\d{8}", args.model_id)
+                m_rec = re.search(r"id-\d{8}", rec_id)
+                if m_arg and m_rec:
+                    if m_arg.group(0) != m_rec.group(0):
+                        continue
+                elif rec_id not in {args.model_id, "model-" + args.model_id, args.model_id.replace("model-", "")}:
+                    continue
             result = verify_seal(record)
             records.append({
                 "evidenceHash": p.stem,

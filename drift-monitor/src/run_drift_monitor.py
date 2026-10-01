@@ -183,6 +183,7 @@ def run(
     timestamp_fixed: Optional[str] = None,
     reference_manifest_path: Optional[str] = None,
     run_id: Optional[str] = None,
+    results_path_override: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Run the full drift monitoring pipeline; returns the results dict."""
     startup_validation(config, base_dir)
@@ -349,6 +350,7 @@ def main() -> None:
         timestamp_fixed=args.timestamp_fixed,
         reference_manifest_path=os.path.abspath(args.reference) if args.reference else None,
         run_id=args.run_id,
+        results_path_override=os.path.abspath(args.output) if args.output else None,
     )
 
 

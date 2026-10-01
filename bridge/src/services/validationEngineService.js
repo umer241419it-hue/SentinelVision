@@ -121,21 +121,32 @@ function prepareEngineDataset(files, kind, workspaceDir) {
             const flat = originalToFlat.get(base);
             if (flat) labels[flat] = label;
         }
-    } else {
-        const json = normalized.find(f => {
-            if (!/\.json$/i.test(f.filename)) return false;
-            try { const d = JSON.parse(f.fileBuffer.toString('utf8')); return Array.isArray(d.images) || Array.isArray(d.annotations); } catch { return false; }
-        });
-        if (json) {
-            const d = JSON.parse(json.fileBuffer.toString('utf8'));
-            const categories = new Map((d.categories || []).map(c => [c.id, c.name || String(c.id)]));
-            const imageById = new Map((d.images || []).map(i => [i.id, path.basename(i.file_name || '')]));
-            const firstLabel = new Map();
-            for (const ann of d.annotations || []) if (!firstLabel.has(ann.image_id)) firstLabel.set(ann.image_id, categories.get(ann.category_id) || String(ann.category_id));
-            for (const [imageId, originalName] of imageById.entries()) {
-                const flat = originalToFlat.get(baseName(originalName));
-                if (flat) labels[flat] = firstLabel.get(imageId) || 'background';
-            }
+    }
+    // If not all labels resolved, check JSON label files (COCO or key-value label dictionaries)
+    if (Object.keys(labels).length < imageFiles.length) {
+        for (const f of normalized.filter(x => /\.json$/i.test(x.filename))) {
+            try {
+                const d = JSON.parse(f.fileBuffer.toString('utf8'));
+                if (Array.isArray(d.images) || Array.isArray(d.annotations)) {
+                    const categories = new Map((d.categories || []).map(c => [c.id, c.name || String(c.id)]));
+                    const imageById = new Map((d.images || []).map(i => [i.id, path.basename(i.file_name || '')]));
+                    const firstLabel = new Map();
+                    for (const ann of d.annotations || []) if (!firstLabel.has(ann.image_id)) firstLabel.set(ann.image_id, categories.get(ann.category_id) || String(ann.category_id));
+                    for (const [imageId, originalName] of imageById.entries()) {
+                        const flat = originalToFlat.get(baseName(originalName));
+                        if (flat && !labels[flat]) labels[flat] = firstLabel.get(imageId) || 'background';
+                    }
+                } else if (typeof d === 'object' && d !== null) {
+                    const rawLabels = d.labels && typeof d.labels === 'object' && !Array.isArray(d.labels) ? d.labels : d;
+                    for (const [key, val] of Object.entries(rawLabels)) {
+                        const flat = originalToFlat.get(baseName(key));
+                        if (flat && !labels[flat]) {
+                            const lbl = (typeof val === 'object' && val !== null) ? (val.given_label || val.label) : val;
+                            if (lbl) labels[flat] = String(lbl);
+                        }
+                    }
+                }
+            } catch {}
         }
     }
     const missing = [...originalToFlat.values()].filter(name => !labels[name]);
@@ -172,7 +183,8 @@ async function runModelIntegrityEngine({ modelId, modelPath, outputDir }) {
     const hashesPath = path.join(outputDir, 'strip_hashes.json');
     if (!fs.existsSync(manifestPath)) return { engine: 'SentinelVision Model Integrity Assurance (Python STRIP)', status: 'FAILED', simulated: false, exitCode: -1, modelId, output: null, resultsPath: outputPath, stdout: '', stderr: 'Model Integrity calibration_manifest.json is missing.', error: 'Model Integrity calibration_manifest.json is missing.' };
     const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-    if (!manifest.find(item => String(item.model_id) === String(modelId))) return { engine: 'SentinelVision Model Integrity Assurance (Python STRIP)', status: 'UNSUPPORTED', simulated: false, exitCode: 2, modelId, output: null, resultsPath: outputPath, stdout: '', stderr: 'No calibration manifest entry exists for model ' + modelId + '. The real STRIP engine is calibrated only for registered model IDs.', error: 'Model is not calibrated for the real STRIP engine.' };
+    const manifestEntry = manifest.find(item => String(item.model_id) === String(modelId));
+    if (!manifestEntry) return { engine: 'SentinelVision Model Integrity Assurance (Python STRIP)', status: 'UNSUPPORTED', simulated: false, exitCode: 2, modelId, output: null, resultsPath: outputPath, stdout: '', stderr: 'No calibration manifest entry exists for model ' + modelId + '. The real STRIP engine is calibrated only for registered model IDs.', error: 'Model is not calibrated for the real STRIP engine.' };
     if (!fs.existsSync(path.join(dataDir, modelId, 'example_data'))) return { engine: 'SentinelVision Model Integrity Assurance (Python STRIP)', status: 'UNSUPPORTED', simulated: false, exitCode: 2, modelId, output: null, resultsPath: outputPath, stdout: '', stderr: 'Registered STRIP example_data is missing for model ' + modelId + '.', error: 'Registered STRIP example_data is missing.' };
     const result = await runProcess(process.env.PYTHON || 'python3', ['src/strip_detector.py', '--model-path', resolvedModel, '--model-id', String(modelId), '--data-dir', dataDir, '--triggers-dir', triggersDir, '--manifest', manifestPath, '--output', outputPath, '--hashes-output', hashesPath], modelRoot, pythonEnv());
     let rows = null; try { if (fs.existsSync(outputPath)) rows = JSON.parse(fs.readFileSync(outputPath, 'utf8')); } catch {}
@@ -193,7 +205,7 @@ async function runModelIntegrityEngine({ modelId, modelPath, outputDir }) {
             const scoreMad = path.join(scoreDir, 'mad_results.json');
             const scoreStrip = path.join(scoreDir, 'strip_results.json');
             const scoreOutput = path.join(scoreDir, 'scoring_results.json');
-            writeJson(scoreManifest, [entry]);
+            writeJson(scoreManifest, [manifestEntry]);
             writeJson(scoreMad, [madEntry]);
             writeJson(scoreStrip, rows);
             const scoreRun = await runProcess(
@@ -219,7 +231,7 @@ async function runModelIntegrityEngine({ modelId, modelPath, outputDir }) {
         scoring: score,
         verdict_source: score ? 'Neural Cleanse/MAD + live STRIP scoring.py' : 'live STRIP only; calibrated MAD result unavailable'
     };
-    return { engine: 'SentinelVision Model Integrity Assurance (Python STRIP)', status: 'COMPLETED', simulated: false, exitCode: result.code, modelId, output: { verdict: 'COMPLETED', model_id: modelId, classes_evaluated: rows.length, top_class: top ? top.class : null, max_entropy_deficit: top ? top.entropy_deficit : null, strip_results: rows }, resultsPath: outputPath, stdout: result.stdout, stderr: result.stderr, error: null };
+    return { engine: 'SentinelVision Model Integrity Assurance (Python STRIP)', status: 'COMPLETED', simulated: false, exitCode: result.code, modelId, output, resultsPath: outputPath, stdout: result.stdout, stderr: result.stderr, error: null };
 }
 
 module.exports = { runDatasetIntegrityEngine, runModelIntegrityEngine };

@@ -269,10 +269,12 @@ async function executeJob(job, normType, dataset, model, configId, logStream) {
             setCheck(job, 'MODEL_INTEGRITY', 'SKIPPED', 'No model was selected.');
         } else {
             fs.mkdirSync(path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'model-integrity'), { recursive: true });
+            const modelIdMatch = String(model.originalName || '').match(/id-\d{8}/) || String(model.uploadId || '').match(/id-\d{8}/) || String(model.resolvedPath || '').match(/id-\d{8}/);
+            const targetModelId = modelIdMatch ? modelIdMatch[0] : path.parse(model.originalName || path.basename(model.resolvedPath)).name;
             await run('MODEL INTEGRITY', 'python3', [
                 'src/strip_detector.py',
                 '--model-path', model.resolvedPath,
-                '--model-id', path.parse(model.originalName || path.basename(model.resolvedPath)).name,
+                '--model-id', targetModelId,
                 '--output', path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'model-integrity', 'strip_results.json'),
                 '--hashes-output', path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'model-integrity', 'strip_hashes.json')
             ], path.join(WORKSPACE_ROOT, 'model-integrity'));
@@ -281,7 +283,7 @@ async function executeJob(job, normType, dataset, model, configId, logStream) {
         }
     }
 
-    if (normType === 'DISTRIBUTION_SHIFT' || normType === 'DATA_DRIFT' || normType === 'FULL_ASSURANCE' || normType === 'TRUST_CHECK' || activeHook?.driftMonitoring) {
+    if (normType === 'DISTRIBUTION_SHIFT' || normType === 'DATA_DRIFT' || normType === 'FULL_ASSURANCE' || normType === 'TRUST_CHECK' || (activeHook?.driftMonitoring && datasetPath)) {
         if (!datasetPath || !fs.existsSync(datasetPath) || !fs.statSync(datasetPath).isDirectory()) {
             throw new Error('Selected dataset cannot be used as the drift input.');
         }
@@ -304,7 +306,9 @@ async function executeJob(job, normType, dataset, model, configId, logStream) {
         const outputPath = path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'inference-provenance', 'verification.json');
         fs.mkdirSync(path.dirname(outputPath), { recursive: true });
         const args = ['inference-provenance/src/run_local_verification.py', '--output', outputPath];
-        if (job.modelId) args.push('--model-id', job.modelId);
+        const m = String(job.modelName || '').match(/id-\d{8}/) || String(job.modelId || '').match(/id-\d{8}/);
+        const effectiveModelId = m ? m[0] : job.modelId;
+        if (effectiveModelId) args.push('--model-id', effectiveModelId);
         const result = await runCommand('python3', args, WORKSPACE_ROOT, env, logStream);
         if (result.code === 0) {
             setCheck(job, 'INFERENCE_SEAL', 'PASS', 'Verified existing local inference seal records with cryptographic hash/signature checks.');
