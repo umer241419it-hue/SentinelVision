@@ -136,19 +136,19 @@ function getDataIntegrityResults() {
     if (!dataInt) {
         return {
             summary: {
-                totalSamples: 120,
-                duplicates: 20,
-                labelFlips: 8,
-                oodSamples: 9,
-                suspicious: 37,
-                checksRun: ['duplicate', 'ood', 'label_flip'],
-                lastRun: new Date().toISOString()
+                totalSamples: 0,
+                duplicates: 0,
+                labelFlips: 0,
+                oodSamples: 0,
+                suspicious: 0,
+                checksRun: [],
+                lastRun: null
             },
             breakdown: [
-                { name: 'Clean', value: 83, color: '#34d399' },
-                { name: 'Duplicate', value: 20, color: '#60a5fa' },
-                { name: 'Label Flip', value: 8, color: '#fbbf24' },
-                { name: 'OOD', value: 9, color: '#a78bfa' }
+                { name: 'Clean', value: 0, color: '#34d399' },
+                { name: 'Duplicate', value: 0, color: '#60a5fa' },
+                { name: 'Label Flip', value: 0, color: '#fbbf24' },
+                { name: 'OOD', value: 0, color: '#a78bfa' }
             ],
             samples: []
         };
@@ -207,54 +207,27 @@ function getModelIntegrityResults() {
     const flaggedModel = quarantined.length > 0 ? quarantined[0] : (findings[0] || {});
 
     const summary = {
-        modelId: flaggedModel.assetID || 'model-id-00000112',
-        modelStatus: quarantined.length > 0 ? 'QUARANTINE_RECOMMENDED' : 'VERIFIED_CLEAN',
-        integrityScore: quarantined.length > 0 ? 92 : 98,
-        poisoningRisk: quarantined.length > 0 ? 'CRITICAL' : 'LOW',
-        triggerDetection: 'FLAGGED (class 2, anomaly index 3.13)',
-        activationAnomaly: 'DETECTED — STRIP entropy suppression corroborated',
-        validationStatus: 'PASSED (dual-direction MMD proof)',
-        lastScan: flaggedModel.timestamp || new Date().toISOString()
+        modelId: flaggedModel.assetID || null,
+        modelStatus: quarantined.length > 0 ? 'QUARANTINE_RECOMMENDED' : (findings.length ? 'REVIEW' : 'NO_MODEL_SCAN'),
+        integrityScore: quarantined.length > 0 ? 92 : (findings.length ? null : null),
+        poisoningRisk: quarantined.length > 0 ? 'CRITICAL' : (findings.length ? 'UNKNOWN' : 'NOT_ASSESSED'),
+        triggerDetection: findings.length ? 'ENGINE_FINDINGS_PRESENT' : 'NOT_ASSESSED',
+        activationAnomaly: findings.length ? 'SEE ENGINE FINDINGS' : 'NOT_ASSESSED',
+        validationStatus: findings.length ? 'FINDINGS AVAILABLE' : 'NO_MODEL_RESULTS',
+        lastScan: flaggedModel.timestamp || null
     };
 
-    const signals = [
-        {
-            signal: 'Neural Cleanse Anomaly Index',
-            status: 'FLAGGED',
-            value: '3.13 (Threshold: 2.0)',
-            severity: 'CRITICAL',
-            interpretation: 'Class 2 inversion norm is 3.13x median absolute deviation from baseline'
-        },
-        {
-            signal: 'STRIP Entropy Evaluation',
-            status: 'CORROBORATED',
-            value: 'H = 0.042 nats',
-            severity: 'HIGH',
-            interpretation: 'Entropy suppression on class 2 independently corroborates trigger presence'
-        },
-        {
-            signal: 'Median Absolute Deviation (MAD)',
-            status: 'EVALUATED',
-            value: 'MAD = 0.184',
-            severity: 'MEDIUM',
-            interpretation: 'Robust dispersion estimator applied across all output logits'
-        },
-        {
-            signal: 'Perturbation Pattern Norm',
-            status: 'DETECTED',
-            value: 'L1 Norm: 14.2 pixels',
-            severity: 'MEDIUM',
-            interpretation: 'Small concentrated perturbation mask sufficient to flip classification'
-        }
-    ];
+    const signals = findings.map((f) => ({
+        signal: f.moduleName || 'Model Integrity',
+        status: f.disposition || 'REVIEW',
+        value: f.severity || 'UNKNOWN',
+        severity: f.severity || 'UNKNOWN',
+        interpretation: f.reason || 'Engine finding'
+    }));
 
     const metadata = {
-        architecture: 'ResNet50 / DenseNet121',
-        weightsDigest: 'cd88076498c5c79fce68bffef38102f3394ef5c9f6691dc2f0efc48bf51f3e0b',
-        trainingOrigin: 'Multi-Contributor Benchmark Subset',
-        inputDimensions: '3 x 224 x 224 (Normalized)',
-        classes: 5,
-        defenseActive: 'Neural Cleanse + MAD + STRIP Dual Verification'
+        modelId: flaggedModel.assetID || null,
+        weightsDigest: flaggedModel.weightsDigest || null
     };
 
     return { summary, signals, metadata };
@@ -268,13 +241,13 @@ function getDriftResults() {
     if (!driftData) {
         return {
             summary: {
-                currentScore: 0.0731,
-                threshold: 0.009023,
-                referenceDataset: 'reference-v1 (120 images, backbone=pixelstat)',
-                monitoringWindow: 'window-000000 · 100 live images',
-                detectionStatus: 'SHIFT_DETECTED',
-                calibrationId: 'threshold-2283a11ba311',
-                lastChecked: new Date().toISOString()
+                currentScore: 0,
+                threshold: 0,
+                referenceDataset: 'No drift run available',
+                monitoringWindow: 'No monitoring window available',
+                detectionStatus: 'NO_RESULTS',
+                calibrationId: null,
+                lastChecked: null
             },
             series: [],
             windows: []
