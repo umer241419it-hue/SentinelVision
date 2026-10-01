@@ -70,40 +70,8 @@ function loadQuarantine() {
     if (fs.existsSync(QUARANTINE_FILE)) {
         try { quarantineRegistry = JSON.parse(fs.readFileSync(QUARANTINE_FILE, 'utf-8')); } catch { quarantineRegistry = []; }
     } else {
-        quarantineRegistry = [
-            {
-                id: 'qr-001',
-                testId: 'test-20260926-001',
-                assetId: 'model-id-00000112',
-                kind: 'MODEL',
-                reason: 'Class 2 flagged by Neural Cleanse + MAD (anomaly index 3.13) corroborated by STRIP entropy suppression.',
-                submittedBy: 'analyst@sentinelvision.io',
-                submittedAt: '2026-09-26T17:15:00Z',
-                status: 'PENDING',
-                disposition: 'QUARANTINE',
-                severity: 'CRITICAL',
-                reviewerNotes: null,
-                reviewedBy: null,
-                reviewedAt: null
-            },
-            {
-                id: 'qr-002',
-                testId: 'test-20260926-002',
-                assetId: 'dataset-voc2012-label-flip',
-                kind: 'DATASET',
-                reason: 'Multiple systematic label flip anomalies and near-duplicate flooding detected in contributor batch B.',
-                submittedBy: 'analyst@sentinelvision.io',
-                submittedAt: '2026-09-26T17:30:00Z',
-                status: 'QUARANTINED',
-                disposition: 'QUARANTINE',
-                severity: 'HIGH',
-                reviewerNotes: 'Confirmed 8 flipped class samples against benchmark answer key.',
-                reviewedBy: 'auditor@sentinelvision.io',
-                reviewedAt: '2026-09-26T18:00:00Z'
-            }
-        ];
+        quarantineRegistry = [];
         saveQuarantine();
-    }
 }
 function saveQuarantine() {
     try { fs.writeFileSync(QUARANTINE_FILE, JSON.stringify(quarantineRegistry, null, 2), 'utf-8'); } catch (err) { console.error('Error saving quarantine:', err.message); }
