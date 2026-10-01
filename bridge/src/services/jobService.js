@@ -12,6 +12,7 @@ const AUDIT_FILE = path.join(WORKSPACE_ROOT, 'data/audit_trail.json');
 const UPLOADS_META_FILE = path.join(WORKSPACE_ROOT, 'data/uploads_meta.json');
 const CONTRIBUTORS_FILE = path.join(WORKSPACE_ROOT, 'data/contributors.json');
 const modelHookService = require('./modelHookService');
+const validationEngineService = require('./validationEngineService');
 
 for (const dir of [RUN_LOGS_DIR, path.dirname(JOBS_FILE)]) {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -90,6 +91,21 @@ function resolveConfig(configId, fallback) {
     };
     const p = map[configId] || fallback;
     return fs.existsSync(p) ? p : fallback;
+}
+
+function collectDatasetFiles(rootDir) {
+    const files = [];
+    const walk = (current, relative = '') => {
+        for (const name of fs.readdirSync(current)) {
+            const full = path.join(current, name);
+            const rel = relative ? path.join(relative, name) : name;
+            const stat = fs.statSync(full);
+            if (stat.isDirectory()) walk(full, rel);
+            else files.push({ filename: rel.replace(/\\/g, '/'), fileBuffer: fs.readFileSync(full) });
+        }
+    };
+    walk(rootDir);
+    return files;
 }
 
 function makeEnv() {
@@ -218,34 +234,33 @@ async function executeJob(job, normType, dataset, model, configId, logStream) {
         if (!datasetPath || !fs.existsSync(datasetPath) || !fs.statSync(datasetPath).isDirectory()) {
             throw new Error('Selected dataset is not an executable image-directory dataset. Upload/registry entries must resolve to a directory containing labeled images and a labels sidecar.');
         }
-        const labels = path.join(datasetPath, 'label_key.json');
-        if (!fs.existsSync(labels)) {
-            throw new Error(`No label_key.json found for selected dataset: ${datasetPath}`);
+        const scanWorkspace = path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'data-integrity');
+        fs.mkdirSync(scanWorkspace, { recursive: true });
+        const datasetFiles = collectDatasetFiles(datasetPath);
+        const engineKind = String(dataset?.format || '').toLowerCase() === 'coco' ? 'coco' : 'yolo';
+        job.currentStep = 'DATA INTEGRITY · local Python engine';
+        saveState();
+        logStream.write(`\\n--- DATA INTEGRITY ---\\nExecuting the real SentinelVision Data Integrity engine against ${datasetFiles.length} uploaded file(s).\\n`);
+        const engine = await validationEngineService.runDatasetIntegrityEngine({
+            validationId: job.run_id,
+            kind: engineKind,
+            files: datasetFiles,
+            workspaceDir: scanWorkspace,
+            datasetId: job.datasetId,
+            datasetName: job.datasetName
+        });
+        if (engine.status !== 'COMPLETED') {
+            throw new Error(engine.error || engine.stderr || 'Data Integrity engine failed');
         }
-        const isUnifiedDataset = fs.existsSync(path.join(datasetPath, 'JPEGImages')) &&
-            fs.existsSync(path.join(datasetPath, 'Annotations'));
-        if (isUnifiedDataset) {
-            const scanOutputDir = path.join(WORKSPACE_ROOT, 'reports', job.run_id, 'data-integrity');
-            fs.mkdirSync(scanOutputDir, { recursive: true });
-            await run('DATA INTEGRITY', 'python3', [
-                'sentinelvision_cli.py', 'integrity', 'scan',
-                '--dataset', datasetPath,
-                '--config', dataConfig,
-                '--output-dir', scanOutputDir
-            ], WORKSPACE_ROOT);
-            job.dataResultsPath = path.join(scanOutputDir, 'scan_findings.json');
-            summarizeData(job, job.dataResultsPath);
-        } else {
-            await run('DATA INTEGRITY', 'python3', [
-                '-m', 'src.run_data_integrity',
-                '--config', dataConfig,
-                '--input', datasetPath,
-                '--labels', labels,
-                '--checks', 'duplicate,ood,label_flip',
-                '--run-id', job.run_id
-            ], path.join(WORKSPACE_ROOT, 'data-integrity'));
-            summarizeData(job);
-        }
+        job.dataResultsPath = engine.resultsPath;
+        job.dataEngine = {
+            engine: engine.engine,
+            status: engine.status,
+            imagesPresentedToEngine: engine.imagesPresentedToEngine,
+            output: engine.output || null,
+            findings: engine.findings?.length || 0
+        };
+        summarizeData(job, engine.resultsPath);
     }
 
     if (normType === 'MODEL_INTEGRITY' || normType === 'FULL_ASSURANCE' || normType === 'TRUST_CHECK') {
