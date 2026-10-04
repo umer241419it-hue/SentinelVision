@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  FileJson, FileText, Loader2, CheckCircle2, XCircle, AlertTriangle,
-  Ban, RefreshCw, ShieldCheck, Package
+  Loader2, CheckCircle2, XCircle, AlertTriangle,
+  Ban, RefreshCw, UploadCloud
 } from 'lucide-react';
 import GlassCard from '../components/GlassCard';
 import { StatusBadge } from '../components/Badges';
 import DataTable from '../components/DataTable';
 import {
-  clientValidateFile, uploadAndValidateDataset, listDatasets, listDatasetValidations,
-  ALLOWED_EXTENSIONS, KIND_RULES
+  clientValidateFile, uploadAndValidateDataset, listDatasetValidations,
+  BLOCKED_EXTENSIONS
 } from '../services/datasetValidationApi';
 import { listContributors } from '../services/workflowApi';
 import './DatasetValidation.css';
@@ -36,31 +36,64 @@ function fmtTime(iso) {
   return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString();
 }
 
+/** Recursively scan dropped folder entries */
+async function scanFiles(items) {
+  const files = [];
+  async function readEntry(entry, currentPath = '') {
+    if (entry.isFile) {
+      const file = await new Promise((resolve, reject) => entry.file(resolve, reject));
+      const relPath = currentPath ? `${currentPath}/${file.name}` : file.name;
+      Object.defineProperty(file, 'webkitRelativePath', {
+        value: relPath,
+        writable: true,
+        configurable: true
+      });
+      files.push(file);
+    } else if (entry.isDirectory) {
+      const dirReader = entry.createReader();
+      const readAllEntries = async () => {
+        const batch = await new Promise((resolve, reject) => dirReader.readEntries(resolve, reject));
+        if (batch.length > 0) {
+          for (const child of batch) {
+            await readEntry(child, currentPath ? `${currentPath}/${entry.name}` : entry.name);
+          }
+          await readAllEntries();
+        }
+      };
+      await readAllEntries();
+    }
+  }
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (item.webkitGetAsEntry) {
+      const entry = item.webkitGetAsEntry();
+      if (entry) await readEntry(entry);
+    } else if (item.kind === 'file') {
+      const f = item.getAsFile();
+      if (f) files.push(f);
+    }
+  }
+  return files;
+}
+
 /**
- * DatasetValidation — COCO/YOLO dataset integrity gate.
- * 01 · UPLOAD DATASET FILES
- * Select Contributor (PROVIDED BY *)
- * Select Uploaded Dataset (UPLOADED DATASET *)
- * Select YOLO / COCO
- * Select Files / Select Dataset Folder
- * Validate Dataset
+ * DatasetValidation — Unified Data Integrity gate.
+ * Presents ONE single upload option: [ Upload Dataset ]
+ * Automatically detects dataset structure and submits directly to the
+ * backend Data Integrity pipeline.
  */
 export default function DatasetValidation({ notify }) {
   const [kind, setKind] = useState('yolo');
   const [files, setFiles] = useState([]);
-  const [precheck, setPrecheck] = useState([]); // client-side gate results
+  const [precheck, setPrecheck] = useState([]);
   const [busy, setBusy] = useState(false);
   const [report, setReport] = useState(null);
   const [history, setHistory] = useState([]);
   const [contributors, setContributors] = useState([]);
-  const [datasets, setDatasets] = useState([]);
   const [contributorId, setContributorId] = useState('');
-  const [datasetId, setDatasetId] = useState('');
-  const [folderMode, setFolderMode] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef(null);
-  const folderInputRef = useRef(null);
-
-  const rules = KIND_RULES[kind];
 
   const refreshHistory = useCallback(async () => {
     try {
@@ -72,102 +105,104 @@ export default function DatasetValidation({ notify }) {
 
   useEffect(() => {
     refreshHistory();
-    listContributors().then(setContributors).catch(() => setContributors([]));
+    listContributors()
+      .then((list) => {
+        setContributors(list);
+        if (list && list.length > 0) {
+          setContributorId(list[0].id);
+        }
+      })
+      .catch(() => setContributors([]));
   }, [refreshHistory]);
 
-  // Load uploaded datasets whenever contributorId changes
-  useEffect(() => {
-    setDatasetId('');
-    if (!contributorId) {
-      setDatasets([]);
-      return;
-    }
-    listDatasets(contributorId)
-      .then(setDatasets)
-      .catch((err) => {
-        setDatasets([]);
-        notify?.(err.message, 'error');
-      });
-  }, [contributorId, notify]);
+  async function handleFilesSelected(pickedList) {
+    const picked = Array.from(pickedList || []);
+    if (!picked.length) return;
 
-  // Ensure directory picker attributes on the folder input for Electron/Chromium
-  useEffect(() => {
-    const input = folderInputRef.current;
-    if (input) {
-      input.webkitdirectory = true;
-      input.directory = true;
-      input.setAttribute('webkitdirectory', '');
-      input.setAttribute('directory', '');
-    }
-  }, []);
-
-  function pickFiles(fileList, fromFolder = false) {
-    const picked = Array.from(fileList || []);
-    setFiles(picked);
-    setFolderMode(fromFolder);
-    setReport(null);
-    if (fromFolder) {
-      setPrecheck(picked.length
-        ? [{ name: `${picked.length} files from selected dataset folder`, size: picked.reduce((n, f) => n + f.size, 0), ok: true, reason: 'folder structure preserved' }]
-        : []);
-      return;
-    }
-    Promise.all(
-      picked.map(async (f) => ({ name: f.name, size: f.size, ...(await clientValidateFile(f, kind)) }))
-    ).then(setPrecheck);
-  }
-
-  function switchKind(nextKind) {
-    setKind(nextKind);
-    setFiles([]);
-    setPrecheck([]);
-    setFolderMode(false);
-    setReport(null);
-    if (inputRef.current) inputRef.current.value = '';
-    if (folderInputRef.current) folderInputRef.current.value = '';
-  }
-
-  async function doValidate() {
     if (!contributorId) {
       notify?.('Select the contributor / vendor who provided this dataset.', 'error');
       return;
     }
-    if (!datasetId && files.length === 0) {
-      notify?.('Select an uploaded dataset or select dataset files / folder to validate.', 'error');
-      return;
-    }
-    const blocked = folderMode ? [] : precheck.filter((p) => !p.ok);
+
+    setFiles(picked);
+    setReport(null);
+
+    // Auto-detect format: JSON annotation indicates COCO, otherwise YOLO
+    const detectedKind = picked.some((f) => f.name.toLowerCase().endsWith('.json')) ? 'coco' : 'yolo';
+    setKind(detectedKind);
+
+    // Client-side precheck: block hazardous binaries
+    const checks = await Promise.all(
+      picked.map(async (f) => ({
+        name: f.name,
+        size: f.size,
+        ...(await clientValidateFile(f, detectedKind))
+      }))
+    );
+    setPrecheck(checks);
+
+    const blocked = checks.filter((c) => !c.ok && c.reason && BLOCKED_EXTENSIONS.some((ext) => c.reason.includes(ext)));
     if (blocked.length > 0) {
-      notify?.(`${blocked.length} file(s) failed client-side checks — remove them before validating.`, 'error');
+      notify?.(`${blocked.length} file(s) failed client-side security checks.`, 'error');
       return;
     }
 
     setBusy(true);
-    setReport(null);
     try {
-      const { report: r } = await uploadAndValidateDataset(kind, files, contributorId, datasetId);
+      const { report: r } = await uploadAndValidateDataset(detectedKind, picked, contributorId);
       setReport(r);
       const meta = reportMeta(r.status);
       notify?.(
-        `Dataset validation: ${meta.label} · ${r.files_processed || files.length} file(s) · ${r.errors || 0} error(s) · ${r.warnings || 0} warning(s)`,
+        `Dataset validation: ${meta.label} · ${r.files_processed || picked.length} file(s) · ${r.errors || 0} error(s) · ${r.warnings || 0} warning(s)`,
         r.status === 'valid' || r.status === 'warning' ? 'success' : 'error'
       );
       refreshHistory();
     } catch (err) {
-      notify?.(err.message, 'error');
+      notify?.(err.message || 'Dataset validation failed', 'error');
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = '';
-      if (folderInputRef.current) folderInputRef.current.value = '';
+    }
+  }
+
+  function handleDragOver(e) {
+    e.preventDefault();
+    if (!busy) setDragOver(true);
+  }
+
+  function handleDragLeave(e) {
+    e.preventDefault();
+    setDragOver(false);
+  }
+
+  async function handleDrop(e) {
+    e.preventDefault();
+    setDragOver(false);
+    if (busy) return;
+
+    const items = e.dataTransfer.items;
+    if (items && items.length > 0) {
+      try {
+        const scanned = await scanFiles(items);
+        if (scanned.length > 0) {
+          handleFilesSelected(scanned);
+          return;
+        }
+      } catch (err) {
+        console.warn('Folder drag scan fallback:', err);
+      }
+    }
+    const droppedFiles = Array.from(e.dataTransfer.files || []);
+    if (droppedFiles.length > 0) {
+      handleFilesSelected(droppedFiles);
     }
   }
 
   const meta = report ? reportMeta(report.status) : null;
   const stats = report?.stats || {};
-  const selectedDataset = useMemo(() => datasets.find((d) => d.id === datasetId), [datasets, datasetId]);
 
   const statRows = [
-    ...(report?.datasetName || selectedDataset?.name ? [['Dataset', report?.datasetName || selectedDataset?.name]] : []),
+    ...(report?.datasetName ? [['Dataset', report.datasetName]] : []),
     ['Images', stats.images],
     ['Annotation files', stats.annotation_files],
     ['Annotations', stats.annotations],
@@ -181,15 +216,14 @@ export default function DatasetValidation({ notify }) {
     ['Out-of-bounds boxes', stats.out_of_bounds_boxes]
   ].filter(([, v]) => v != null);
 
-  const canValidate = !busy && !!contributorId && (!!datasetId || files.length > 0) && (!folderMode && files.length > 0 ? !precheck.some((p) => !p.ok) : true);
-
   return (
     <div className="anim-fade dv-grid">
-      {/* ---- Step 1: UPLOAD + CLIENT GATE ---- */}
+      {/* ---- Step 1: UNIFIED UPLOAD DATASET ---- */}
       <GlassCard className="dv-upload">
         <div className="card-header">
-          <h3>01 · UPLOAD DATASET FILES</h3><span className="text-muted" style={{fontSize: 10}}>REGISTERED LOCAL DATASET</span>
-          <span className="hdr-meta">{rules.label.toUpperCase()} · {rules.extensions.join(' · ')}</span>
+          <h3>01 · DATA VALIDATION</h3>
+          <span className="text-muted" style={{ fontSize: 10 }}>DATA INTEGRITY PIPELINE</span>
+          <span className="hdr-meta">{kind.toUpperCase()} PIPELINE</span>
         </div>
 
         <div className="dv-contributor-row">
@@ -208,92 +242,51 @@ export default function DatasetValidation({ notify }) {
           <span className="dv-field-help">Select the contributor / vendor who provided this dataset.</span>
         </div>
 
-        <div className="dv-contributor-row">
-          <label className="dv-field-label">UPLOADED DATASET *</label>
-          <select
-            className="dv-contributor-select"
-            value={datasetId}
-            onChange={(e) => setDatasetId(e.target.value)}
+        {/* Single Primary Action: Upload Dataset */}
+        <div
+          className={`dv-upload-action-box ${dragOver ? 'drag-over' : ''} ${busy ? 'busy' : ''}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => !busy && inputRef.current?.click()}
+        >
+          <div className="dv-upload-icon-wrap">
+            {busy ? <Loader2 size={24} className="spin" /> : <UploadCloud size={24} />}
+          </div>
+
+          <button
+            type="button"
+            className="auth-submit dv-single-upload-btn"
             disabled={busy || !contributorId}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!busy && contributorId) inputRef.current?.click();
+            }}
           >
-            {!contributorId ? (
-              <option value="">SELECT CONTRIBUTOR FIRST</option>
-            ) : datasets.length === 0 ? (
-              <option value="">NO UPLOADED DATASETS AVAILABLE</option>
+            {busy ? (
+              <><Loader2 size={14} className="spin" /> VALIDATING DATASET…</>
             ) : (
-              <>
-                <option value="">SELECT UPLOADED DATASET</option>
-                {datasets.map((d) => (
-                  <option key={d.id} value={d.id}>{d.name || d.id}</option>
-                ))}
-              </>
+              <><UploadCloud size={14} /> Upload Dataset</>
             )}
-          </select>
-          <span className="dv-field-help">
-            {!contributorId
-              ? 'Select a contributor to view its uploaded datasets.'
-              : datasets.length === 0
-              ? 'No uploaded datasets found for this contributor.'
-              : `${datasets.length} uploaded dataset(s) available for this contributor.`}
+          </button>
+
+          <span className="dv-upload-hint">
+            {busy
+              ? 'Dataset submitted to the Data Integrity validation pipeline…'
+              : 'Select dataset or drop folder/files to validate'}
           </span>
-        </div>
-
-        <div className="dv-kind-row">
-          <button
-            type="button"
-            className={`dv-kind ${kind === 'yolo' ? 'active' : ''}`}
-            onClick={() => switchKind('yolo')}
-            disabled={busy}
-          >
-            <FileText size={15} /> YOLO
-            <span>.txt annotations + .yaml/.yml config</span>
-          </button>
-          <button
-            type="button"
-            className={`dv-kind ${kind === 'coco' ? 'active' : ''}`}
-            onClick={() => switchKind('coco')}
-            disabled={busy}
-          >
-            <FileJson size={15} /> COCO
-            <span>.json annotation export</span>
-          </button>
-        </div>
-
-        <div className="dv-pick-grid">
-          <button type="button" className="dv-drop" disabled={busy} onClick={() => inputRef.current?.click()}>
-            <Package size={20} />
-            <strong>SELECT FILES</strong>
-            <span>
-              {kind === 'yolo'
-                ? 'Annotation .txt files and dataset .yaml/.yml config'
-                : 'COCO annotation .json (images / annotations / categories)'}
-            </span>
-            <span className="dv-allowed mono">ALLOWED: {ALLOWED_EXTENSIONS.join(' · ')} — MAX 20 MB / FILE</span>
-          </button>
-          <button type="button" className="dv-drop dv-folder-drop" disabled={busy} onClick={() => folderInputRef.current?.click()}>
-            <Package size={20} />
-            <strong>SELECT DATASET FOLDER</strong>
-            <span>Upload the complete folder containing images, annotations and config files.</span>
-            <span className="dv-allowed mono">FOLDER STRUCTURE IS PRESERVED</span>
-          </button>
+          <span className="dv-upload-meta mono">
+            COCO / YOLO FORMATS · IMAGES & ANNOTATIONS · CHECKS DUPLICATE, OOD & LABEL-FLIPS
+          </span>
         </div>
 
         <input
           ref={inputRef}
           type="file"
-          accept={rules.accept}
           multiple
+          accept=".json,.txt,.yaml,.yml,.jpg,.jpeg,.png,.webp,.bmp"
           hidden
-          onChange={(e) => pickFiles(e.target.files, false)}
-        />
-        <input
-          ref={folderInputRef}
-          type="file"
-          multiple
-          hidden
-          webkitdirectory=""
-          directory=""
-          onChange={(e) => pickFiles(e.target.files, true)}
+          onChange={(e) => handleFilesSelected(e.target.files)}
         />
 
         {precheck.length > 0 && (
@@ -308,17 +301,6 @@ export default function DatasetValidation({ notify }) {
             ))}
           </div>
         )}
-
-        <button
-          type="button"
-          className="auth-submit dv-validate"
-          disabled={!canValidate}
-          onClick={doValidate}
-        >
-          {busy
-            ? <><Loader2 size={14} className="spin" /> VALIDATING…</>
-            : <><ShieldCheck size={14} /> VALIDATE DATASET</>}
-        </button>
       </GlassCard>
 
       {/* ---- Step 2: INTEGRITY REPORT ---- */}
@@ -333,11 +315,11 @@ export default function DatasetValidation({ notify }) {
         </div>
 
         {!report && !busy && (
-          <div className="dv-empty">SELECT CONTRIBUTOR, DATASET, FILES AND RUN VALIDATION — THE BRIDGE PERFORMS THE AUTHORITATIVE CHECKS</div>
+          <div className="dv-empty">SELECT CONTRIBUTOR, CLICK UPLOAD DATASET, AND VIEW REAL-TIME INTEGRITY VERDICTS</div>
         )}
         {busy && (
           <div className="dv-progress mono">
-            <span className="auth-boot-dot" /> RUNNING SCHEMA · ANNOTATION · CROSS-REFERENCE · COMPLETENESS CHECKS…
+            <span className="auth-boot-dot" /> RUNNING SCHEMA · ANNOTATION · DUPLICATE · OOD · LABEL-FLIP CHECKS…
           </div>
         )}
 
