@@ -179,7 +179,7 @@ export function commitQuarantineToLedger(id) {
 }
 
 export function listLedgerTransactions() {
-  return authFetch('/api/auditor/ledger/transactions').then((d) => d.transactions || []);
+  return authFetch('/api/auditor/ledger/transactions');
 }
 
 export function listSessions() {

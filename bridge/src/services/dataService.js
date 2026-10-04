@@ -450,7 +450,7 @@ function getActivitySeries(range = '24H') {
 function getLedgerTransactions() {
     const fabric = ledgerService.getFabricState();
     const findings = getAllFindings();
-    const transactions = ledgerService.listEntries().map(e => {
+    const allJournal = ledgerService.listEntries().map(e => {
         const finding = findings.find(f => (e.evidenceHash && f.evidenceHash === e.evidenceHash) || f.assetID === e.ledgerKey) || null;
         return {
             ...e,
@@ -464,6 +464,9 @@ function getLedgerTransactions() {
         };
     });
 
+    // Only genuine on-chain COMMITTED transactions with a valid Fabric txId are Fabric transactions!
+    const committedTransactions = allJournal.filter(e => e.status === 'COMMITTED' && e.txId);
+
     return {
         info: {
             channel: fabric.channel,
@@ -471,12 +474,18 @@ function getLedgerTransactions() {
             mspId: fabric.mspId,
             peerEndpoint: fabric.peerEndpoint,
             connected: fabric.connected,
+            networkStatus: fabric.connected ? 'CONNECTED' : 'OFFLINE',
             lastError: fabric.lastError,
             lastCheckedAt: fabric.lastCheckedAt,
-            committedCount: transactions.filter(t => t.status === 'COMMITTED').length,
-            attemptCount: transactions.length
+            latestBlock: committedTransactions.length > 0 ? committedTransactions[0].blockNumber || '1' : '—',
+            totalFindings: committedTransactions.length,
+            committedCount: committedTransactions.length,
+            journalCount: allJournal.length,
+            node: fabric.peerEndpoint || 'peer0.org1.example.com',
+            organization: fabric.mspId || 'Org1MSP'
         },
-        transactions
+        transactions: committedTransactions,
+        journal: allJournal
     };
 }
 

@@ -99,7 +99,9 @@ export default function FabricLedger() {
 
         {transactions.length === 0 ? (
           <div style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
-            No ledger transactions available.
+            {info.networkStatus === 'OFFLINE'
+              ? 'No on-chain ledger transactions available. Hyperledger Fabric network is currently offline.'
+              : 'No ledger transactions available.'}
           </div>
         ) : (
           <div className="tx-timeline">
