@@ -116,8 +116,8 @@ CPU execution is possible for supported workflows but can be substantially slowe
     cd ~/projects
     git clone https://github.com/umer241419it-hue/SentinelVision.git
     cd SentinelVision
-    git checkout Malad
-    git pull origin Malad
+    git checkout main
+    git pull origin main
 
 Verify:
 
