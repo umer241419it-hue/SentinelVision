@@ -44,7 +44,7 @@ DATA_DIR = os.path.join(PROJECT_ROOT, "data", "integrity-test")
 # Reuse the drift demo scene model so both modules share one visual world.
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
-from make_drift_demo_data import SIZE  # noqa: E402
+from generate_drift_test_data import SIZE  # noqa: E402
 
 SEED = 4242
 N_IMAGES = 100          # clean labeled images before poisoning

@@ -18,7 +18,7 @@ During the Stage 5 hardening passes and deployments of chaincode definition `bas
 - **Stored Signature**: Genuine 64-byte Ed25519 signature (`ModelIntegrity` private key)
 - **Read-Time Status**: `signatureStatus: "VALID"`
 - **Explanation**: This finding was committed during Stage 5 Part C hardening to empirically verify that Fabric's multi-organization endorsement policy (`AND('Org1MSP.peer', 'Org2MSP.peer')`) is enforced at write time under the 9-field chaincode schema. The test verified that write transactions are rejected when Org2's peer is stopped, and succeed when both Org1 and Org2 endorse.
-- **Operational Impact**: This is a Stage 5 hardening-pass artifact, permanently committed to the ledger world state. It is validly signed and endorsement-verified, but represents a test verification run rather than a production model inspection finding. It is cataloged as an excluded test artifact in `scripts/demo_safe_asset_ids.json` and should be excluded from operational dashboards and demo views.
+- **Operational Impact**: This is a Stage 5 hardening-pass artifact, permanently committed to the ledger world state. It is validly signed and endorsement-verified, but represents a test verification run rather than a production model inspection finding. Excluded from operational dashboards and demo views.
 
 ### 3. `finding-stage5-replay-baseline` (Replay Guard Initial Baseline Artifact)
 - **Asset ID**: `finding-stage5-replay-baseline`

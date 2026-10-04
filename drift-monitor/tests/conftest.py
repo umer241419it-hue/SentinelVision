@@ -23,7 +23,7 @@ for _p in (DRIFT_ROOT, PROJECT_ROOT):
 
 from PIL import Image, ImageDraw  # noqa: E402
 
-from scripts.make_drift_demo_data import SIZE, _apply_profile, _draw_scene  # noqa: E402
+from scripts.generate_drift_test_data import SIZE, _apply_profile, _draw_scene  # noqa: E402
 
 
 def make_image(profile: str, seed: int):

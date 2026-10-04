@@ -45,7 +45,7 @@ The backbone registry (`shared/embeddings/embedding_extractor.py`) lets a future
 cd drift-monitor
 
 # 0. (once) generate demo data: reference battery + 5 scenario image sets
-python ../../scripts/make_drift_demo_data.py
+python ../../scripts/generate_drift_test_data.py
 
 # 1. build reference embeddings + manifest
 python -m src.reference_builder --config config.json
