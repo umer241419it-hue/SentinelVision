@@ -1,7 +1,6 @@
-'use strict';
-
-const { app, BrowserWindow, shell } = require('electron');
+const { app, BrowserWindow, shell, ipcMain, dialog } = require('electron');
 const path = require('path');
+const fs = require('fs');
 
 // SentinelVision's ML/CUDA workloads run in the Python engines, not Chromium.
 // Some Linux environments still attempt to spawn Chromium's GPU child process
@@ -16,6 +15,24 @@ app.disableHardwareAcceleration();
 const DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL || '';
 
 let mainWindow = null;
+
+// Native file/folder dialog handler for SentinelVision asset selection
+ipcMain.handle('sentinel:openDialog', async (_event, options = {}) => {
+  if (!mainWindow) return null;
+  const isDirectory = options.type === 'directory';
+  const properties = isDirectory ? ['openDirectory'] : ['openFile', 'multiSelections'];
+  const res = await dialog.showOpenDialog(mainWindow, {
+    title: options.title || (isDirectory ? 'Select Folder' : 'Select File'),
+    properties,
+    filters: options.filters
+  });
+  if (res.canceled || !res.filePaths.length) return null;
+  return {
+    canceled: false,
+    filePaths: res.filePaths,
+    isFolder: isDirectory
+  };
+});
 
 function createWindow() {
   mainWindow = new BrowserWindow({

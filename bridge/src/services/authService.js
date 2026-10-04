@@ -300,6 +300,7 @@ function requireRole(allowedRoles = []) {
 module.exports = {
     login,
     register,
+    signJwt,
     verifyJwt,
     requireAuth,
     requireRole,

@@ -367,8 +367,42 @@ app.get('/overview/activity', (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // 4. Resource Registries (/api/datasets, /api/models, /api/configs, /api/contributors)
 // ---------------------------------------------------------------------------
+
+function resolveAssetPath(asset) {
+    const raw = asset.filePath || asset.storagePath || asset.datasetPath || asset.weightsPath;
+    if (!raw) return null;
+    return path.isAbsolute(raw) ? raw : path.resolve(WORKSPACE_ROOT, raw);
+}
+
+function verifyAssetAvailability(asset) {
+    const fullPath = resolveAssetPath(asset);
+    if (!fullPath) return { available: false, reason: 'No storage path recorded for asset in registry', path: null };
+    if (!fs.existsSync(fullPath)) {
+        const rel = path.relative(WORKSPACE_ROOT, fullPath);
+        return { available: false, reason: `Asset is missing from local storage (${rel})`, path: fullPath };
+    }
+    try {
+        const stat = fs.statSync(fullPath);
+        if (stat.isDirectory()) {
+            const files = fs.readdirSync(fullPath);
+            if (files.length === 0) {
+                return { available: false, reason: 'Asset folder is empty (0 files on disk)', path: fullPath };
+            }
+            return { available: true, reason: null, path: fullPath };
+        } else {
+            if (stat.size === 0) {
+                return { available: false, reason: 'Asset file is empty (0 bytes on disk)', path: fullPath };
+            }
+            return { available: true, reason: null, path: fullPath };
+        }
+    } catch (err) {
+        return { available: false, reason: err.message, path: fullPath };
+    }
+}
+
 app.get('/api/datasets', (req, res) => {
     loadUploads();
     const contributorId = req.query.contributorId;
@@ -377,17 +411,26 @@ app.get('/api/datasets', (req, res) => {
         list = list.filter(u => (u.contributorId || 'unassigned') === contributorId);
     }
     res.json({
-        datasets: list.map(u => ({
-            id: u.uploadId,
-            name: u.originalName,
-            sha256: u.sha256,
-            datasetPath: u.datasetPath || u.filePath,
-            contributorId: u.contributorId || 'unassigned',
-            contributorName: u.contributorName || 'Unassigned',
-            format: u.format || 'Unknown',
-            size: u.size,
-            createdAt: u.createdAt
-        }))
+        datasets: list.map(u => {
+            const check = verifyAssetAvailability(u);
+            const resolvedPath = check.path;
+            const isDir = Boolean(resolvedPath && fs.existsSync(resolvedPath) && fs.statSync(resolvedPath).isDirectory());
+            return {
+                id: u.uploadId,
+                name: u.originalName || u.datasetName || u.uploadId,
+                sha256: u.sha256,
+                datasetPath: u.datasetPath || u.filePath,
+                storagePath: resolvedPath,
+                contributorId: u.contributorId || 'unassigned',
+                contributorName: u.contributorName || 'Unassigned',
+                format: u.format || 'Unknown',
+                size: u.size,
+                createdAt: u.createdAt || u.uploadedAt,
+                available: check.available,
+                unavailableReason: check.reason,
+                isFolder: isDir
+            };
+        })
     });
 });
 
@@ -399,17 +442,26 @@ app.get('/api/models', (req, res) => {
         list = list.filter(u => (u.contributorId || 'unassigned') === contributorId);
     }
     res.json({
-        models: list.map(u => ({
-            id: u.uploadId,
-            name: u.originalName,
-            sha256: u.sha256,
-            weightsPath: u.weightsPath || u.filePath,
-            contributorId: u.contributorId || 'unassigned',
-            contributorName: u.contributorName || 'Unassigned',
-            framework: u.framework || 'PyTorch',
-            size: u.size,
-            createdAt: u.createdAt
-        }))
+        models: list.map(u => {
+            const check = verifyAssetAvailability(u);
+            const resolvedPath = check.path;
+            const isDir = Boolean(resolvedPath && fs.existsSync(resolvedPath) && fs.statSync(resolvedPath).isDirectory());
+            return {
+                id: u.uploadId,
+                name: u.originalName || u.filename || u.uploadId,
+                sha256: u.sha256,
+                weightsPath: u.weightsPath || u.filePath,
+                storagePath: resolvedPath,
+                contributorId: u.contributorId || 'unassigned',
+                contributorName: u.contributorName || 'Unassigned',
+                framework: u.framework || 'PyTorch',
+                size: u.size,
+                createdAt: u.createdAt || u.uploadedAt,
+                available: check.available,
+                unavailableReason: check.reason,
+                isFolder: isDir
+            };
+        })
     });
 });
 
@@ -540,14 +592,44 @@ app.get('/api/contributors/:id/datasets', (req, res) => {
     loadUploads();
     const id = req.params.id;
     const cDatasets = uploads.filter(u => u.kind === 'dataset' && (u.contributorId === id || (id === 'unassigned' && (!u.contributorId || u.contributorId === 'unassigned'))));
-    res.json({ datasets: cDatasets });
+    res.json({
+        datasets: cDatasets.map(u => {
+            const check = verifyAssetAvailability(u);
+            const resolvedPath = check.path;
+            const isDir = Boolean(resolvedPath && fs.existsSync(resolvedPath) && fs.statSync(resolvedPath).isDirectory());
+            return {
+                ...u,
+                id: u.uploadId,
+                name: u.originalName || u.datasetName || u.uploadId,
+                available: check.available,
+                unavailableReason: check.reason,
+                isFolder: isDir,
+                storagePath: resolvedPath
+            };
+        })
+    });
 });
 
 app.get('/api/contributors/:id/models', (req, res) => {
     loadUploads();
     const id = req.params.id;
     const cModels = uploads.filter(u => u.kind === 'model' && (u.contributorId === id || (id === 'unassigned' && (!u.contributorId || u.contributorId === 'unassigned'))));
-    res.json({ models: cModels });
+    res.json({
+        models: cModels.map(u => {
+            const check = verifyAssetAvailability(u);
+            const resolvedPath = check.path;
+            const isDir = Boolean(resolvedPath && fs.existsSync(resolvedPath) && fs.statSync(resolvedPath).isDirectory());
+            return {
+                ...u,
+                id: u.uploadId,
+                name: u.originalName || u.filename || u.uploadId,
+                available: check.available,
+                unavailableReason: check.reason,
+                isFolder: isDir,
+                storagePath: resolvedPath
+            };
+        })
+    });
 });
 
 // ---------------------------------------------------------------------------
@@ -573,7 +655,31 @@ app.get('/api/contributors/:id/models', (req, res) => {
      // calibrated SentinelVision model, execute the real Model Integrity engine
      // (STRIP + live SHA-256 verification) against this exact model file.
      if (report.status !== 'INVALID' && (model.filePath || model.weightsPath)) {
-         const modelPath = model.filePath || model.weightsPath;
+         let rawModelPath = model.weightsPath || model.filePath;
+         let modelPath = path.isAbsolute(rawModelPath) ? rawModelPath : path.resolve(WORKSPACE_ROOT, rawModelPath);
+         
+         // If modelPath is a folder, find the primary weights file inside it
+         if (fs.existsSync(modelPath) && fs.statSync(modelPath).isDirectory()) {
+             const candidateExts = ['.pt', '.pth', '.onnx', '.bin', '.h5', '.keras', '.tflite', '.ckpt'];
+             let found = null;
+             const walk = (p) => {
+                 if (found) return;
+                 try {
+                     const entries = fs.readdirSync(p, { withFileTypes: true });
+                     for (const entry of entries) {
+                         const full = path.join(p, entry.name);
+                         if (entry.isDirectory()) walk(full);
+                         else if (candidateExts.includes(path.extname(entry.name).toLowerCase())) {
+                             found = full;
+                             return;
+                         }
+                     }
+                 } catch {}
+             };
+             walk(modelPath);
+             if (found) modelPath = found;
+         }
+
          const rawName = model.originalName || path.basename(modelPath);
          const m = String(rawName).match(/id-\d{8}/) || String(model.uploadId).match(/id-\d{8}/) || String(modelPath).match(/id-\d{8}/);
          const modelId = m ? m[0] : path.parse(rawName).name;
@@ -716,7 +822,7 @@ async function handleMultipleAssetUpload(req, res, kind) {
         // A dataset selected from the analyst UI is a logical bundle, not a
         // collection of unrelated one-file assets. Persist multi-file uploads
         // as one directory so the trust runner can execute the real engine.
-        if (kind === 'dataset' && items.length > 1) {
+        if (kind === 'dataset' && (items.length > 1 || (items[0] && String(items[0].filename).includes('/')))) {
             const hash = crypto.createHash('sha256');
             for (const item of items) {
                 hash.update(String(item.filename || ''));
@@ -728,8 +834,8 @@ async function handleMultipleAssetUpload(req, res, kind) {
 
             for (const item of items) {
                 const relative = String(item.filename || 'file')
-                    .replace(/\\\\/g, '/')
-                    .replace(/^[/\\\\]+/, '')
+                    .replace(/\\/g, '/')
+                    .replace(/^[/\\]+/, '')
                     .split('/')
                     .filter(part => part && part !== '.' && part !== '..')
                     .join('/');
@@ -741,11 +847,17 @@ async function handleMultipleAssetUpload(req, res, kind) {
                 fs.writeFileSync(target, item.buffer);
             }
 
+            const folderCandidate = items.find(x => String(x.filename).includes('/'));
+            const detectedFolderName = folderCandidate ? String(folderCandidate.filename).split('/')[0] : null;
+            const datasetBundleName = detectedFolderName || (items.length === 1 ? path.basename(items[0].filename) : `Dataset bundle (${items.length} files)`);
+            const detectedFormat = items.some(x => /\.json$/i.test(x.filename)) ? 'COCO' : 'YOLO';
+
             const now = new Date().toISOString();
             const registryRecord = {
                 uploadId: datasetId,
                 filename: datasetId,
-                originalName: `Dataset bundle (${items.length} files)`,
+                originalName: datasetBundleName,
+                datasetName: datasetBundleName,
                 kind: 'dataset',
                 type: 'dataset',
                 sha256: crypto.createHash('sha256').update(items.map(x => String(x.filename) + ':' + crypto.createHash('sha256').update(x.buffer).digest('hex')).sort().join('|')).digest('hex'),
@@ -757,7 +869,8 @@ async function handleMultipleAssetUpload(req, res, kind) {
                 datasetPath: datasetDir,
                 contributorId,
                 contributorName,
-                format: items.some(x => /\\.json$/i.test(x.filename)) ? 'COCO' : 'YOLO'
+                format: detectedFormat,
+                isFolder: true
             };
             uploads.unshift(registryRecord);
             saveUploads();
@@ -776,7 +889,100 @@ async function handleMultipleAssetUpload(req, res, kind) {
                     sha256: registryRecord.sha256,
                     contributorId,
                     contributorName,
-                    bundledFiles: items.length
+                    bundledFiles: items.length,
+                    format: detectedFormat
+                }]
+            });
+        }
+
+        // A model folder upload from the UI is also a bundle containing weights,
+        // config, labels, etc. Persist all files into a model directory.
+        if (kind === 'model' && (items.length > 1 || (items[0] && String(items[0].filename).includes('/')))) {
+            const validModelExts = ['.pt', '.pth', '.onnx', '.bin', '.h5', '.keras', '.tflite', '.ckpt'];
+            const weightsItem = items.find(x => validModelExts.includes(path.extname(x.filename).toLowerCase()));
+            if (!weightsItem) {
+                return res.status(400).json({
+                    error: `No valid model weights file (${validModelExts.join(', ')}) found in the uploaded model folder.`
+                });
+            }
+
+            const hash = crypto.createHash('sha256');
+            for (const item of items) {
+                hash.update(String(item.filename || ''));
+                hash.update(Buffer.from(item.buffer || Buffer.alloc(0)));
+            }
+            const modelId = `model-${hash.digest('hex').slice(0, 10)}`;
+            const modelDir = path.join(UPLOADS_DIR, modelId);
+            fs.mkdirSync(modelDir, { recursive: true });
+
+            for (const item of items) {
+                const relative = String(item.filename || 'file')
+                    .replace(/\\/g, '/')
+                    .replace(/^[/\\]+/, '')
+                    .split('/')
+                    .filter(part => part && part !== '.' && part !== '..')
+                    .join('/');
+                const target = path.join(modelDir, relative || `file-${Date.now()}`);
+                if (!target.startsWith(modelDir + path.sep)) {
+                    return res.status(400).json({ error: 'Unsafe model path rejected' });
+                }
+                fs.mkdirSync(path.dirname(target), { recursive: true });
+                fs.writeFileSync(target, item.buffer);
+            }
+
+            const folderCandidate = items.find(x => String(x.filename).includes('/'));
+            const detectedFolderName = folderCandidate ? String(folderCandidate.filename).split('/')[0] : null;
+            const modelBundleName = detectedFolderName || path.parse(weightsItem.filename).name;
+
+            const relativeWeights = String(weightsItem.filename)
+                .replace(/\\/g, '/')
+                .replace(/^[/\\]+/, '')
+                .split('/')
+                .filter(part => part && part !== '.' && part !== '..')
+                .join('/');
+            const primaryWeightsPath = path.join(modelDir, relativeWeights);
+
+            const ext = path.extname(weightsItem.filename).toLowerCase();
+            const framework = ext === '.onnx' ? 'ONNX' : (['.h5', '.keras', '.tflite'].includes(ext) ? 'TensorFlow/Keras' : 'PyTorch');
+
+            const now = new Date().toISOString();
+            const registryRecord = {
+                uploadId: modelId,
+                filename: modelBundleName,
+                originalName: modelBundleName,
+                kind: 'model',
+                type: 'model',
+                sha256: crypto.createHash('sha256').update(items.map(x => String(x.filename) + ':' + crypto.createHash('sha256').update(x.buffer).digest('hex')).sort().join('|')).digest('hex'),
+                size: items.reduce((n, x) => n + x.buffer.length, 0),
+                createdAt: now,
+                uploadedAt: now,
+                filePath: modelDir,
+                storagePath: modelDir,
+                weightsPath: primaryWeightsPath,
+                isFolder: true,
+                framework,
+                contributorId,
+                contributorName
+            };
+            uploads.unshift(registryRecord);
+            saveUploads();
+
+            return res.status(201).json({
+                success: true,
+                contributor: { id: contributorId, name: contributorName },
+                total: items.length,
+                successful: 1,
+                failed: 0,
+                results: [{
+                    filename: registryRecord.originalName,
+                    uploadId: modelId,
+                    status: 'SUCCESS',
+                    size: registryRecord.size,
+                    sha256: registryRecord.sha256,
+                    contributorId,
+                    contributorName,
+                    bundledFiles: items.length,
+                    framework
                 }]
             });
         }
@@ -1232,10 +1438,8 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
 
         if (!files.length) return res.status(400).json({ ok: false, error: 'No dataset files provided' });
 
-        const kind = String(req.query.kind || 'yolo').toLowerCase();
-        if (!['yolo', 'coco'].includes(kind)) {
-            return res.status(400).json({ ok: false, error: 'Dataset format must be YOLO or COCO' });
-        }
+        const detectedKind = datasetValidationService.detectDatasetKind(files, req.query.kind);
+        const kind = detectedKind === 'unknown' ? String(req.query.kind || 'yolo').toLowerCase() : detectedKind;
 
         // Structural validation
         const datasetObj = selectedDataset
@@ -1274,13 +1478,18 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
             fs.writeFileSync(target, file.fileBuffer);
         }
 
+        const folderCandidate = files.find(f => String(f.filename || '').includes('/'));
+        const detectedFolderName = folderCandidate ? String(folderCandidate.filename).split('/')[0] : null;
+        const datasetDisplayName = selectedDataset?.originalName || detectedFolderName || (files.length === 1 ? path.basename(files[0].filename) : `Dataset bundle (${files.length} files)`);
+
         loadUploads();
         const existingIdx = uploads.findIndex(u => u.uploadId === uploadId);
         const now = new Date().toISOString();
         const registryRecord = {
             uploadId,
             filename: uploadId,
-            originalName: selectedDataset?.originalName || (report.format === 'COCO' ? 'Uploaded COCO Dataset Folder' : 'Uploaded YOLO Dataset Folder'),
+            originalName: datasetDisplayName,
+            datasetName: datasetDisplayName,
             kind: 'dataset',
             type: 'dataset',
             sha256: report.datasetHash,
@@ -1293,8 +1502,8 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
             contributorId,
             contributorName: contributor.name,
             datasetId: uploadId,
-            datasetName: selectedDataset?.originalName || uploadId,
-            format: report.format
+            format: report.format || kind.toUpperCase(),
+            isFolder: true
         };
         if (existingIdx >= 0) uploads[existingIdx] = { ...uploads[existingIdx], ...registryRecord };
         else uploads.unshift(registryRecord);
@@ -1312,7 +1521,7 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
         const engineWorkspace = path.join(WORKSPACE_ROOT, 'reports', report.validationId);
         report.engine = await validationEngineService.runDatasetIntegrityEngine({
             validationId: report.validationId,
-            kind,
+            kind: kind === 'coco' ? 'coco' : 'yolo',
             files: files.map(file => ({ filename: file.filename, fileBuffer: file.fileBuffer })),
             workspaceDir: engineWorkspace,
             datasetId: uploadId,

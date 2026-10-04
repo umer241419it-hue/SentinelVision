@@ -202,7 +202,38 @@ function isImagePath(name) {
 }
 
 function baseWithoutExt(name) {
-    return name.replace(/\.[^.]+$/, '').toLowerCase();
+    return path.basename(name || '').replace(/\.[^.]+$/, '').toLowerCase();
+}
+
+function detectDatasetKind(files, requestedKind) {
+    const list = files || [];
+    const jsonFiles = list.filter(f => /\.json$/i.test(f.filename));
+    const labelFiles = list.filter(f => /\.txt$/i.test(f.filename) && !/classes?\.txt$/i.test(f.filename));
+    const yamlFiles = list.filter(f => /\.(ya?ml)$/i.test(f.filename));
+
+    const hasCocoJson = jsonFiles.some(f => {
+        try {
+            const str = f.fileBuffer ? f.fileBuffer.toString('utf8') : '';
+            const d = JSON.parse(str);
+            return d && (Array.isArray(d.images) || Array.isArray(d.annotations) || Array.isArray(d.categories) || typeof d.labels === 'object');
+        } catch {
+            return false;
+        }
+    }) || jsonFiles.length > 0;
+
+    const hasYolo = labelFiles.length > 0 || yamlFiles.length > 0;
+
+    const req = String(requestedKind || '').toLowerCase();
+    if (req === 'coco' && hasCocoJson) return 'coco';
+    if (req === 'yolo' && hasYolo) return 'yolo';
+
+    if (hasCocoJson && !hasYolo) return 'coco';
+    if (hasYolo && !hasCocoJson) return 'yolo';
+    if (hasCocoJson) return 'coco';
+    if (hasYolo) return 'yolo';
+
+    if (req === 'coco' || req === 'yolo') return req;
+    return 'unknown';
 }
 
 function validateYoloBundle(files, errors, warnings) {
@@ -372,9 +403,25 @@ function validateDatasetBundle(kind, files, contributor = null, dataset = null) 
         if (file.fileBuffer.length === 0) errors.push(`Empty file: ${file.filename}`);
     }
 
-    const stats = kind === 'coco'
-        ? validateCocoBundle(normalized, errors, warnings)
-        : validateYoloBundle(normalized, errors, warnings);
+    const resolvedKind = detectDatasetKind(normalized, kind);
+    let stats;
+    if (resolvedKind === 'coco') {
+        stats = validateCocoBundle(normalized, errors, warnings);
+    } else if (resolvedKind === 'yolo') {
+        stats = validateYoloBundle(normalized, errors, warnings);
+    } else {
+        const imageFiles = normalized.filter(f => isImagePath(f.filename));
+        errors.push('No supported dataset annotations found. Please provide either COCO annotations (.json) or YOLO annotations (.txt files with optional .yaml config).');
+        stats = {
+            images: imageFiles.length,
+            annotation_files: 0,
+            annotations: 0,
+            classes: 0,
+            images_without_annotations: imageFiles.length,
+            annotations_without_images: 0,
+            malformed_annotations: 0
+        };
+    }
 
     if (normalized.length > 1 && !normalized.some(f => isImagePath(f.filename))) {
         errors.push('Dataset upload contains multiple files but no supported image files');
@@ -394,7 +441,7 @@ function validateDatasetBundle(kind, files, contributor = null, dataset = null) 
         datasetId: dataset?.id || dataset?.uploadId || (typeof dataset === 'string' ? dataset : null),
         datasetName: dataset?.name || dataset?.originalName || null,
         status,
-        format: String(kind || '').toUpperCase(),
+        format: resolvedKind.toUpperCase(),
         sizeBytes: normalized.reduce((sum, f) => sum + f.fileBuffer.length, 0),
         sha256: aggregateHash,
         timestamp: new Date().toISOString(),
@@ -445,6 +492,7 @@ function listValidations() {
 }
 
 module.exports = {
+    detectDatasetKind,
     validateDatasetFile,
     validateDatasetBundle,
     updateValidation,

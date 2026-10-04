@@ -40,31 +40,102 @@ function sha256File(filePath) {
     return hash.digest('hex');
 }
 
+function findWeightsInDir(dirPath) {
+    let found = null;
+    function walk(p) {
+        if (found) return;
+        try {
+            const entries = fs.readdirSync(p, { withFileTypes: true });
+            for (const entry of entries) {
+                const full = path.join(p, entry.name);
+                if (entry.isDirectory()) {
+                    walk(full);
+                } else if (entry.isFile()) {
+                    const ext = path.extname(entry.name).toLowerCase();
+                    if (ALLOWED_EXTENSIONS.includes(ext) && !entry.name.includes('.tar.')) {
+                        found = full;
+                        return;
+                    }
+                }
+            }
+        } catch {}
+    }
+    walk(dirPath);
+    return found;
+}
+
+function hashDirectory(dirPath) {
+    const fileHashes = [];
+    let totalSize = 0;
+    function walk(p) {
+        try {
+            const entries = fs.readdirSync(p, { withFileTypes: true });
+            for (const entry of entries) {
+                const full = path.join(p, entry.name);
+                if (entry.isDirectory()) {
+                    walk(full);
+                } else if (entry.isFile()) {
+                    const rel = path.relative(dirPath, full).replace(/\\/g, '/');
+                    const stat = fs.statSync(full);
+                    totalSize += stat.size;
+                    const h = sha256File(full);
+                    fileHashes.push(`${rel}:${h}`);
+                }
+            }
+        } catch {}
+    }
+    walk(dirPath);
+    const agg = crypto.createHash('sha256').update(fileHashes.sort().join('|')).digest('hex');
+    return { hash: agg, totalSize, fileCount: fileHashes.length };
+}
+
 function validateModelAsset(model, contributor) {
     const errors = [];
     const warnings = [];
-    const rawModelPath = model?.weightsPath || model?.filePath;
+    const rawModelPath = model?.storagePath || model?.filePath || model?.weightsPath;
     const modelPath = rawModelPath && (path.isAbsolute(rawModelPath) ? rawModelPath : path.resolve(WORKSPACE_ROOT, rawModelPath));
     const filename = model?.originalName || model?.name || path.basename(modelPath || '');
-    const ext = path.extname(filename).toLowerCase();
-
-    if (!modelPath || !fs.existsSync(modelPath)) {
-        warnings.push('Model file is not present locally; the real Model Integrity engine cannot execute until the registered model bytes are available.');
-    } else {
-        if (fs.statSync(modelPath).size === 0) errors.push('Model file is empty');
-        if (ext && !ALLOWED_EXTENSIONS.includes(ext) && !filename.includes('.tar.')) {
-            errors.push(`Unsupported model extension '${ext}'`);
-        }
-    }
+    let ext = path.extname(filename).toLowerCase();
 
     let computedHash = null;
     let sizeBytes = 0;
-    if (modelPath && fs.existsSync(modelPath)) {
+
+    if (!modelPath || !fs.existsSync(modelPath)) {
+        warnings.push('Model asset is not present locally; the real Model Integrity engine cannot execute until the registered model bytes are available.');
+    } else {
         const stat = fs.statSync(modelPath);
-        sizeBytes = stat.size;
-        computedHash = sha256File(modelPath);
-        if (model.sha256 && model.sha256 !== computedHash) {
-            warnings.push('SHA-256 mismatch between registry metadata and the current model file; re-register or refresh the asset hash before relying on the registry digest.');
+        if (stat.isDirectory()) {
+            const dirResult = hashDirectory(modelPath);
+            sizeBytes = dirResult.totalSize;
+            computedHash = dirResult.hash;
+
+            if (dirResult.fileCount === 0) {
+                errors.push('Model folder is empty');
+            }
+
+            const primaryWeights = (model?.weightsPath && fs.existsSync(model.weightsPath) && !fs.statSync(model.weightsPath).isDirectory())
+                ? model.weightsPath
+                : findWeightsInDir(modelPath);
+
+            if (!primaryWeights) {
+                errors.push('No recognized model weight file (.pt, .pth, .onnx, .bin, .h5, etc.) found in model folder');
+            } else {
+                ext = path.extname(primaryWeights).toLowerCase();
+            }
+
+            if (model.sha256 && model.sha256 !== computedHash) {
+                warnings.push('SHA-256 mismatch between registry metadata and the current model folder; re-register or refresh the asset hash.');
+            }
+        } else {
+            sizeBytes = stat.size;
+            if (stat.size === 0) errors.push('Model file is empty');
+            if (ext && !ALLOWED_EXTENSIONS.includes(ext) && !filename.includes('.tar.')) {
+                errors.push(`Unsupported model extension '${ext}'`);
+            }
+            computedHash = sha256File(modelPath);
+            if (model.sha256 && model.sha256 !== computedHash) {
+                warnings.push('SHA-256 mismatch between registry metadata and the current model file; re-register or refresh the asset hash before relying on the registry digest.');
+            }
         }
     }
 

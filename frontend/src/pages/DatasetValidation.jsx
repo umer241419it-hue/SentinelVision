@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Loader2, CheckCircle2, XCircle, AlertTriangle,
-  Ban, RefreshCw, UploadCloud, DatabaseZap, ShieldCheck
+  Ban, RefreshCw, UploadCloud, DatabaseZap, ShieldCheck,
+  FolderOpen, FileCode
 } from 'lucide-react';
 import GlassCard from '../components/GlassCard';
 import { StatusBadge } from '../components/Badges';
@@ -96,7 +97,10 @@ export default function DatasetValidation({ notify }) {
   const [report, setReport] = useState(null);
   const [history, setHistory] = useState([]);
   const [dragOver, setDragOver] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const inputRef = useRef(null);
+  const folderInputRef = useRef(null);
+  const pickerRef = useRef(null);
 
   const refreshHistory = useCallback(async () => {
     try {
@@ -128,6 +132,29 @@ export default function DatasetValidation({ notify }) {
       .catch(() => setContributors([]));
   }, [refreshHistory, loadRegisteredDatasets, contributorId]);
 
+  // Ensure Chromium / Electron folder picker attributes are reliably applied
+  useEffect(() => {
+    if (folderInputRef.current) {
+      folderInputRef.current.webkitdirectory = true;
+      folderInputRef.current.directory = true;
+      folderInputRef.current.setAttribute('webkitdirectory', '');
+      folderInputRef.current.setAttribute('directory', '');
+    }
+  }, []);
+
+  // Dismiss picker popover on outside click
+  useEffect(() => {
+    function handleDocClick(e) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
+        setPickerOpen(false);
+      }
+    }
+    if (pickerOpen) {
+      document.addEventListener('click', handleDocClick);
+      return () => document.removeEventListener('click', handleDocClick);
+    }
+  }, [pickerOpen]);
+
   function selectRegisteredDataset(id) {
     setSelectedDatasetId(id);
     const d = availableDatasets.find((item) => (item.id || item.uploadId) === id);
@@ -147,6 +174,10 @@ export default function DatasetValidation({ notify }) {
       return;
     }
     const ds = availableDatasets.find((item) => (item.id || item.uploadId) === selectedDatasetId);
+    if (ds?.available === false) {
+      notify?.('This dataset is unavailable because its files are missing from local storage.', 'error');
+      return;
+    }
     const targetContributor = ds?.contributorId || contributorId;
     if (!targetContributor) {
       notify?.('Select the contributor associated with this dataset.', 'error');
@@ -178,16 +209,19 @@ export default function DatasetValidation({ notify }) {
     const picked = Array.from(pickedList || []);
     if (!picked.length) return;
 
-    if (!contributorId) {
-      notify?.('Select the contributor / vendor who provided this dataset.', 'error');
+    if (!contributorId || contributorId === 'all') {
+      notify?.('Select a specific contributor / vendor before uploading the dataset.', 'error');
       return;
     }
 
     setFiles(picked);
     setReport(null);
+    setPickerOpen(false);
 
-    // Auto-detect format: JSON annotation indicates COCO, otherwise YOLO
-    const detectedKind = picked.some((f) => f.name.toLowerCase().endsWith('.json')) ? 'coco' : 'yolo';
+    // Auto-detect format from files: if .json is present without .txt -> coco, else if .txt/.yaml -> yolo
+    const hasJson = picked.some(f => f.name.toLowerCase().endsWith('.json') || (f.webkitRelativePath && f.webkitRelativePath.toLowerCase().endsWith('.json')));
+    const hasYolo = picked.some(f => f.name.toLowerCase().endsWith('.txt') || f.name.toLowerCase().endsWith('.yaml') || f.name.toLowerCase().endsWith('.yml'));
+    const detectedKind = (hasJson && !hasYolo) ? 'coco' : (hasYolo && !hasJson ? 'yolo' : (hasJson ? 'coco' : 'yolo'));
     setKind(detectedKind);
 
     // Client-side precheck: block hazardous binaries
@@ -222,6 +256,7 @@ export default function DatasetValidation({ notify }) {
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = '';
+      if (folderInputRef.current) folderInputRef.current.value = '';
     }
   }
 
@@ -382,19 +417,32 @@ export default function DatasetValidation({ notify }) {
               <div className="dv-asset-details">
                 <div><span>DATASET</span><b>{selectedDataset.name || selectedDataset.id}</b></div>
                 <div><span>PROVIDER</span><b>{selectedDataset.contributorName}</b></div>
-                <div><span>FORMAT</span><b>{selectedDataset.format || 'Unknown'}</b></div>
+                <div><span>FORMAT</span><b>{selectedDataset.format || 'Unknown'}{selectedDataset.isFolder ? ' (Folder)' : ''}</b></div>
                 <div><span>SHA-256</span><b className="mono">{selectedDataset.sha256?.slice(0, 16)}…</b></div>
+                <div>
+                  <span>STATUS</span>
+                  <b style={{ color: selectedDataset.available !== false ? 'var(--accent-green, #10b981)' : 'var(--accent-red, #ef4444)' }}>
+                    {selectedDataset.available !== false ? 'AVAILABLE LOCALLY' : 'UNAVAILABLE'}
+                  </b>
+                </div>
+                {selectedDataset.available === false && (
+                  <div className="dv-asset-warning">
+                    <AlertTriangle size={13} /> {selectedDataset.unavailableReason || 'Asset files are missing from local storage.'}
+                  </div>
+                )}
               </div>
             )}
 
             <button
               type="button"
               className="auth-submit dv-action-submit"
-              disabled={busy || !selectedDatasetId}
+              disabled={busy || !selectedDatasetId || selectedDataset?.available === false}
               onClick={validateRegisteredDataset}
             >
               {busy ? (
                 <><Loader2 size={14} className="spin" /> VALIDATING REGISTERED DATASET…</>
+              ) : selectedDataset?.available === false ? (
+                <><AlertTriangle size={14} /> DATASET MISSING LOCALLY</>
               ) : (
                 <><ShieldCheck size={14} /> VALIDATE REGISTERED DATASET</>
               )}
@@ -423,35 +471,72 @@ export default function DatasetValidation({ notify }) {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              onClick={() => !busy && inputRef.current?.click()}
+              onClick={() => {
+                if (!busy && contributorId) {
+                  setPickerOpen((v) => !v);
+                }
+              }}
             >
               <div className="dv-upload-icon-wrap">
                 {busy ? <Loader2 size={24} className="spin" /> : <UploadCloud size={24} />}
               </div>
 
-              <button
-                type="button"
-                className="auth-submit dv-single-upload-btn"
-                disabled={busy || !contributorId}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!busy && contributorId) inputRef.current?.click();
-                }}
-              >
-                {busy ? (
-                  <><Loader2 size={14} className="spin" /> VALIDATING DATASET…</>
-                ) : (
-                  <><UploadCloud size={14} /> Upload Dataset</>
+              <div className="dv-upload-btn-wrap" ref={pickerRef} onClick={(e) => e.stopPropagation()}>
+                <button
+                  type="button"
+                  className="auth-submit dv-single-upload-btn"
+                  disabled={busy || !contributorId}
+                  onClick={() => setPickerOpen((v) => !v)}
+                >
+                  {busy ? (
+                    <><Loader2 size={14} className="spin" /> VALIDATING DATASET…</>
+                  ) : (
+                    <><UploadCloud size={14} /> Upload Dataset</>
+                  )}
+                </button>
+
+                {pickerOpen && !busy && (
+                  <div className="dv-picker-popover anim-scale-up">
+                    <div className="dv-picker-popover-title">SELECT DATASET SOURCE</div>
+                    <button
+                      type="button"
+                      className="dv-picker-option"
+                      onClick={() => {
+                        setPickerOpen(false);
+                        folderInputRef.current?.click();
+                      }}
+                    >
+                      <FolderOpen size={16} className="dv-picker-icon" />
+                      <div className="dv-picker-text">
+                        <strong>Complete Dataset Folder</strong>
+                        <span>Upload directory with images & annotations</span>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      className="dv-picker-option"
+                      onClick={() => {
+                        setPickerOpen(false);
+                        inputRef.current?.click();
+                      }}
+                    >
+                      <FileCode size={16} className="dv-picker-icon" />
+                      <div className="dv-picker-text">
+                        <strong>Dataset File(s)</strong>
+                        <span>Select annotation or image files</span>
+                      </div>
+                    </button>
+                  </div>
                 )}
-              </button>
+              </div>
 
               <span className="dv-upload-hint">
                 {busy
                   ? 'Dataset submitted to the Data Integrity validation pipeline…'
-                  : 'Select dataset or drop folder/files to validate'}
+                  : 'Select dataset file or complete dataset folder, or drop here'}
               </span>
               <span className="dv-upload-meta mono">
-                COCO / YOLO FORMATS · IMAGES & ANNOTATIONS · CHECKS DUPLICATE, OOD & LABEL-FLIPS
+                COCO / YOLO FORMATS · IMAGES & ANNOTATIONS · FOLDER STRUCTURE PRESERVED
               </span>
             </div>
 
@@ -461,6 +546,15 @@ export default function DatasetValidation({ notify }) {
               multiple
               accept=".json,.txt,.yaml,.yml,.jpg,.jpeg,.png,.webp,.bmp"
               hidden
+              onChange={(e) => handleFilesSelected(e.target.files)}
+            />
+            <input
+              ref={folderInputRef}
+              type="file"
+              multiple
+              hidden
+              webkitdirectory=""
+              directory=""
               onChange={(e) => handleFilesSelected(e.target.files)}
             />
 

@@ -68,13 +68,13 @@ function detectBinaryMagic(buf) {
  */
 export async function clientValidateFile(file, kind) {
   const ext = extOf(file.name);
-  const rules = KIND_RULES[kind];
-  if (!rules) return { ok: false, reason: `Unknown dataset kind '${kind}'` };
   if (BLOCKED_EXTENSIONS.includes(ext)) {
     return { ok: false, reason: `Blocked file extension '${ext}'` };
   }
-  if (!rules.extensions.includes(ext)) {
-    return { ok: false, reason: `Unsupported extension '${ext}' for ${rules.label} uploads (allowed: ${rules.extensions.join(', ')})` };
+  const rules = KIND_RULES[kind];
+  const allowed = rules ? rules.extensions : ALLOWED_EXTENSIONS;
+  if (!allowed.includes(ext)) {
+    return { ok: false, reason: `Unsupported extension '${ext}' (allowed: ${allowed.join(', ')})` };
   }
   if (file.size > MAX_FILE_MB * 1024 * 1024) {
     return { ok: false, reason: `File exceeds the ${MAX_FILE_MB}MB limit` };

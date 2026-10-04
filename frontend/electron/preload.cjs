@@ -1,6 +1,4 @@
-'use strict';
-
-const { contextBridge } = require('electron');
+const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('sentinel', {
   platform: process.platform,
@@ -9,5 +7,6 @@ contextBridge.exposeInMainWorld('sentinel', {
     electron: process.versions.electron || '—',
     chrome: process.versions.chrome || '—',
     node: process.versions.node || '—'
-  }
+  },
+  openDialog: (options) => ipcRenderer.invoke('sentinel:openDialog', options)
 });

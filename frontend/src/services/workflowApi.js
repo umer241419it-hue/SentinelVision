@@ -72,7 +72,7 @@ export async function uploadMultipleAssets(kind, files, contributorId = 'unassig
   const fd = new FormData();
   fd.append('contributorId', contributorId);
   for (const f of files) {
-    fd.append('files', f);
+    fd.append('files', f, f.webkitRelativePath || f.name);
   }
   const res = await fetch(`${BRIDGE_BASE_URL}${endpoint}`, {
     method: 'POST',

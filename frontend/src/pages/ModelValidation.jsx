@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   CheckCircle2, XCircle, Loader2, RefreshCw, ShieldCheck,
-  ScanLine, UploadCloud, Cpu
+  ScanLine, UploadCloud, Cpu, FolderOpen, FileCode, AlertTriangle
 } from 'lucide-react';
 import GlassCard from '../components/GlassCard';
 import { StatusBadge } from '../components/Badges';
@@ -23,6 +23,47 @@ function fmtTime(v) {
   try { return new Date(v).toLocaleString(); } catch { return v || '—'; }
 }
 
+/** Recursively scan dropped folder entries */
+async function scanFiles(items) {
+  const files = [];
+  async function readEntry(entry, currentPath = '') {
+    if (entry.isFile) {
+      const file = await new Promise((resolve, reject) => entry.file(resolve, reject));
+      const relPath = currentPath ? `${currentPath}/${file.name}` : file.name;
+      Object.defineProperty(file, 'webkitRelativePath', {
+        value: relPath,
+        writable: true,
+        configurable: true
+      });
+      files.push(file);
+    } else if (entry.isDirectory) {
+      const dirReader = entry.createReader();
+      const readAllEntries = async () => {
+        const batch = await new Promise((resolve, reject) => dirReader.readEntries(resolve, reject));
+        if (batch.length > 0) {
+          for (const child of batch) {
+            await readEntry(child, currentPath ? `${currentPath}/${entry.name}` : entry.name);
+          }
+          await readAllEntries();
+        }
+      };
+      await readAllEntries();
+    }
+  }
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (item.webkitGetAsEntry) {
+      const entry = item.webkitGetAsEntry();
+      if (entry) await readEntry(entry);
+    } else if (item.kind === 'file') {
+      const f = item.getAsFile();
+      if (f) files.push(f);
+    }
+  }
+  return files;
+}
+
 export default function ModelValidation({ notify }) {
   const [sourceMode, setSourceMode] = useState('registered'); // 'registered' | 'upload'
   const [contributors, setContributors] = useState([]);
@@ -34,7 +75,11 @@ export default function ModelValidation({ notify }) {
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
-  const uploadRef = useRef(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const fileInputRef = useRef(null);
+  const folderInputRef = useRef(null);
+  const pickerRef = useRef(null);
 
   async function load() {
     try {
@@ -49,39 +94,79 @@ export default function ModelValidation({ notify }) {
     }
   }
 
+  async function refreshModels(targetContributor) {
+    try {
+      const q = targetContributor && targetContributor !== 'all' ? targetContributor : 'all';
+      const fetched = await listModels(q);
+      setModels(fetched);
+    } catch (err) {
+      setModels([]);
+      notify?.(err.message, 'error');
+    }
+  }
+
   useEffect(() => {
     load();
   }, []);
 
   useEffect(() => {
     setModelId('');
-    if (!contributorId) {
-      setModels([]);
-      return;
-    }
-    listModels(contributorId).then(setModels).catch((err) => notify?.(err.message, 'error'));
+    refreshModels(contributorId);
   }, [contributorId]);
+
+  // Ensure Chromium / Electron folder picker attributes are reliably applied
+  useEffect(() => {
+    if (folderInputRef.current) {
+      folderInputRef.current.webkitdirectory = true;
+      folderInputRef.current.directory = true;
+      folderInputRef.current.setAttribute('webkitdirectory', '');
+      folderInputRef.current.setAttribute('directory', '');
+    }
+  }, []);
+
+  // Dismiss picker popover on outside click
+  useEffect(() => {
+    function handleDocClick(e) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
+        setPickerOpen(false);
+      }
+    }
+    if (pickerOpen) {
+      document.addEventListener('click', handleDocClick);
+      return () => document.removeEventListener('click', handleDocClick);
+    }
+  }, [pickerOpen]);
 
   const selectedModel = useMemo(() => models.find((m) => m.id === modelId), [models, modelId]);
 
-  async function handleUploadAndValidate(file) {
-    if (!file) return;
-    if (!contributorId) {
-      notify?.('Select the contributor / vendor before uploading the model.', 'error');
+  async function handleFilesSelected(pickedList) {
+    const picked = Array.from(pickedList || []);
+    if (!picked.length) return;
+    if (!contributorId || contributorId === 'all') {
+      notify?.('Select a specific contributor / vendor before uploading the model.', 'error');
       return;
     }
     setUploading(true);
     setReport(null);
+    setPickerOpen(false);
+
     try {
-      const result = await uploadMultipleAssets('model', [file], contributorId);
+      const isFolder = picked.length > 1 || Boolean(picked[0]?.webkitRelativePath && picked[0].webkitRelativePath.includes('/'));
+      const displayName = isFolder
+        ? (picked[0].webkitRelativePath ? picked[0].webkitRelativePath.split('/')[0] : 'Model Folder')
+        : picked[0].name;
+
+      const result = await uploadMultipleAssets('model', picked, contributorId);
       const first = result?.results?.[0];
       if (!first || !['SUCCESS', 'EXISTS'].includes(first.status)) {
-        throw new Error(first?.error || 'Model upload failed');
+        throw new Error(first?.error || result?.error || 'Model upload failed');
       }
-      const nextModels = await listModels(contributorId);
-      setModels(nextModels);
+
+      notify?.(`Model "${displayName}" uploaded successfully. Validating model artifact…`, 'success');
+
+      // Refresh dynamic registered models
+      await refreshModels(contributorId);
       setModelId(first.uploadId);
-      notify?.(`Model ${file.name} uploaded successfully. Validating model artifact…`, 'success');
 
       // Execute artifact validation
       const r = await validateModel(first.uploadId);
@@ -92,12 +177,18 @@ export default function ModelValidation({ notify }) {
       notify?.(err.message, 'error');
     } finally {
       setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (folderInputRef.current) folderInputRef.current.value = '';
     }
   }
 
   async function runValidation() {
-    if (!contributorId || !modelId) {
-      notify?.('Select both the contributor and model before validation.', 'error');
+    if (!modelId) {
+      notify?.('Select a registered model before validation.', 'error');
+      return;
+    }
+    if (selectedModel?.available === false) {
+      notify?.('This model is unavailable because its file is missing from local storage.', 'error');
       return;
     }
     setBusy(true);
@@ -124,13 +215,26 @@ export default function ModelValidation({ notify }) {
     setDragOver(false);
   }
 
-  function handleDrop(e) {
+  async function handleDrop(e) {
     e.preventDefault();
     setDragOver(false);
     if (busy || uploading) return;
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      handleUploadAndValidate(file);
+
+    const items = e.dataTransfer.items;
+    if (items && items.length > 0) {
+      try {
+        const scanned = await scanFiles(items);
+        if (scanned.length > 0) {
+          handleFilesSelected(scanned);
+          return;
+        }
+      } catch (err) {
+        console.warn('Folder drag scan fallback:', err);
+      }
+    }
+    const droppedFiles = Array.from(e.dataTransfer.files || []);
+    if (droppedFiles.length > 0) {
+      handleFilesSelected(droppedFiles);
     }
   }
 
@@ -151,6 +255,7 @@ export default function ModelValidation({ notify }) {
             onClick={() => {
               setSourceMode('registered');
               setReport(null);
+              setPickerOpen(false);
             }}
             disabled={busy || uploading}
           >
@@ -172,6 +277,7 @@ export default function ModelValidation({ notify }) {
               setSourceMode('upload');
               setModelId('');
               setReport(null);
+              setPickerOpen(false);
             }}
             disabled={busy || uploading}
           >
@@ -179,7 +285,7 @@ export default function ModelValidation({ notify }) {
               <UploadCloud size={16} />
               <span className="mv-source-title">Upload Model</span>
             </div>
-            <span className="mv-source-sub">Upload a new model file (.pt, .pth, .onnx, etc.)</span>
+            <span className="mv-source-sub">Select model file or complete model folder</span>
           </button>
         </div>
 
@@ -195,39 +301,57 @@ export default function ModelValidation({ notify }) {
               }}
               disabled={busy || uploading}
             >
-              <option value="">SELECT CONTRIBUTOR / VENDOR</option>
+              <option value="">ALL CONTRIBUTORS / VENDORS</option>
               {contributors.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
-            <div className="mv-help">Only models attributed to the selected provider are shown.</div>
+            <div className="mv-help">Filter registered models by contributing vendor.</div>
 
             <label className="mv-label">REGISTERED MODEL *</label>
             <select
               className="mv-selectbox"
               value={modelId}
               onChange={(e) => setModelId(e.target.value)}
-              disabled={busy || uploading || !contributorId}
+              disabled={busy || uploading}
             >
-              <option value="">{contributorId ? 'SELECT REGISTERED MODEL' : 'SELECT CONTRIBUTOR FIRST'}</option>
-              {models.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+              <option value="">SELECT REGISTERED MODEL</option>
+              {models.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name} ({m.contributorName || 'Unassigned'}){m.available === false ? ' [UNAVAILABLE]' : ''}
+                </option>
+              ))}
             </select>
 
             {selectedModel && (
               <div className="mv-asset">
                 <div><span>MODEL</span><b>{selectedModel.name}</b></div>
                 <div><span>PROVIDER</span><b>{selectedModel.contributorName}</b></div>
-                <div><span>FORMAT</span><b>{selectedModel.framework || 'Unknown'}</b></div>
+                <div><span>FORMAT</span><b>{selectedModel.framework || 'Unknown'}{selectedModel.isFolder ? ' (Folder)' : ''}</b></div>
+                <div><span>SIZE</span><b>{fmtBytes(selectedModel.size)}</b></div>
                 <div><span>SHA-256</span><b className="mono">{selectedModel.sha256?.slice(0, 16)}…</b></div>
+                <div>
+                  <span>STATUS</span>
+                  <b style={{ color: selectedModel.available !== false ? 'var(--accent-green, #10b981)' : 'var(--accent-red, #ef4444)' }}>
+                    {selectedModel.available !== false ? 'AVAILABLE LOCALLY' : 'UNAVAILABLE'}
+                  </b>
+                </div>
+                {selectedModel.available === false && (
+                  <div className="mv-asset-warning">
+                    <AlertTriangle size={13} /> {selectedModel.unavailableReason || 'Asset file is not present locally in SentinelVision repository.'}
+                  </div>
+                )}
               </div>
             )}
 
             <button
               type="button"
               className="auth-submit mv-action"
-              disabled={busy || uploading || !modelId}
+              disabled={busy || uploading || !modelId || selectedModel?.available === false}
               onClick={runValidation}
             >
               {busy ? (
                 <><Loader2 size={14} className="spin" /> VALIDATING REGISTERED MODEL…</>
+              ) : selectedModel?.available === false ? (
+                <><AlertTriangle size={14} /> MODEL MISSING LOCALLY</>
               ) : (
                 <><ShieldCheck size={14} /> VALIDATE REGISTERED MODEL</>
               )}
@@ -252,48 +376,91 @@ export default function ModelValidation({ notify }) {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              onClick={() => !busy && !uploading && uploadRef.current?.click()}
+              onClick={() => {
+                if (!busy && !uploading && contributorId) {
+                  setPickerOpen((v) => !v);
+                }
+              }}
             >
               <div className="mv-upload-icon-wrap">
                 {uploading || busy ? <Loader2 size={24} className="spin" /> : <UploadCloud size={24} />}
               </div>
 
-              <button
-                type="button"
-                className="auth-submit mv-single-upload-btn"
-                disabled={busy || uploading || !contributorId}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!busy && !uploading && contributorId) uploadRef.current?.click();
-                }}
-              >
-                {uploading ? (
-                  <><Loader2 size={14} className="spin" /> UPLOADING & VALIDATING…</>
-                ) : (
-                  <><UploadCloud size={14} /> Upload Model</>
+              <div className="mv-upload-btn-wrap" ref={pickerRef} onClick={(e) => e.stopPropagation()}>
+                <button
+                  type="button"
+                  className="auth-submit mv-single-upload-btn"
+                  disabled={busy || uploading || !contributorId}
+                  onClick={() => setPickerOpen((v) => !v)}
+                >
+                  {uploading ? (
+                    <><Loader2 size={14} className="spin" /> UPLOADING & VALIDATING…</>
+                  ) : (
+                    <><UploadCloud size={14} /> Upload Model</>
+                  )}
+                </button>
+
+                {pickerOpen && !busy && !uploading && (
+                  <div className="mv-picker-popover anim-scale-up">
+                    <div className="mv-picker-popover-title">SELECT MODEL SOURCE</div>
+                    <button
+                      type="button"
+                      className="mv-picker-option"
+                      onClick={() => {
+                        setPickerOpen(false);
+                        folderInputRef.current?.click();
+                      }}
+                    >
+                      <FolderOpen size={16} className="mv-picker-icon" />
+                      <div className="mv-picker-text">
+                        <strong>Complete Model Folder</strong>
+                        <span>Upload folder containing model weights, config & metadata</span>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      className="mv-picker-option"
+                      onClick={() => {
+                        setPickerOpen(false);
+                        fileInputRef.current?.click();
+                      }}
+                    >
+                      <FileCode size={16} className="mv-picker-icon" />
+                      <div className="mv-picker-text">
+                        <strong>Individual Model File</strong>
+                        <span>Select .pt, .pth, .onnx, .bin, .h5, .keras, or .tflite</span>
+                      </div>
+                    </button>
+                  </div>
                 )}
-              </button>
+              </div>
 
               <span className="mv-upload-hint">
                 {uploading
-                  ? 'Uploading model file and running artifact validation…'
-                  : 'Select model file or drop file here to validate'}
+                  ? 'Uploading model and running artifact validation…'
+                  : 'Select model file or complete model folder, or drop here'}
               </span>
               <span className="mv-upload-meta mono">
-                SUPPORTS .PT, .PTH, .ONNX, .BIN, .H5, .KERAS, .TFLITE, .CKPT
+                SUPPORTS .PT, .PTH, .ONNX, .BIN, .H5, .KERAS, .TFLITE, .CKPT OR COMPLETE FOLDERS
               </span>
             </div>
 
+            {/* Hidden native inputs: folder and file */}
             <input
-              ref={uploadRef}
+              ref={fileInputRef}
               type="file"
               hidden
               accept=".pt,.pth,.onnx,.bin,.h5,.keras,.tflite,.ckpt,.tar,.gz"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                e.target.value = '';
-                if (file) handleUploadAndValidate(file);
-              }}
+              onChange={(e) => handleFilesSelected(e.target.files)}
+            />
+            <input
+              ref={folderInputRef}
+              type="file"
+              hidden
+              multiple
+              webkitdirectory=""
+              directory=""
+              onChange={(e) => handleFilesSelected(e.target.files)}
             />
           </div>
         )}
@@ -305,11 +472,11 @@ export default function ModelValidation({ notify }) {
           {report && <StatusBadge status={report.status === 'VALID' ? 'PASS' : 'FAIL'} />}
         </div>
         {!report && !busy && !uploading && (
-          <div className="mv-empty">SELECT A REGISTERED MODEL OR UPLOAD A NEW MODEL FILE TO RUN VALIDATION</div>
+          <div className="mv-empty">SELECT A REGISTERED MODEL OR UPLOAD A MODEL FILE / FOLDER TO RUN VALIDATION</div>
         )}
         {(busy || uploading) && (
           <div className="mv-progress">
-            <Loader2 size={15} className="spin" /> {uploading ? 'UPLOADING MODEL FILE TO REPOSITORY…' : 'CHECKING MODEL REGISTRY AND FILE INTEGRITY…'}
+            <Loader2 size={15} className="spin" /> {uploading ? 'UPLOADING MODEL TO REPOSITORY…' : 'CHECKING MODEL REGISTRY AND FILE INTEGRITY…'}
           </div>
         )}
         {report && !busy && !uploading && (
