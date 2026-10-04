@@ -25,7 +25,7 @@ ground-truth answer key the validation runner is scored against:
 
 Everything is seeded: regenerating reproduces byte-identical datasets.
 
-Usage (from SentinelVision-Malad/):
+Usage (from SentinelVision/):
     python scripts/make_data_integrity_dataset.py
 """
 
