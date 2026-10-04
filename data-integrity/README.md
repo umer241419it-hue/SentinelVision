@@ -45,7 +45,7 @@ Why median+MAD calibration: the calibration pool contains the planted outliers t
 ## Quick start (offline)
 
 ```bash
-cd SentinelVision-Malad
+cd SentinelVision
 
 # 0. (once) generate the self-poisoned labeled test set + answer key
 python scripts/make_data_integrity_dataset.py
