@@ -13,7 +13,7 @@ Produces the raw, cross-checkable outputs the Stage 6 build order demands
      - normal window  : raw MMD value + calibrated threshold -> must NOT alert
      - shifted window : raw MMD value + calibrated threshold -> MUST alert
 
-Usage (from SentinelVision-Malad/):
+Usage (from SentinelVision/):
     python data-integrity/run_validation.py \
         --integrity-dir data/integrity-test \
         --shifted-dir data/scenario2-lighting-shift
