@@ -16,7 +16,7 @@ import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 DATA_INTEGRITY_ROOT = os.path.dirname(_HERE)          # .../data-integrity
-PROJECT_ROOT = os.path.dirname(DATA_INTEGRITY_ROOT)   # .../SentinelVision-Malad
+PROJECT_ROOT = os.path.dirname(DATA_INTEGRITY_ROOT)   # .../SentinelVision
 
 
 def ensure_shared_importable() -> None:
