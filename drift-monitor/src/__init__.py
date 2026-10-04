@@ -11,7 +11,7 @@ import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 DRIFT_MONITOR_ROOT = os.path.dirname(_HERE)          # .../drift-monitor
-PROJECT_ROOT = os.path.dirname(DRIFT_MONITOR_ROOT)   # .../SentinelVision-Malad
+PROJECT_ROOT = os.path.dirname(DRIFT_MONITOR_ROOT)   # .../SentinelVision
 
 
 def ensure_shared_importable() -> None:
