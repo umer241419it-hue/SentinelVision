@@ -13,6 +13,7 @@ const datasetValidationService = require('./services/datasetValidationService');
 const modelValidationService = require('./services/modelValidationService');
 const modelHookService = require('./services/modelHookService');
 const validationEngineService = require('./services/validationEngineService');
+const ledgerService = require('./services/ledgerService');
 
 let fabricGateway = null;
 try {
@@ -1325,30 +1326,43 @@ app.post('/api/trust/train', (req, res) => {
 });
 
 app.post('/api/trust/tests/:testId/quarantine', (req, res) => {
+    loadQuarantine();
     const job = jobService.getJob(req.params.testId);
     const reason = req.body?.reason || (job && job.error) || 'High anomaly or critical trojan signature flagged during assurance test';
+    const nowIso = new Date().toISOString();
+    const qId = `qr-${Date.now()}`;
 
     const item = {
-        id: `qr-${Date.now()}`,
+        id: qId,
+        quarantineId: qId,
         testId: req.params.testId,
         assetId: (job && job.modelId) || (job && job.datasetId) || 'asset-flagged',
+        datasetId: job?.datasetId || null,
+        datasetName: job?.datasetName || job?.datasetId || null,
+        modelId: job?.modelId || null,
+        modelName: job?.modelName || job?.modelId || null,
         kind: (job && job.testType === 'MODEL_INTEGRITY') ? 'MODEL' : 'DATASET',
         reason,
         submittedBy: req.user ? req.user.email : 'analyst@sentinelvision.io',
-        submittedAt: new Date().toISOString(),
-        status: 'PENDING',
+        userName: req.user ? req.user.email : 'analyst@sentinelvision.io',
+        submittedAt: nowIso,
+        createdAt: nowIso,
+        status: 'QUARANTINED',
         disposition: 'QUARANTINE',
         severity: (job && job.severity) || 'CRITICAL',
         reviewerNotes: null,
         reviewedBy: null,
-        reviewedAt: null
+        reviewedAt: null,
+        timeline: [
+            { at: nowIso, action: 'QUARANTINE_REQUESTED', actor: req.user ? req.user.email : 'analyst@sentinelvision.io' }
+        ]
     };
 
     quarantineRegistry.unshift(item);
     saveQuarantine();
 
     jobService.recordAuditEvent('QUARANTINE_REQUESTED', { quarantineId: item.id, assetId: item.assetId, reason }, req.user);
-    res.json({ success: true, quarantine: item });
+    res.json({ success: true, quarantine: item, item });
 });
 
 // ---------------------------------------------------------------------------
@@ -1568,19 +1582,55 @@ app.post('/api/datasets/validate', authService.requireAuth, authService.requireR
 // 8. Auditor Endpoints (Quarantine, Logs, Reports)
 // ---------------------------------------------------------------------------
 app.get('/api/auditor/quarantine', (req, res) => {
+    loadQuarantine();
     const status = req.query.status;
-    const filtered = status ? quarantineRegistry.filter(q => q.status === status) : quarantineRegistry;
-    res.json({ quarantine: filtered });
+    let list = quarantineRegistry.map(q => {
+        const id = q.quarantineId || q.id;
+        const job = jobService.getJob(q.testId);
+        return {
+            ...q,
+            id,
+            quarantineId: id,
+            datasetId: q.datasetId || job?.datasetId || null,
+            datasetName: q.datasetName || job?.datasetName || null,
+            modelId: q.modelId || job?.modelId || null,
+            modelName: q.modelName || job?.modelName || null,
+            userName: q.userName || q.submittedBy || 'analyst@sentinelvision.io',
+            createdAt: q.createdAt || q.submittedAt || new Date().toISOString()
+        };
+    });
+    if (status) {
+        list = list.filter(q => q.status === status);
+    }
+    res.json({ quarantine: list });
 });
 
 app.get('/api/auditor/quarantine/:id', (req, res) => {
-    const item = quarantineRegistry.find(q => q.id === req.params.id);
+    loadQuarantine();
+    const item = quarantineRegistry.find(q => q.id === req.params.id || q.quarantineId === req.params.id);
     if (!item) return res.status(404).json({ error: 'Quarantine item not found' });
-    res.json({ item });
+    const id = item.quarantineId || item.id;
+    const job = jobService.getJob(item.testId);
+    const enriched = {
+        ...item,
+        id,
+        quarantineId: id,
+        datasetId: item.datasetId || job?.datasetId || null,
+        datasetName: item.datasetName || job?.datasetName || null,
+        modelId: item.modelId || job?.modelId || null,
+        modelName: item.modelName || job?.modelName || null,
+        userName: item.userName || item.submittedBy || 'analyst@sentinelvision.io',
+        createdAt: item.createdAt || item.submittedAt || new Date().toISOString(),
+        timeline: item.timeline || [
+            { at: item.createdAt || item.submittedAt || new Date().toISOString(), action: 'QUARANTINE_REQUESTED', actor: item.submittedBy || 'analyst' }
+        ]
+    };
+    res.json({ quarantine: enriched, item: enriched, test: job || null });
 });
 
 app.post('/api/auditor/quarantine/:id/release', (req, res) => {
-    const item = quarantineRegistry.find(q => q.id === req.params.id);
+    loadQuarantine();
+    const item = quarantineRegistry.find(q => q.id === req.params.id || q.quarantineId === req.params.id);
     if (!item) return res.status(404).json({ error: 'Quarantine item not found' });
 
     item.status = 'RELEASED';
@@ -1588,50 +1638,76 @@ app.post('/api/auditor/quarantine/:id/release', (req, res) => {
     item.reviewedBy = req.user ? req.user.email : 'auditor@sentinelvision.io';
     item.reviewedAt = new Date().toISOString();
     item.reviewerNotes = req.body?.notes || 'Released by auditor';
+    item.timeline = item.timeline || [];
+    item.timeline.push({ at: item.reviewedAt, action: 'RELEASED', actor: item.reviewedBy });
 
     saveQuarantine();
-    jobService.recordAuditEvent('QUARANTINE_RELEASED', { id: item.id }, req.user);
-    res.json({ success: true, item });
+    jobService.recordAuditEvent('QUARANTINE_RELEASED', { id: item.id || item.quarantineId }, req.user);
+    res.json({ success: true, item, quarantine: item });
 });
 
 app.post('/api/auditor/quarantine/:id/commit', async (req, res) => {
-    const item = quarantineRegistry.find(q => q.id === req.params.id);
+    loadQuarantine();
+    const item = quarantineRegistry.find(q => q.id === req.params.id || q.quarantineId === req.params.id);
     if (!item) return res.status(404).json({ error: 'Quarantine item not found' });
 
-    let ledgerStatus = 'RECORDED';
-    try {
-        if (fabricGateway && fabricGateway.initializeContract) {
-            const contract = await fabricGateway.initializeContract();
-            await contract.submitTransaction(
-                'submitFinding',
-                String(item.assetId),
-                'Governance',
-                String(item.reason),
-                '',
-                '1',
-                String(item.severity || 'HIGH'),
-                String(item.disposition || 'QUARANTINE'),
-                String(item.submittedAt || new Date().toISOString()),
-                ''
-            );
-            ledgerStatus = 'COMMITTED';
-        } else {
-            ledgerStatus = 'OFFLINE_RECORDED';
-        }
-    } catch (err) {
-        ledgerStatus = 'OFFLINE_RECORDED';
-        console.log('Fabric Gateway commit notice:', err.message);
+    const qId = item.id || item.quarantineId;
+    const nowIso = new Date().toISOString();
+    const fields = {
+        assetID: String(item.assetId || item.testId || qId),
+        moduleName: 'Governance',
+        reason: String(item.reason || 'Quarantined by security auditor review'),
+        evidenceHash: item.evidenceHash || ledgerService.recordDigest(item),
+        confidence: 1.0,
+        severity: String(item.severity || 'HIGH'),
+        disposition: String(item.disposition || 'QUARANTINE'),
+        timestamp: String(item.submittedAt || nowIso)
+    };
+
+    const sigResult = ledgerService.signGovernanceFields(fields);
+    if (sigResult.signature) {
+        fields.signature = sigResult.signature;
     }
 
-    item.ledgerStatus = ledgerStatus;
-    item.committedAt = new Date().toISOString();
+    const journalEntry = await ledgerService.submitFinding(fields, {
+        quarantineId: qId,
+        testId: item.testId,
+        actor: req.user?.email || 'auditor@sentinelvision.io',
+        action: 'QUARANTINE_COMMIT'
+    });
+
+    item.ledgerStatus = journalEntry.status;
+    item.txId = journalEntry.txId;
+    item.status = journalEntry.status === 'COMMITTED' ? 'COMMITTED' : item.status;
+    item.committedAt = nowIso;
+    item.timeline = item.timeline || [];
+    item.timeline.push({
+        at: nowIso,
+        action: `LEDGER_${journalEntry.status}`,
+        actor: req.user?.email || 'auditor@sentinelvision.io'
+    });
+
     saveQuarantine();
-    jobService.recordAuditEvent('QUARANTINE_LEDGER_COMMIT', { id: item.id, ledgerStatus }, req.user);
-    res.json({ success: true, item, ledgerStatus });
+    jobService.recordAuditEvent('QUARANTINE_LEDGER_COMMIT', {
+        id: qId,
+        ledgerStatus: journalEntry.status,
+        txId: journalEntry.txId,
+        error: journalEntry.error
+    }, req.user);
+
+    res.json({
+        success: true,
+        item,
+        quarantine: item,
+        ledgerStatus: journalEntry.status,
+        txId: journalEntry.txId,
+        journalEntry
+    });
 });
 
 app.post('/api/auditor/quarantine/:id/decision', (req, res) => {
-    const item = quarantineRegistry.find(q => q.id === req.params.id);
+    loadQuarantine();
+    const item = quarantineRegistry.find(q => q.id === req.params.id || q.quarantineId === req.params.id);
     if (!item) return res.status(404).json({ error: 'Quarantine item not found' });
 
     const { decision, notes } = req.body || {};
@@ -1639,11 +1715,13 @@ app.post('/api/auditor/quarantine/:id/decision', (req, res) => {
     item.reviewerNotes = notes || 'Reviewed by lead auditor';
     item.reviewedBy = req.user ? req.user.email : 'auditor@sentinelvision.io';
     item.reviewedAt = new Date().toISOString();
+    item.timeline = item.timeline || [];
+    item.timeline.push({ at: item.reviewedAt, action: `DECISION_${item.status}`, actor: item.reviewedBy });
 
     saveQuarantine();
-    jobService.recordAuditEvent('QUARANTINE_DECISION', { id: item.id, decision: item.status, notes }, req.user);
+    jobService.recordAuditEvent('QUARANTINE_DECISION', { id: item.id || item.quarantineId, decision: item.status, notes }, req.user);
 
-    res.json({ success: true, item });
+    res.json({ success: true, item, quarantine: item });
 });
 
 app.get('/api/auditor/logs', (req, res) => {
@@ -1681,6 +1759,85 @@ app.post('/api/auditor/users/pending/:userId/approve', (req, res) => {
     }
 });
 
+function renderReportHtml(data) {
+    const id = data.assessment_id || data.report_id || 'Assurance Assessment';
+    const ts = data.assessment_timestamp || data.generated_at || new Date().toISOString();
+    const disposition = data.overall_assessment?.disposition || data.governance_disposition || 'REVIEW';
+    const status = data.overall_assessment?.overall_status || 'UNKNOWN';
+    const summary = data.overall_assessment?.summary || data.executive_summary?.overall_statement || 'Assurance assessment complete.';
+    const findings = data.findings || [];
+    const audit = data.audit || {};
+
+    const findingsHtml = findings.map(f => `
+        <tr style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+            <td style="padding: 10px; font-family: monospace; color: #22d3ee;">${f.finding_id || f.id || '—'}</td>
+            <td style="padding: 10px;">${f.check_id || f.module || '—'}</td>
+            <td style="padding: 10px; font-weight: bold; color: ${f.severity === 'CRITICAL' ? '#f87171' : f.severity === 'HIGH' ? '#fb923c' : '#facc15'};">${f.severity || '—'}</td>
+            <td style="padding: 10px;">${f.description || f.reason || '—'}</td>
+            <td style="padding: 10px; font-family: monospace; color: #94a3b8;">${f.evidence_hash ? '#' + f.evidence_hash.slice(0, 12) + '…' : '—'}</td>
+        </tr>
+    `).join('');
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>${id} — SentinelVision Assurance Report</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #070a13; color: #e2e8f0; margin: 0; padding: 28px; line-height: 1.6; }
+  .report-box { max-width: 1200px; margin: 0 auto; background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+  h1 { font-size: 22px; color: #38bdf8; margin-top: 0; letter-spacing: 0.05em; }
+  .header-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin: 20px 0; padding: 14px; background: #090d16; border-radius: 6px; border: 1px solid #1e293b; font-size: 13px; }
+  .meta-item span { display: block; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin-bottom: 4px; }
+  .meta-item b { color: #f1f5f9; }
+  .disposition { display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 11.5px; letter-spacing: 0.08em; }
+  .disp-QUARANTINE { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; }
+  .disp-ACCEPT { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #22c55e; }
+  .disp-REVIEW { background: rgba(234, 179, 8, 0.2); color: #facc15; border: 1px solid #eab308; }
+  .summary-box { background: rgba(56, 189, 248, 0.05); border-left: 4px solid #38bdf8; padding: 14px; margin: 20px 0; border-radius: 0 6px 6px 0; font-size: 13.5px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 12.5px; }
+  th { text-align: left; padding: 10px; background: #1e293b; color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .audit-hash { font-family: monospace; font-size: 11.5px; background: #090d16; padding: 8px 12px; border-radius: 4px; border: 1px solid #1e293b; color: #38bdf8; word-break: break-all; }
+</style>
+</head>
+<body>
+<div class="report-box">
+  <h1>SENTINELVISION AI INTEGRITY ASSURANCE REPORT</h1>
+  <div class="header-meta">
+    <div class="meta-item"><span>Report Identifier</span><b style="font-family: monospace;">${id}</b></div>
+    <div class="meta-item"><span>Generated Timestamp</span><b>${new Date(ts).toLocaleString()}</b></div>
+    <div class="meta-item"><span>Governance Disposition</span><b class="disposition disp-${disposition}">${disposition}</b></div>
+    <div class="meta-item"><span>Overall Status</span><b>${status}</b></div>
+  </div>
+  <div class="summary-box">
+    <strong>Executive Statement:</strong><br>${summary}
+  </div>
+  ${audit.final_chain_hash ? `
+    <div style="margin: 20px 0;">
+      <span style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.1em;">Audit Trail Hash Chain</span>
+      <div class="audit-hash">${audit.final_chain_hash} (Status: ${audit.chain_valid ? 'CONFIRMED' : 'UNVERIFIED'})</div>
+    </div>
+  ` : ''}
+  <h2 style="font-size: 15px; color: #f1f5f9; margin-top: 24px; border-bottom: 1px solid #1e293b; padding-bottom: 8px;">Detailed Findings (${findings.length})</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Finding ID</th>
+        <th>Module / Check</th>
+        <th>Severity</th>
+        <th>Description</th>
+        <th>Evidence Hash</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${findingsHtml || '<tr><td colspan="5" style="text-align: center; padding: 20px; color: #64748b;">No findings recorded in this assessment.</td></tr>'}
+    </tbody>
+  </table>
+</div>
+</body>
+</html>`;
+}
+
 app.get('/api/auditor/reports', (req, res) => {
     const reportsDir = path.join(WORKSPACE_ROOT, 'reports');
     const list = [];
@@ -1693,12 +1850,13 @@ app.get('/api/auditor/reports', (req, res) => {
                 try {
                     const data = JSON.parse(fs.readFileSync(reportFile, 'utf-8'));
                     list.push({
-                        reportId: data.report_id || sub,
-                        generatedAt: data.generated_at || fs.statSync(reportFile).mtime.toISOString(),
-                        periodDays: 30,
-                        auditorName: data.operator || 'Auditor (System)',
-                        disposition: data.governance_disposition || 'QUARANTINE',
-                        summary: data.executive_summary?.overall_statement || 'Assurance assessment complete'
+                        reportId: data.assessment_id || data.report_id || sub,
+                        dirId: sub,
+                        generatedAt: data.assessment_timestamp || data.generated_at || fs.statSync(reportFile).mtime.toISOString(),
+                        periodDays: data.period || data.periodDays || 30,
+                        auditorName: data.operator || data.contributor?.name || data.system?.operator || 'Auditor (System)',
+                        disposition: data.overall_assessment?.disposition || data.governance_disposition || 'REVIEW',
+                        summary: data.overall_assessment?.summary || data.executive_summary?.overall_statement || 'Assurance assessment complete'
                     });
                 } catch {}
             }
@@ -1711,7 +1869,12 @@ app.get('/api/auditor/reports', (req, res) => {
 app.get('/api/auditor/reports/governance.pdf', (req, res) => {
     const periodDays = parseInt(req.query.periodDays, 10) || 30;
     const auditLogs = jobService.getAuditLogs();
-    const ov = dataService.getOverview();
+    const allFindings = dataService.getAllFindings();
+    const critCount = allFindings.filter(f => f.severity === 'CRITICAL').length;
+    const highCount = allFindings.filter(f => f.severity === 'HIGH').length;
+    const evidenceList = dataService.getEvidenceList();
+    const fabricState = ledgerService.getFabricState();
+    loadQuarantine();
 
     const lines = [
         "SENTINELVISION AI INTEGRITY ASSURANCE REPORT",
@@ -1720,12 +1883,12 @@ app.get('/api/auditor/reports/governance.pdf', (req, res) => {
         `Platform Engine: SentinelVision Trust Engine (RTX 5050 CUDA 13.0 Accelerated)`,
         "=========================================================================",
         "",
-        `Total Active Findings:    ${ov.kpis.totalFindings}`,
-        `Critical Findings:         ${ov.kpis.criticalFindings}`,
-        `High Severity:             ${ov.kpis.highSeverity}`,
-        `Verified Evidence Records: ${ov.kpis.evidenceRecords}`,
+        `Total Active Findings:     ${allFindings.length}`,
+        `Critical Findings:         ${critCount}`,
+        `High Severity:             ${highCount}`,
+        `Verified Evidence Records: ${evidenceList.length}`,
         `Quarantined Assets:        ${quarantineRegistry.length}`,
-        `Ledger Verification:       CONFIRMED (Fabric Channel: mychannel)`,
+        `Ledger Verification:       ${fabricState.connected ? 'ONLINE (Fabric Channel: ' + fabricState.channel + ')' : 'STANDBY (Offline ledger journal active)'}`,
         "",
         "RECENT AUDIT TRAIL CHAIN (SHA-256 HASH CHAIN):",
         "-------------------------------------------------------------------------"
@@ -1733,7 +1896,7 @@ app.get('/api/auditor/reports/governance.pdf', (req, res) => {
 
     const sampleLogs = auditLogs.slice(0, 15);
     for (const log of sampleLogs) {
-        lines.push(`[${log.timestamp.slice(0, 19)}] ${log.eventType} by ${log.actor} (${log.role})`);
+        lines.push(`[${log.timestamp ? log.timestamp.slice(0, 19) : ''}] ${log.eventType} by ${log.actor || 'system'} (${log.role || 'user'})`);
         lines.push(`   Event Hash: ${log.eventHash?.slice(0, 32)}...`);
     }
 
@@ -1775,9 +1938,31 @@ app.get('/api/auditor/reports/:id/download', (req, res) => {
     const reportsDir = path.join(WORKSPACE_ROOT, 'reports');
     const id = req.params.id;
 
-    // Search for matching report in subdirectories
-    let targetHtml = path.join(reportsDir, id, 'assurance_report.html');
-    let targetJson = path.join(reportsDir, id, 'assurance_report.json');
+    // Search for matching directory directly or by assessment_id/report_id
+    let dir = null;
+    if (fs.existsSync(path.join(reportsDir, id))) {
+        dir = path.join(reportsDir, id);
+    } else if (fs.existsSync(reportsDir)) {
+        for (const sub of fs.readdirSync(reportsDir)) {
+            const jsonP = path.join(reportsDir, sub, 'assurance_report.json');
+            if (fs.existsSync(jsonP)) {
+                try {
+                    const parsed = JSON.parse(fs.readFileSync(jsonP, 'utf-8'));
+                    if (parsed.assessment_id === id || parsed.report_id === id) {
+                        dir = path.join(reportsDir, sub);
+                        break;
+                    }
+                } catch {}
+            }
+        }
+    }
+
+    if (!dir) {
+        return res.status(404).json({ error: 'Report not found' });
+    }
+
+    let targetHtml = path.join(dir, 'assurance_report.html');
+    let targetJson = path.join(dir, 'assurance_report.json');
 
     if (req.query.format === 'json' && fs.existsSync(targetJson)) {
         res.setHeader('Content-Type', 'application/json');
@@ -1790,6 +1975,18 @@ app.get('/api/auditor/reports/:id/download', (req, res) => {
         const disposition = req.query.view === '1' ? 'inline' : 'attachment';
         res.setHeader('Content-Disposition', `${disposition}; filename="assurance_report_${id}.html"`);
         return fs.createReadStream(targetHtml).pipe(res);
+    }
+
+    if (fs.existsSync(targetJson)) {
+        try {
+            const reportData = JSON.parse(fs.readFileSync(targetJson, 'utf-8'));
+            const html = renderReportHtml(reportData);
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            res.setHeader('Content-Disposition', `inline; filename="assurance_report_${id}.html"`);
+            return res.send(html);
+        } catch (err) {
+            return res.status(500).json({ error: 'Failed to format report: ' + err.message });
+        }
     }
 
     res.status(404).json({ error: 'Report file not found' });

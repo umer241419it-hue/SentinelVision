@@ -20,7 +20,7 @@ export default function Settings({ notify }) {
 
   const save = async () => {
     setSaving(true);
-    await getBridgeStatus(); // probe (mock)
+    await getBridgeStatus(); // probe bridge connection
     await new Promise((r) => setTimeout(r, 500));
     setSaving(false);
     notify?.('Settings saved (frontend preferences only)', 'success');
@@ -46,8 +46,8 @@ export default function Settings({ notify }) {
           <p className="set-hint">
             The Express bridge (bridge/src/index.js) exposes <span className="mono">GET /health</span>,{' '}
             <span className="mono">POST /findings</span> and{' '}
-            <span className="mono">GET /findings/:id</span>. The UI service layer targets these
-            endpoints when mock mode is disabled.
+            <span className="mono">GET /findings/:id</span>. The UI service layer connects to these
+            endpoints for live assurance telemetry and governance operations.
           </p>
         </GlassCard>
 

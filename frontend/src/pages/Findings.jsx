@@ -77,7 +77,7 @@ export default function Findings({ onOpenFinding }) {
       label: 'Contributor',
       render: (r) => (
         <span className="vendor-chip" title={r.contributorId}>
-          {r.contributorName || r.contributorId || 'Vendor Alpha'}
+          {r.contributorName || r.contributorId || 'Unassigned'}
         </span>
       )
     },
@@ -174,7 +174,7 @@ export default function Findings({ onOpenFinding }) {
           rows={filtered}
           loading={loading}
           onRowClick={setSelected}
-          emptyMessage="No findings match the current search/filter."
+          emptyMessage={findings.length === 0 ? "No findings available." : "No findings match the current search/filter."}
         />
       </GlassCard>
 

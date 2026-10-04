@@ -43,8 +43,13 @@ export default function QuarantineReview({ notify }) {
   }, [refresh]);
 
   async function openDetail(id) {
+    if (!id) return;
     try {
-      setSelected(await getQuarantineDetail(id));
+      const data = await getQuarantineDetail(id);
+      setSelected({
+        quarantine: data?.quarantine || data?.item || data,
+        test: data?.test || null
+      });
     } catch (err) {
       notify?.(err.message, 'error');
     }
@@ -52,12 +57,15 @@ export default function QuarantineReview({ notify }) {
 
   async function act(fn, okMsg) {
     if (!selected) return;
+    const currentId = selected.quarantine?.quarantineId || selected.quarantine?.id;
     setBusy(true);
     try {
       await fn();
       notify?.(okMsg, 'success');
       await refresh();
-      await openDetail(selected.quarantine.quarantineId);
+      if (currentId) {
+        await openDetail(currentId);
+      }
     } catch (err) {
       notify?.(err.message, 'error');
     } finally {
@@ -67,6 +75,7 @@ export default function QuarantineReview({ notify }) {
 
   const q = selected?.quarantine;
   const t = selected?.test;
+  const activeId = q?.quarantineId || q?.id;
 
   return (
     <div className="anim-fade qr-grid">
@@ -91,20 +100,23 @@ export default function QuarantineReview({ notify }) {
           </div>
         </div>
         <div className="qr-rows">
-          {rows.map((r) => (
-            <button
-              key={r.quarantineId}
-              className={`qr-row ${q?.quarantineId === r.quarantineId ? 'active' : ''}`}
-              onClick={() => openDetail(r.quarantineId)}
-            >
-              <span className="mono qr-id">{r.quarantineId}</span>
-              <span className="qr-test mono">{r.testId}</span>
-              <span className="qr-user">{r.userName || r.userId}</span>
-              <StatusBadge status={r.status} />
-            </button>
-          ))}
+          {rows.map((r) => {
+            const rowId = r.quarantineId || r.id;
+            return (
+              <button
+                key={rowId}
+                className={`qr-row ${activeId === rowId ? 'active' : ''}`}
+                onClick={() => openDetail(rowId)}
+              >
+                <span className="mono qr-id">{rowId}</span>
+                <span className="qr-test mono">{r.testId || r.assetId || '—'}</span>
+                <span className="qr-user">{r.userName || r.userId || r.submittedBy || 'Analyst'}</span>
+                <StatusBadge status={r.status} />
+              </button>
+            );
+          })}
           {!loading && rows.length === 0 && (
-            <div className="aw-empty">NO QUARANTINE RECORDS{status ? ` WITH STATUS ${status}` : ''}</div>
+            <div className="aw-empty">No quarantine items require review.</div>
           )}
           {loading && <div className="aw-empty">LOADING…</div>}
         </div>
@@ -116,20 +128,20 @@ export default function QuarantineReview({ notify }) {
         {selected && q && (
           <>
             <div className="card-header">
-              <h3>RECORD {q.quarantineId}</h3>
+              <h3>RECORD {activeId}</h3>
               <StatusBadge status={q.status} />
             </div>
 
             {/* Metadata */}
             <div className="qr-meta">
-              <div><span>TEST</span><b className="mono">{q.testId}</b></div>
-              <div><span>ANALYST</span><b>{q.userName || q.userId}</b></div>
+              <div><span>TEST</span><b className="mono">{q.testId || '—'}</b></div>
+              <div><span>ANALYST</span><b>{q.userName || q.userId || q.submittedBy || '—'}</b></div>
               <div><span>DATASET</span><b className="mono">{q.datasetName || q.datasetId || '—'}</b></div>
               <div><span>MODEL</span><b className="mono">{q.modelName || q.modelId || '—'}</b></div>
               <div><span>SEVERITY</span><b>{q.severity || '—'}</b></div>
               <div><span>CONFIDENCE</span><b>{q.confidence ?? '—'}</b></div>
               <div><span>EVIDENCE HASH</span><b className="mono">{q.evidenceHash ? `#${String(q.evidenceHash).slice(0, 16)}…` : '—'}</b></div>
-              <div><span>CREATED</span><b>{q.createdAt ? new Date(q.createdAt).toLocaleString() : '—'}</b></div>
+              <div><span>CREATED</span><b>{q.createdAt || q.submittedAt ? new Date(q.createdAt || q.submittedAt).toLocaleString() : '—'}</b></div>
             </div>
 
             {q.reason && (
@@ -158,7 +170,7 @@ export default function QuarantineReview({ notify }) {
                 <span className="qr-sub">TIMELINE</span>
                 {(q.timeline || []).map((ev, i) => (
                   <div key={i} className="qr-tl-row">
-                    <span className="mono qr-tl-time">{new Date(ev.at).toLocaleTimeString()}</span>
+                    <span className="mono qr-tl-time">{ev.at ? new Date(ev.at).toLocaleTimeString() : '—'}</span>
                     <span className="qr-tl-what">{ev.action}{ev.actor ? ` · ${ev.actor}` : ''}</span>
                   </div>
                 ))}
@@ -172,7 +184,7 @@ export default function QuarantineReview({ notify }) {
                   key={key}
                   className={`qr-act ${cls}`}
                   disabled={busy}
-                  onClick={() => act(() => decideQuarantine(q.quarantineId, key), `Decision ${key} recorded.`)}
+                  onClick={() => act(() => decideQuarantine(activeId, key), `Decision ${key} recorded.`)}
                 >
                   <Icon size={13} /> {key.replaceAll('_', ' ')}
                 </button>
@@ -181,7 +193,7 @@ export default function QuarantineReview({ notify }) {
                 <button
                   className="qr-act info"
                   disabled={busy}
-                  onClick={() => act(() => releaseQuarantine(q.quarantineId), 'Record released.')}
+                  onClick={() => act(() => releaseQuarantine(activeId), 'Record released.')}
                 >
                   <Unlock size={13} /> RELEASE
                 </button>
@@ -190,7 +202,7 @@ export default function QuarantineReview({ notify }) {
                 <button
                   className="qr-act ledger"
                   disabled={busy}
-                  onClick={() => act(() => commitQuarantineToLedger(q.quarantineId), 'Committed to Hyperledger Fabric.')}
+                  onClick={() => act(() => commitQuarantineToLedger(activeId), 'Committed to Hyperledger Fabric.')}
                 >
                   <Loader2 size={13} className={busy ? 'spin' : ''} /> COMMIT TO LEDGER
                 </button>

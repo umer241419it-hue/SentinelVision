@@ -5,6 +5,7 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const WORKSPACE_ROOT = path.resolve(__dirname, '../../../');
+const ledgerService = require('./ledgerService');
 const DATA_INTEGRITY_RESULTS = path.join(WORKSPACE_ROOT, 'data-integrity/results/integrity_results.json');
 const DRIFT_RESULTS = path.join(WORKSPACE_ROOT, 'drift-monitor/results/drift_results.json');
 const MODEL_FINDINGS = path.join(WORKSPACE_ROOT, 'model-integrity/findings.json');
@@ -22,14 +23,16 @@ const UPLOADS_META_FILE = path.join(WORKSPACE_ROOT, 'data/uploads_meta.json');
 const CONTRIBUTORS_FILE = path.join(WORKSPACE_ROOT, 'data/contributors.json');
 const SUBMITTED_FINDINGS_FILE = path.join(WORKSPACE_ROOT, 'data/submitted_findings.json');
 
-function saveSubmittedFinding(finding) {
+function saveSubmittedFinding(finding, ledgerEntry = null) {
     const list = readJsonSafe(SUBMITTED_FINDINGS_FILE, []);
     const existingIndex = list.findIndex(f => f.assetID === finding.assetID || (f.evidenceHash && f.evidenceHash === finding.evidenceHash));
+    // Ledger status/txId come only from the real Fabric submit outcome.
     const enriched = {
         ...finding,
         id: finding.id || `FIND-SUBM-${String(list.length + 1).padStart(4, '0')}`,
-        ledgerStatus: 'COMMITTED',
-        txId: finding.signature ? `tx-${finding.signature.slice(0, 16)}` : `tx-${(finding.evidenceHash || '').slice(0, 16)}`
+        ledgerStatus: ledgerEntry ? ledgerEntry.status : 'NOT_SUBMITTED',
+        txId: ledgerEntry ? ledgerEntry.txId : null,
+        ledgerError: ledgerEntry ? ledgerEntry.error : null
     };
     if (existingIndex >= 0) {
         list[existingIndex] = enriched;
@@ -72,12 +75,10 @@ function getAllFindings() {
                 moduleName: 'DataIntegrity',
                 reason: f.reason || r.reason || `Flagged by check: ${(r.flags || []).join(', ')}`,
                 evidenceHash: f.evidenceHash || r.evidence_hash || '',
-                confidence: typeof r.confidence === 'number' ? r.confidence : parseFloat(f.confidence || '0.65'),
-                severity: r.severity || f.severity || 'MEDIUM',
-                disposition: r.disposition || f.disposition || 'REVIEW',
-                timestamp: f.timestamp || dataInt.run?.run_timestamp || new Date().toISOString(),
-                ledgerStatus: 'COMMITTED',
-                txId: f.evidenceHash ? `tx-${f.evidenceHash.slice(0, 16)}` : null
+                confidence: typeof r.confidence === 'number' ? r.confidence : (f.confidence != null ? parseFloat(f.confidence) : null),
+                severity: r.severity || f.severity || null,
+                disposition: r.disposition || f.disposition || null,
+                timestamp: f.timestamp || dataInt.run?.run_timestamp || null
             });
         });
     }
@@ -90,14 +91,12 @@ function getAllFindings() {
                 id: `FIND-MODL-${String(idx + 1).padStart(4, '0')}`,
                 assetID: mf.assetID || `model-${idx}`,
                 moduleName: 'ModelIntegrity',
-                reason: mf.reason || 'Backdoor signature detected',
+                reason: mf.reason || null,
                 evidenceHash: mf.evidenceHash || '',
-                confidence: parseFloat(mf.confidence || '0.85'),
-                severity: mf.severity || 'HIGH',
-                disposition: mf.disposition || 'QUARANTINE',
-                timestamp: mf.timestamp || new Date().toISOString(),
-                ledgerStatus: 'COMMITTED',
-                txId: mf.signature ? `tx-${mf.signature.slice(0, 16)}` : null,
+                confidence: mf.confidence != null ? parseFloat(mf.confidence) : null,
+                severity: mf.severity || null,
+                disposition: mf.disposition || null,
+                timestamp: mf.timestamp || null,
                 signature: mf.signature
             });
         });
@@ -109,18 +108,18 @@ function getAllFindings() {
         driftData.results.forEach((w, idx) => {
             const sev = w.assessment === 'OPERATIONAL_SHIFT_LIKELY' ? 'HIGH' : w.assessment === 'UNEXPLAINED_SHIFT' ? 'CRITICAL' : 'LOW';
             const disp = sev === 'CRITICAL' ? 'QUARANTINE' : sev === 'HIGH' ? 'REVIEW' : 'ACCEPT';
+            const mmd = w.mmd?.mmd ?? w.mmd?.mmd_estimate;
+            const thr = w.threshold?.value ?? driftData.run?.threshold_value;
             all.push({
                 id: `FIND-DRFT-${String(idx + 1).padStart(4, '0')}`,
                 assetID: `window-${w.window_id || idx}`,
                 moduleName: 'DriftMonitor',
-                reason: `MMD ${w.mmd?.mmd_estimate?.toFixed(4) || '0.0090'} vs threshold ${driftData.run?.threshold_value?.toFixed(4) || '0.0090'} (${w.assessment})`,
-                evidenceHash: w.evidence_hash || '78e47087b2bc6572eb0f047781b2da98d89aefce28d08cb521d8b9b47e8b61c9',
-                confidence: 0.88,
+                reason: `MMD ${typeof mmd === 'number' ? mmd.toFixed(4) : 'n/a'} vs threshold ${typeof thr === 'number' ? thr.toFixed(4) : 'n/a'} (${w.assessment})`,
+                evidenceHash: w.evidence_hash || '',
+                confidence: typeof w.policy?.confidence === 'number' ? w.policy.confidence : null,
                 severity: sev,
                 disposition: disp,
-                timestamp: driftData.run?.run_timestamp || new Date().toISOString(),
-                ledgerStatus: 'COMMITTED',
-                txId: `tx-drift-${idx}`
+                timestamp: driftData.run?.run_timestamp || null
             });
         });
     }
@@ -135,12 +134,10 @@ function getAllFindings() {
                 moduleName: sf.moduleName || 'InferenceProvenance',
                 reason: sf.reason,
                 evidenceHash: sf.evidenceHash || '',
-                confidence: sf.confidence != null ? String(sf.confidence) : '1.0',
-                severity: sf.severity || 'LOW',
-                disposition: sf.disposition || 'ACCEPT',
-                timestamp: sf.timestamp || new Date().toISOString(),
-                ledgerStatus: sf.ledgerStatus || 'COMMITTED',
-                txId: sf.txId || (sf.signature ? `tx-${sf.signature.slice(0, 16)}` : null),
+                confidence: sf.confidence != null ? parseFloat(sf.confidence) : null,
+                severity: sf.severity || null,
+                disposition: sf.disposition || null,
+                timestamp: sf.timestamp || null,
                 signature: sf.signature
             });
         });
@@ -162,6 +159,18 @@ function getAllFindings() {
                 f.contributorName = 'Unassigned';
             }
         }
+    });
+
+    // Ledger status is derived ONLY from the bridge's journal of real Fabric
+    // submissions. A finding is COMMITTED only if a confirmed transaction exists.
+    const journal = ledgerService.listEntries();
+    all.forEach(f => {
+        const tx = journal.find(e => e.status === 'COMMITTED' && (
+            (f.evidenceHash && e.evidenceHash === f.evidenceHash) || e.ledgerKey === f.assetID
+        ));
+        f.ledgerStatus = tx ? 'COMMITTED' : 'NOT_COMMITTED';
+        f.txId = tx ? tx.txId : null;
+        f.blockNumber = tx ? tx.blockNumber : null;
     });
 
     return all;
@@ -439,27 +448,33 @@ function getActivitySeries(range = '24H') {
 // Ledger & Fabric Info
 // ---------------------------------------------------------------------------
 function getLedgerTransactions() {
+    const fabric = ledgerService.getFabricState();
     const findings = getAllFindings();
-    const transactions = findings.map((f, idx) => ({
-        txId: f.txId || `tx-${f.evidenceHash?.slice(0, 16) || idx}`,
-        blockNumber: 120 + idx,
-        channel: 'mychannel',
-        chaincode: 'basic',
-        timestamp: f.timestamp,
-        assetID: f.assetID,
-        moduleName: f.moduleName,
-        evidenceHash: f.evidenceHash,
-        status: 'VALID_COMMITTED'
-    }));
+    const transactions = ledgerService.listEntries().map(e => {
+        const finding = findings.find(f => (e.evidenceHash && f.evidenceHash === e.evidenceHash) || f.assetID === e.ledgerKey) || null;
+        return {
+            ...e,
+            // Fields consumed by the auditor table; null means "Not available".
+            timestamp: e.attemptedAt,
+            findingId: e.findingId || finding?.id || null,
+            assetID: e.assetId || finding?.assetID || e.ledgerKey,
+            contributorId: e.contributorId || finding?.contributorId || null,
+            contributorName: e.contributorName || finding?.contributorName || null,
+            auditorName: e.actor || null
+        };
+    });
 
     return {
         info: {
-            channel: 'mychannel',
-            chaincode: 'basic',
-            blockHeight: 120 + transactions.length,
-            peerCount: 2,
-            status: 'CONNECTED',
-            lastBlockTime: new Date().toISOString()
+            channel: fabric.channel,
+            chaincode: fabric.chaincode,
+            mspId: fabric.mspId,
+            peerEndpoint: fabric.peerEndpoint,
+            connected: fabric.connected,
+            lastError: fabric.lastError,
+            lastCheckedAt: fabric.lastCheckedAt,
+            committedCount: transactions.filter(t => t.status === 'COMMITTED').length,
+            attemptCount: transactions.length
         },
         transactions
     };
@@ -493,11 +508,15 @@ function getSystemHealth() {
                 totalRecords: evidenceList.length,
                 storageEngine: 'SHA-256 Tamper-Evident Directory Store'
             },
-            fabricLedger: {
-                status: 'READY',
-                channel: 'mychannel',
-                chaincode: 'basic'
-            },
+            fabricLedger: (() => {
+                const fabric = ledgerService.getFabricState();
+                return {
+                    status: fabric.connected ? 'CONNECTED' : 'OFFLINE',
+                    channel: fabric.channel,
+                    chaincode: fabric.chaincode,
+                    detail: fabric.connected ? null : fabric.lastError
+                };
+            })(),
             detectionEngines: {
                 dataIntegrity: 'OPERATIONAL',
                 modelIntegrity: 'OPERATIONAL',

@@ -12,6 +12,7 @@ export default function GovernanceReports({ notify }) {
   const [loading, setLoading] = useState(true);
   const [reportUrl, setReportUrl] = useState(null);
   const [reportTitle, setReportTitle] = useState('Governance Report');
+  const [selectedReport, setSelectedReport] = useState(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -47,6 +48,7 @@ export default function GovernanceReports({ notify }) {
         return url;
       });
       setReportTitle(report.reportId || 'Governance Report');
+      setSelectedReport(report);
     } catch (err) {
       notify?.(err.message, 'error');
     }
@@ -57,6 +59,7 @@ export default function GovernanceReports({ notify }) {
       if (old) URL.revokeObjectURL(old);
       return null;
     });
+    setSelectedReport(null);
   }
 
   async function download() {
@@ -139,7 +142,7 @@ export default function GovernanceReports({ notify }) {
                 </tr>
               ))}
               {!loading && reports.length === 0 && (
-                <tr><td colSpan={5} className="aw-empty">NO REPORTS GENERATED YET</td></tr>
+                <tr><td colSpan={5} className="aw-empty">No governance reports have been generated.</td></tr>
               )}
               {loading && <tr><td colSpan={5} className="aw-empty">LOADING…</td></tr>}
             </tbody>
@@ -148,10 +151,32 @@ export default function GovernanceReports({ notify }) {
       </GlassCard>
 
       {reportUrl && (
-        <div className="report-viewer-overlay" role="dialog" aria-modal="true">
+        <div
+          className="report-viewer-overlay"
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => { if (e.target === e.currentTarget) closeReport(); }}
+        >
           <div className="report-viewer">
             <div className="report-viewer-header">
-              <span>{reportTitle}</span>
+              <div className="report-viewer-header-info">
+                <span className="report-viewer-title">{reportTitle}</span>
+                {selectedReport?.generatedAt && (
+                  <span className="report-viewer-meta">
+                    Generated: {new Date(selectedReport.generatedAt).toLocaleString()}
+                  </span>
+                )}
+                {selectedReport?.periodDays && (
+                  <span className="report-viewer-meta">
+                    Period: {selectedReport.periodDays}d
+                  </span>
+                )}
+                {selectedReport?.disposition && (
+                  <span className={`tb-pill ${selectedReport.disposition === 'ACCEPT' ? 'ok' : 'crit'}`}>
+                    {selectedReport.disposition}
+                  </span>
+                )}
+              </div>
               <button className="qr-act" onClick={closeReport} title="Close report">
                 <X size={15} />
                 CLOSE

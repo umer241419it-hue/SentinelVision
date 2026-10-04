@@ -40,9 +40,11 @@ export default function FabricLedger() {
   const netStats = [
     { icon: Layers, label: 'Channel', value: info.channel },
     { icon: Boxes, label: 'Chaincode', value: info.chaincode },
-    { icon: Link2, label: 'Latest Block', value: `#${info.latestBlock}` },
+    { icon: Link2, label: 'Latest Block', value: info.latestBlock && info.latestBlock !== '—' ? `#${info.latestBlock}` : '—' },
     { icon: CircleCheck, label: 'Committed Findings', value: info.totalFindings }
   ];
+
+  const isConnected = info.networkStatus === 'CONNECTED';
 
   return (
     <div className="anim-fade">
@@ -62,7 +64,7 @@ export default function FabricLedger() {
         </div>
         <div className="fl-header-right">
           <span className="tb-pill fl-status-pill">
-            <span className="status-dot ok" />
+            <span className={`status-dot ${isConnected ? 'ok' : 'pending'}`} />
             Fabric {info.networkStatus}
           </span>
           <LedgerVerifiedBadge />
@@ -95,42 +97,48 @@ export default function FabricLedger() {
           </span>
         </div>
 
-        <div className="tx-timeline">
-          {transactions.map((tx) => (
-            <div key={tx.txId} className="tx-row">
-              <div className="tx-rail">
-                <div className="tx-node">
-                  <CircleCheck size={13} />
+        {transactions.length === 0 ? (
+          <div style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+            No ledger transactions available.
+          </div>
+        ) : (
+          <div className="tx-timeline">
+            {transactions.map((tx) => (
+              <div key={tx.txId} className="tx-row">
+                <div className="tx-rail">
+                  <div className="tx-node">
+                    <CircleCheck size={13} />
+                  </div>
+                  <div className="tx-line" />
                 </div>
-                <div className="tx-line" />
+                <div className="tx-card">
+                  <div className="tx-card-head">
+                    <span className="mono tx-id" title={tx.txId}>
+                      TX {tx.txId.slice(0, 18)}…
+                    </span>
+                    <span className="tx-block mono">block #{tx.block}</span>
+                    <StatusBadge status={tx.status} />
+                    <span className="tx-time">{fmtTime(tx.timestamp)}</span>
+                  </div>
+                  <div className="tx-card-body">
+                    <div className="tx-field">
+                      <span className="tx-k">Finding</span>
+                      <span className="tx-v mono">{tx.findingId}</span>
+                    </div>
+                    <div className="tx-field">
+                      <span className="tx-k">Asset ID</span>
+                      <span className="tx-v mono">{tx.assetId}</span>
+                    </div>
+                    <div className="tx-field">
+                      <span className="tx-k">Module</span>
+                      <span className="tx-v">{tx.moduleName}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="tx-card">
-                <div className="tx-card-head">
-                  <span className="mono tx-id" title={tx.txId}>
-                    TX {tx.txId.slice(0, 18)}…
-                  </span>
-                  <span className="tx-block mono">block #{tx.block}</span>
-                  <StatusBadge status={tx.status} />
-                  <span className="tx-time">{fmtTime(tx.timestamp)}</span>
-                </div>
-                <div className="tx-card-body">
-                  <div className="tx-field">
-                    <span className="tx-k">Finding</span>
-                    <span className="tx-v mono">{tx.findingId}</span>
-                  </div>
-                  <div className="tx-field">
-                    <span className="tx-k">Asset ID</span>
-                    <span className="tx-v mono">{tx.assetId}</span>
-                  </div>
-                  <div className="tx-field">
-                    <span className="tx-k">Module</span>
-                    <span className="tx-v">{tx.moduleName}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </GlassCard>
     </div>
   );

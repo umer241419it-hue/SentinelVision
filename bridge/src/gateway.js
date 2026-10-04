@@ -100,4 +100,8 @@ async function closeGateway() {
 module.exports = {
     initializeContract,
     closeGateway,
+    channelName,
+    chaincodeName,
+    mspId,
+    peerEndpoint,
 };
