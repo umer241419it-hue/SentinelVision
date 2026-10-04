@@ -20,7 +20,7 @@ object; per-image parameters (texture phase, object position, sky gradient)
 vary within a fixed range so the reference is a DISTRIBUTION, not one image.
 
 Usage:
-    python scripts/generate_drift_test_data.py        # from SentinelVision-Malad/
+    python scripts/generate_drift_test_data.py        # from SentinelVision/
 """
 
 import os
