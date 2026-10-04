@@ -3,8 +3,6 @@ node_modules/
 log.txt
 chaincode/finding/node_modules/
 bridge/node_modules/
-fabric-samples/bin/
-fabric-samples/config/
 model-integrity/data/
 __pycache__/
 *.pyc
@@ -15,7 +13,8 @@ crypto-utils/keys/
 *.key
 *.priv
 
-# Bridge runtime logs
+# Runtime logs
+logs/
 bridge/bridge.log
 bridge/*.log
 
