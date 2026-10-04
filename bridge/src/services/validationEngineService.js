@@ -11,15 +11,26 @@ const MODEL_INTEGRITY_ROOT = path.join(WORKSPACE_ROOT, 'model-integrity');
 function mkdirp(p) { fs.mkdirSync(p, { recursive: true }); }
 function writeJson(p, value) { mkdirp(path.dirname(p)); fs.writeFileSync(p, JSON.stringify(value, null, 2), 'utf8'); }
 
+const activeSubprocesses = new Set();
+
 function runProcess(command, args, cwd, env) {
     return new Promise((resolve) => {
         const child = spawn(command, args, { cwd, env: env || process.env, stdio: ['ignore', 'pipe', 'pipe'] });
+        activeSubprocesses.add(child);
         let stdout = ''; let stderr = '';
         child.stdout.on('data', c => { stdout += c.toString(); });
         child.stderr.on('data', c => { stderr += c.toString(); });
-        child.on('error', err => resolve({ code: -1, stdout, stderr, error: err.message }));
-        child.on('close', code => resolve({ code: code == null ? -1 : code, stdout, stderr }));
+        const clean = () => activeSubprocesses.delete(child);
+        child.on('error', err => { clean(); resolve({ code: -1, stdout, stderr, error: err.message }); });
+        child.on('close', code => { clean(); resolve({ code: code == null ? -1 : code, stdout, stderr }); });
     });
+}
+
+function terminateSubprocesses() {
+    for (const child of activeSubprocesses) {
+        try { child.kill('SIGTERM'); } catch {}
+    }
+    activeSubprocesses.clear();
 }
 
 function pythonEnv() {
@@ -234,4 +245,4 @@ async function runModelIntegrityEngine({ modelId, modelPath, outputDir }) {
     return { engine: 'SentinelVision Model Integrity Assurance (Python STRIP)', status: 'COMPLETED', simulated: false, exitCode: result.code, modelId, output, resultsPath: outputPath, stdout: result.stdout, stderr: result.stderr, error: null };
 }
 
-module.exports = { runDatasetIntegrityEngine, runModelIntegrityEngine };
+module.exports = { runDatasetIntegrityEngine, runModelIntegrityEngine, terminateSubprocesses };

@@ -11,7 +11,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "bridge:dev": "npm --prefix ../bridge start",
-    "electron:dev": "concurrently -k \"npm:bridge:dev\" \"vite\" \"wait-on tcp:127.0.0.1:3000 tcp:127.0.0.1:5173 && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron .\"",
+    "electron:dev": "node scripts/dev-runner.cjs",
     "electron:start": "npm run build && electron .",
     "electron:dist": "npm run build && electron-builder"
   },

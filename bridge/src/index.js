@@ -206,7 +206,10 @@ async function parseMultipartBuffer(req) {
 // ---------------------------------------------------------------------------
 // 1. Health & Subsystem Status
 // ---------------------------------------------------------------------------
-app.get('/health', (req, res) => {
+app.get('/health', async (req, res) => {
+    try {
+        await ledgerService.probe();
+    } catch {}
     res.json(dataService.getSystemHealth());
 });
 
@@ -266,29 +269,42 @@ app.post('/findings', async (req, res) => {
         return res.status(400).json({ error: 'Invalid finding payload' });
     }
 
-    try {
-        if (fabricGateway && fabricGateway.initializeContract) {
-            const contract = await fabricGateway.initializeContract();
-            await contract.submitTransaction(
-                'submitFinding',
-                String(finding.assetID),
-                String(finding.moduleName),
-                String(finding.reason),
-                String(finding.evidenceHash),
-                String(finding.confidence),
-                String(finding.severity),
-                String(finding.disposition),
-                String(finding.timestamp),
-                String(finding.signature || '')
-            );
+    const nowIso = new Date().toISOString();
+    const fields = {
+        assetID: String(finding.assetID),
+        moduleName: String(finding.moduleName || 'DataIntegrity'),
+        reason: String(finding.reason || 'Integrity anomaly detected'),
+        evidenceHash: String(finding.evidenceHash || ledgerService.recordDigest(finding)),
+        confidence: Number(finding.confidence ?? 0.95),
+        severity: String(finding.severity || 'HIGH'),
+        disposition: String(finding.disposition || 'REVIEW'),
+        timestamp: String(finding.timestamp || nowIso),
+        signature: String(finding.signature || '')
+    };
+
+    if (!fields.signature) {
+        const sigResult = ledgerService.signGovernanceFields(fields);
+        if (sigResult.signature) {
+            fields.signature = sigResult.signature;
         }
-    } catch (err) {
-        console.log('Fabric Gateway submit notice:', err.message);
     }
 
-    const saved = dataService.saveSubmittedFinding(finding);
-    jobService.recordAuditEvent('FINDING_SUBMITTED', { assetID: finding.assetID, module: finding.moduleName });
-    res.status(201).json({ success: true, message: 'Finding recorded', data: saved });
+    const journalEntry = await ledgerService.submitFinding(fields, {
+        findingId: finding.id || finding.assetID,
+        contributorId: finding.contributorId || null,
+        contributorName: finding.contributorName || null,
+        actor: req.user?.email || 'analyst@sentinelvision.io',
+        action: 'FINDING_SUBMIT'
+    });
+
+    const saved = dataService.saveSubmittedFinding(finding, journalEntry);
+    jobService.recordAuditEvent('FINDING_SUBMITTED', {
+        assetID: finding.assetID,
+        module: finding.moduleName,
+        txId: journalEntry.txId,
+        status: journalEntry.status
+    });
+    res.status(201).json({ success: true, message: 'Finding recorded', data: saved, journalEntry });
 });
 
 app.get('/integrity/results', (req, res) => {
@@ -2005,9 +2021,29 @@ const server = app.listen(PORT, async () => {
     }
 });
 
-process.on('SIGTERM', () => {
-    server.close();
+server.on('error', (err) => {
+    console.error(`[bridge] Server listen error: ${err.message}`);
+    process.exit(1);
 });
-process.on('SIGINT', () => {
-    server.close();
-});
+
+let isShuttingDown = false;
+function gracefulShutdown() {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+
+    try { validationEngineService.terminateSubprocesses?.(); } catch {}
+    try { jobService.terminateSubprocesses?.(); } catch {}
+
+    if (typeof server.closeAllConnections === 'function') {
+        try { server.closeAllConnections(); } catch {}
+    }
+    server.close(() => {
+        process.exit(0);
+    });
+    setTimeout(() => {
+        process.exit(0);
+    }, 1000).unref();
+}
+
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);

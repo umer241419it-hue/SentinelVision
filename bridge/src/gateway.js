@@ -10,11 +10,36 @@ const channelName = process.env.CHANNEL_NAME || 'mychannel';
 const chaincodeName = process.env.CHAINCODE_NAME || 'basic';
 const mspId = process.env.MSP_ID || 'Org1MSP';
 
+const fsSync = require('fs');
+
 const projectRoot = path.resolve(__dirname, '../../');
-const cryptoPath = process.env.CRYPTO_PATH || path.resolve(
+const defaultCryptoPath = path.resolve(
     projectRoot,
     'fabric-samples/test-network/organizations/peerOrganizations/org1.example.com'
 );
+
+const candidateCryptoPaths = [
+    process.env.CRYPTO_PATH,
+    process.env.FABRIC_CRYPTO_PATH,
+    process.env.FABRIC_SAMPLES_PATH ? path.resolve(process.env.FABRIC_SAMPLES_PATH, 'test-network/organizations/peerOrganizations/org1.example.com') : null,
+    defaultCryptoPath,
+    path.resolve(projectRoot, '../fabric-samples/test-network/organizations/peerOrganizations/org1.example.com'),
+    ...((() => {
+        try {
+            const parentDir = path.resolve(projectRoot, '..');
+            const entries = fsSync.readdirSync(parentDir);
+            return entries.map(entry => path.resolve(parentDir, entry, 'fabric-samples/test-network/organizations/peerOrganizations/org1.example.com'));
+        } catch {
+            return [];
+        }
+    })())
+].filter(Boolean);
+
+const resolvedCryptoPath = candidateCryptoPaths.find(candidate =>
+    fsSync.existsSync(path.join(candidate, 'peers/peer0.org1.example.com/tls/ca.crt'))
+) || defaultCryptoPath;
+
+const cryptoPath = process.env.CRYPTO_PATH || resolvedCryptoPath;
 const keyDirectoryPath = path.resolve(
     cryptoPath,
     'users/User1@org1.example.com/msp/keystore'

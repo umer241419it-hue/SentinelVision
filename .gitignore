@@ -34,3 +34,10 @@ datasets/
 reports/
 .venv/
 venv/
+fabric-samples/
+dist/
+build/
+.vscode/
+.idea/
+*.swp
+*.swo

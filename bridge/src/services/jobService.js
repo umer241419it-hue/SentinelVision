@@ -122,9 +122,12 @@ function makeEnv() {
     };
 }
 
+const activeJobProcesses = new Set();
+
 function runCommand(command, args, cwd, env, logStream, onOutput) {
     return new Promise((resolve) => {
         const child = spawn(command, args, { cwd, env, stdio: ['ignore', 'pipe', 'pipe'] });
+        activeJobProcesses.add(child);
         const write = (chunk, stderr = false) => {
             const text = chunk.toString();
             logStream.write(text);
@@ -132,9 +135,17 @@ function runCommand(command, args, cwd, env, logStream, onOutput) {
         };
         child.stdout.on('data', c => write(c));
         child.stderr.on('data', c => write(c, true));
-        child.on('error', err => resolve({ code: -1, error: err.message }));
-        child.on('close', code => resolve({ code: code ?? -1 }));
+        const clean = () => activeJobProcesses.delete(child);
+        child.on('error', err => { clean(); resolve({ code: -1, error: err.message }); });
+        child.on('close', code => { clean(); resolve({ code: code ?? -1 }); });
     });
+}
+
+function terminateSubprocesses() {
+    for (const child of activeJobProcesses) {
+        try { child.kill('SIGTERM'); } catch {}
+    }
+    activeJobProcesses.clear();
 }
 
 function setCheck(job, key, status, details) {
@@ -485,4 +496,4 @@ function getJob(runId) { return jobs[runId] || null; }
 function listJobs() { return Object.values(jobs).sort((a, b) => new Date(b.startTime) - new Date(a.startTime)); }
 function getAuditLogs() { return auditTrail.slice().reverse(); }
 
-module.exports = { startJob, getJob, listJobs, getAuditLogs, recordAuditEvent };
+module.exports = { startJob, getJob, listJobs, getAuditLogs, recordAuditEvent, terminateSubprocesses };
